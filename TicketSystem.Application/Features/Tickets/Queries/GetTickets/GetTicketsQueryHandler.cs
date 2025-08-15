@@ -3,7 +3,6 @@ using TicketSystem.Application.Common.Handlers;
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
 using TicketSystem.Application.Features.Tickets.DTOs;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using TicketSystem.Domain.Entities;
 
@@ -71,7 +70,7 @@ public class GetTicketsQueryHandler : IQueryHandler<GetTicketsQuery, PaginatedLi
         if (request.AssignedToId.HasValue)
         {
             var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.AssignedToId == request.AssignedToId;
+            predicate = x => originalPredicate.Invoke(x) && x.AssignedToUserId == request.AssignedToId;
         }
 
         if (!string.IsNullOrEmpty(request.SearchTerm))
@@ -146,10 +145,11 @@ public class GetTicketsQueryHandler : IQueryHandler<GetTicketsQuery, PaginatedLi
     {
         return status switch
         {
-            Domain.Enums.TicketStatus.Inceleniyor => "İnceleniyor",
-            Domain.Enums.TicketStatus.Islenmede => "İşlemde",
-            Domain.Enums.TicketStatus.Cozuldu => "Çözüldü",
-            Domain.Enums.TicketStatus.Kapatildi => "Kapatıldı",
+            Domain.Enums.TicketStatus.İnceleniyor => "İnceleniyor",
+            Domain.Enums.TicketStatus.İşlemde => "İşlemde",
+            Domain.Enums.TicketStatus.Çözüldü => "Çözüldü",
+            Domain.Enums.TicketStatus.Kapandı => "Kapandı",
+            Domain.Enums.TicketStatus.Reddedildi => "Reddedildi",
             _ => status.ToString()
         };
     }

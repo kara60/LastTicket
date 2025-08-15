@@ -3,6 +3,7 @@ using TicketSystem.Application.Features.Common.DTOs;
 using TicketSystem.Application.Features.Tickets.DTOs;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
+using System.Text.Json;
 
 namespace TicketSystem.Application.Common.Mappings;
 
@@ -18,7 +19,9 @@ public class MappingProfile : Profile
 
         CreateMap<TicketType, TicketTypeDto>()
             .ForMember(dest => dest.FormDefinition, opt => opt.MapFrom(src =>
-                System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(src.FormDefinition ?? "{}", (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, object>()));
+                string.IsNullOrEmpty(src.FormDefinition)
+                    ? new Dictionary<string, object>()
+                    : JsonSerializer.Deserialize<Dictionary<string, object>>(src.FormDefinition) ?? new Dictionary<string, object>()));
 
         CreateMap<TicketCategory, TicketCategoryDto>();
 
@@ -27,7 +30,9 @@ public class MappingProfile : Profile
         CreateMap<Ticket, TicketDto>()
             .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => GetStatusDisplay(src.Status)))
             .ForMember(dest => dest.FormData, opt => opt.MapFrom(src =>
-                System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(System.Text.Json.JsonSerializer.Serialize(src.FormData), (System.Text.Json.JsonSerializerOptions?)null) ?? new Dictionary<string, object>()));
+                string.IsNullOrEmpty(src.FormData)
+                    ? new Dictionary<string, object>()
+                    : JsonSerializer.Deserialize<Dictionary<string, object>>(src.FormData) ?? new Dictionary<string, object>()));
 
         CreateMap<Ticket, TicketListDto>()
             .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => GetStatusDisplay(src.Status)))
@@ -49,10 +54,11 @@ public class MappingProfile : Profile
     {
         return status switch
         {
-            TicketStatus.Inceleniyor => "İnceleniyor",
-            TicketStatus.Islenmede => "İşlemde",
-            TicketStatus.Cozuldu => "Çözüldü",
-            TicketStatus.Kapatildi => "Kapatıldı",
+            TicketStatus.İnceleniyor => "İnceleniyor",
+            TicketStatus.İşlemde => "İşlemde",
+            TicketStatus.Çözüldü => "Çözüldü",
+            TicketStatus.Kapandı => "Kapandı",
+            TicketStatus.Reddedildi => "Reddedildi",
             _ => status.ToString()
         };
     }

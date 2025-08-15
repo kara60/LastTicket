@@ -13,13 +13,16 @@ public class Ticket : AuditableEntity
     public string Description { get; set; } = string.Empty;
 
     [Required]
-    public TicketStatus Status { get; set; } = TicketStatus.İnceleniyor; // Başlangıç durumu
+    public TicketStatus Status { get; set; } = TicketStatus.İnceleniyor;
 
     [MaxLength(20)]
     public string TicketNumber { get; set; } = string.Empty;
 
     // Form Data (JSON)
     public string? FormData { get; set; }
+
+    // Selected Module
+    public string? SelectedModule { get; set; }
 
     // Dates
     public DateTime? SubmittedAt { get; set; }
@@ -43,48 +46,38 @@ public class Ticket : AuditableEntity
 
     // Foreign Keys
     public int CompanyId { get; set; }
-    public int CustomerId { get; set; }
-    public int TicketTypeId { get; set; }
-    public int TicketCategoryId { get; set; }
+    public int? CustomerId { get; set; }
+    public int TypeId { get; set; }
+    public int CategoryId { get; set; }
     public int? TicketCategoryModuleId { get; set; }
     public int CreatedByUserId { get; set; }
     public int? AssignedToUserId { get; set; }
 
     // Navigation Properties
     public virtual Company Company { get; set; } = null!;
-    public virtual Customer Customer { get; set; } = null!;
-    public virtual TicketType TicketType { get; set; } = null!;
-    public virtual TicketCategory TicketCategory { get; set; } = null!;
+    public virtual Customer? Customer { get; set; }
+    public virtual TicketType Type { get; set; } = null!;
+    public virtual TicketCategory Category { get; set; } = null!;
     public virtual TicketCategoryModule? TicketCategoryModule { get; set; }
-    public virtual User CreatedByUser { get; set; } = null!;
-    public virtual User? AssignedToUser { get; set; }
+    public virtual User CreatedBy { get; set; } = null!;
+    public virtual User? AssignedTo { get; set; }
 
     public virtual ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
     public virtual ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>();
     public virtual ICollection<TicketHistory> History { get; set; } = new List<TicketHistory>();
 
-    // ================================
-    // BUSINESS METHODS - YENİ FLOW
-    // ================================
-
-    /// <summary>
-    /// Ticket oluşturulduğunda otomatik çağrılır - İnceleniyor status'ü ile başlar
-    /// </summary>
+    // Business Methods
     public void Create()
     {
         Status = TicketStatus.İnceleniyor;
         SubmittedAt = DateTime.UtcNow;
 
-        // Generate ticket number
         if (string.IsNullOrEmpty(TicketNumber))
         {
             TicketNumber = GenerateTicketNumber();
         }
     }
 
-    /// <summary>
-    /// Admin İnceleniyor status'ünden ONAYLAR → İşlemde
-    /// </summary>
     public void Approve(int approvedByUserId, string? approvalComment = null)
     {
         if (Status != TicketStatus.İnceleniyor)
@@ -92,19 +85,15 @@ public class Ticket : AuditableEntity
 
         Status = TicketStatus.İşlemde;
         ApprovedAt = DateTime.UtcNow;
-        AssignedToUserId = approvedByUserId; // Admin kendine atayabilir veya başkasına
+        AssignedToUserId = approvedByUserId;
         UpdatedBy = approvedByUserId.ToString();
 
-        // Onay yorumu varsa ekle
         if (!string.IsNullOrEmpty(approvalComment))
         {
             AddComment($"Ticket onaylandı: {approvalComment}", approvedByUserId, isInternal: true);
         }
     }
 
-    /// <summary>
-    /// Admin İnceleniyor veya İşlemde status'ünden REDDEDİR
-    /// </summary>
     public void Reject(int rejectedByUserId, string rejectionReason)
     {
         if (Status != TicketStatus.İnceleniyor && Status != TicketStatus.İşlemde)
@@ -113,19 +102,15 @@ public class Ticket : AuditableEntity
         if (string.IsNullOrWhiteSpace(rejectionReason))
             throw new ArgumentException("Red sebesi zorunludur", nameof(rejectionReason));
 
-        Status = TicketStatus.Reddedildi; // Enum'a eklenecek
+        Status = TicketStatus.Reddedildi;
         RejectedAt = DateTime.UtcNow;
         Resolution = rejectionReason;
         ResolvedAt = DateTime.UtcNow;
         UpdatedBy = rejectedByUserId.ToString();
 
-        // Red yorumu ekle
         AddComment($"Ticket reddedildi: {rejectionReason}", rejectedByUserId, isInternal: false);
     }
 
-    /// <summary>
-    /// Admin İşlemde status'ünden ÇÖZER → Çözüldü
-    /// </summary>
     public void Resolve(int resolvedByUserId, string? resolutionComment = null)
     {
         if (Status != TicketStatus.İşlemde)
@@ -136,7 +121,6 @@ public class Ticket : AuditableEntity
         ResolvedAt = DateTime.UtcNow;
         UpdatedBy = resolvedByUserId.ToString();
 
-        // Çözüm yorumu varsa ekle
         if (!string.IsNullOrEmpty(resolutionComment))
         {
             Resolution = resolutionComment;
@@ -144,9 +128,6 @@ public class Ticket : AuditableEntity
         }
     }
 
-    /// <summary>
-    /// Admin Çözüldü status'ünden KAPATIR → Kapandı
-    /// </summary>
     public void Close(int closedByUserId, string? closingComment = null)
     {
         if (Status != TicketStatus.Çözüldü)
@@ -156,16 +137,12 @@ public class Ticket : AuditableEntity
         ClosedAt = DateTime.UtcNow;
         UpdatedBy = closedByUserId.ToString();
 
-        // Kapatma yorumu varsa ekle
         if (!string.IsNullOrEmpty(closingComment))
         {
             AddComment($"Ticket kapatıldı: {closingComment}", closedByUserId, isInternal: false);
         }
     }
 
-    /// <summary>
-    /// Yorum ekleme - hem internal hem public
-    /// </summary>
     public void AddComment(string content, int userId, bool isInternal = false)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -184,9 +161,6 @@ public class Ticket : AuditableEntity
         Comments.Add(comment);
     }
 
-    /// <summary>
-    /// Ticket numarası üretici
-    /// </summary>
     private string GenerateTicketNumber()
     {
         var year = DateTime.UtcNow.Year;
@@ -194,25 +168,13 @@ public class Ticket : AuditableEntity
         return $"TK{year}{timestamp}";
     }
 
-    // ================================
-    // COMPUTED PROPERTIES
-    // ================================
-
-    /// <summary>
-    /// Ticket açık mı? (Kapanmamış veya reddedilmemiş)
-    /// </summary>
+    // Computed Properties
     public bool IsOpen => Status != TicketStatus.Kapandı && Status != TicketStatus.Reddedildi;
 
-    /// <summary>
-    /// Admin aksiyon alabilir mi?
-    /// </summary>
     public bool CanTakeAction => Status == TicketStatus.İnceleniyor ||
                                 Status == TicketStatus.İşlemde ||
                                 Status == TicketStatus.Çözüldü;
 
-    /// <summary>
-    /// Hangi butonlar gösterilecek?
-    /// </summary>
     public List<string> AvailableActions
     {
         get
@@ -227,34 +189,22 @@ public class Ticket : AuditableEntity
         }
     }
 
-    /// <summary>
-    /// Ticket süresi hesaplama
-    /// </summary>
     public TimeSpan? TimeToResolve => ResolvedAt.HasValue && SubmittedAt.HasValue
         ? ResolvedAt - SubmittedAt
         : null;
 
-    /// <summary>
-    /// Ticket gecikmede mi?
-    /// </summary>
     public bool IsOverdue => DueDate.HasValue && DueDate < DateTime.UtcNow && IsOpen;
 
-    /// <summary>
-    /// Status display metni
-    /// </summary>
     public string StatusDisplayText => Status switch
     {
         TicketStatus.İnceleniyor => "İnceleniyor",
         TicketStatus.İşlemde => "İşlemde",
         TicketStatus.Çözüldü => "Çözüldü",
         TicketStatus.Kapandı => "Kapandı",
-        TicketStatus.Reddedildi => "Reddedildi", // Enum'a eklenecek
+        TicketStatus.Reddedildi => "Reddedildi",
         _ => "Bilinmiyor"
     };
 
-    /// <summary>
-    /// Status renk kodu (UI için)
-    /// </summary>
     public string StatusColor => Status switch
     {
         TicketStatus.İnceleniyor => "#f59e0b", // Orange

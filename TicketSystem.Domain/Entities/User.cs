@@ -41,6 +41,8 @@ public class User : AuditableEntity
     public virtual ICollection<Ticket> CreatedTickets { get; set; } = new List<Ticket>();
     public virtual ICollection<Ticket> AssignedTickets { get; set; } = new List<Ticket>();
     public virtual ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
+    public virtual ICollection<TicketHistory> TicketHistories { get; set; } = new List<TicketHistory>();
+
 
     // Computed Properties
     public string FullName => $"{FirstName} {LastName}";
