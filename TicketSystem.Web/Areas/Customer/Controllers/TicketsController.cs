@@ -28,7 +28,7 @@ public class TicketsController : Controller
         return View(result.Data);
     }
 
-    public async Task<IActionResult> Details(Guid id)
+    public async Task<IActionResult> Details(int id)
     {
         var result = await _mediator.Send(new GetTicketByIdQuery(id));
         if (!result.IsSuccess)
@@ -50,7 +50,7 @@ public class TicketsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> SelectType(Guid typeId)
+    public async Task<IActionResult> SelectType(int typeId)
     {
         var categories = await _mediator.Send(new GetTicketCategoriesQuery());
         var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
@@ -71,7 +71,7 @@ public class TicketsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> SelectCategory(Guid typeId, Guid categoryId)
+    public async Task<IActionResult> SelectCategory(int typeId, int categoryId)
     {
         var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
         var categories = await _mediator.Send(new GetTicketCategoriesQuery());
@@ -147,7 +147,7 @@ public class TicketsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddComment(Guid ticketId, string content)
+    public async Task<IActionResult> AddComment(int ticketId, string content)
     {
         var command = new AddTicketCommentCommand
         {

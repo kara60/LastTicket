@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Infrastructure.Data;
+using TicketSystem.Application.Common.Interfaces;
 
 namespace TicketSystem.Infrastructure.Repositories;
 

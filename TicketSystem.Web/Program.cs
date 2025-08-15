@@ -1,23 +1,21 @@
 using TicketSystem.Application;
 using TicketSystem.Infrastructure;
-using TicketSystem.Infrastructure.Data;
-using TicketSystem.Infrastructure.Data.Seeders;
 using TicketSystem.Web.Extensions;
 using TicketSystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
-// Layer services
+// Application Services
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddWebServices(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure pipeline
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -26,47 +24,23 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
-// JWT Middleware - Authentication'dan önce
+// JWT Middleware
 app.UseMiddleware<JwtMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Area routes
+// Area routing
 app.MapControllerRoute(
-    name: "admin",
-    pattern: "admin/{controller=Dashboard}/{action=Index}/{id?}",
-    defaults: new { area = "Admin" });
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
-app.MapControllerRoute(
-    name: "customer",
-    pattern: "customer/{controller=Dashboard}/{action=Index}/{id?}",
-    defaults: new { area = "Customer" });
-
-// Default route
+// Default routing
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
-
-// Database migration and seeding
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await context.Database.EnsureCreatedAsync();
-        await DataSeeder.SeedAsync(context);
-
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("Database seeded successfully");
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database");
-    }
-}
 
 app.Run();

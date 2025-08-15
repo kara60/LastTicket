@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Infrastructure.Data;
 
 namespace TicketSystem.Infrastructure.Repositories;
@@ -15,19 +16,19 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id)
+    public virtual async Task<T?> GetByIdAsync(int id)
     {
         return await _dbSet.FindAsync(id);
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
+    public virtual async Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes)
     {
         IQueryable<T> query = _dbSet;
         foreach (var include in includes)
         {
             query = query.Include(include);
         }
-        return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
+        return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
     }
 
     public virtual async Task<IEnumerable<T>> GetAllAsync()
@@ -159,7 +160,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet.RemoveRange(entities);
     }
 
-    public virtual async Task RemoveByIdAsync(Guid id)
+    public virtual async Task RemoveByIdAsync(int id)
     {
         var entity = await GetByIdAsync(id);
         if (entity != null)

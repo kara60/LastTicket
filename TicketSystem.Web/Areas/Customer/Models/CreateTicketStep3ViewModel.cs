@@ -6,8 +6,8 @@ namespace TicketSystem.Web.Areas.Customer.Models;
 // Step 1: Ticket Type Selection
 public class CreateTicketStep3ViewModel
 {
-    public Guid SelectedTypeId { get; set; }
-    public Guid SelectedCategoryId { get; set; }
+    public int SelectedTypeId { get; set; }
+    public int SelectedCategoryId { get; set; }
     public TicketTypeDto? SelectedType { get; set; }
     public TicketCategoryDto? SelectedCategory { get; set; }
 

@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TicketSystem.Domain.Entities;
-using TicketSystem.Infrastructure.Repositories;
+using TicketSystem.Application.Common.Interfaces;
 
 namespace TicketSystem.Web.Services;
 

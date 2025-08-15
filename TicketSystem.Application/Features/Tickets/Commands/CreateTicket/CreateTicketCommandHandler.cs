@@ -5,7 +5,6 @@ using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
-using TicketSystem.Infrastructure.Repositories;
 
 namespace TicketSystem.Application.Features.Tickets.Commands.CreateTicket;
 
@@ -52,7 +51,7 @@ public class CreateTicketCommandHandler : ICommandHandler<CreateTicketCommand, s
         }
 
         // Get customer for customer users
-        Guid? customerId = null;
+        int? customerId = null;
         if (_currentUserService.IsCustomer && _currentUserService.CustomerId.HasValue)
         {
             customerId = _currentUserService.CustomerId.Value;
@@ -68,31 +67,30 @@ public class CreateTicketCommandHandler : ICommandHandler<CreateTicketCommand, s
         // Create ticket
         var ticket = new Ticket
         {
-            Id = Guid.NewGuid(),
             CompanyId = _currentUserService.CompanyId.Value,
             CustomerId = customerId,
-            CreatedById = _currentUserService.UserId!.Value,
-            TypeId = request.TypeId,
-            CategoryId = request.CategoryId,
+            CreatedByUserId = _currentUserService.UserId!.Value,
+            TicketTypeId = request.TypeId,
+            TicketCategoryId = request.CategoryId,
             TicketNumber = ticketNumber,
             Title = request.Title,
             Description = request.Description,
-            FormData = request.FormData,
+            FormData = System.Text.Json.JsonSerializer.Serialize(request.FormData),
             SelectedModule = request.SelectedModule,
-            Status = TicketStatus.Inceleniyor
+            Status = TicketStatus.İnceleniyor
         };
+
+        // Use the Create method from domain entity
+        ticket.Create();
 
         await _unitOfWork.Tickets.AddAsync(ticket);
 
         // Add history record
-        var history = new TicketHistory
-        {
-            Id = Guid.NewGuid(),
-            TicketId = ticket.Id,
-            UserId = _currentUserService.UserId.Value,
-            Action = "Ticket Oluşturuldu",
-            Description = $"Ticket oluşturuldu. Durum: {TicketStatus.Inceleniyor}"
-        };
+        var history = TicketHistory.CreateStatusChange(
+            ticket.Id,
+            _currentUserService.UserId.Value,
+            TicketStatus.İnceleniyor,
+            TicketStatus.İnceleniyor);
 
         await _unitOfWork.TicketHistory.AddAsync(history);
         await _unitOfWork.SaveChangesAsync();

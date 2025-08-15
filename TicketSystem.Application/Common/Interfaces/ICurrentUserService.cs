@@ -2,10 +2,10 @@
 
 public interface ICurrentUserService
 {
-    Guid? UserId { get; }
+    int? UserId { get; }
     string? UserName { get; }
-    Guid? CompanyId { get; }
-    Guid? CustomerId { get; }
+    int? CompanyId { get; }
+    int? CustomerId { get; }
     string? Role { get; }
     bool IsAdmin { get; }
     bool IsCustomer { get; }

@@ -3,7 +3,6 @@ using TicketSystem.Application.Common.Handlers;
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
 using TicketSystem.Application.Features.Tickets.DTOs;
-using TicketSystem.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using TicketSystem.Domain.Entities;

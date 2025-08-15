@@ -13,32 +13,32 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid? UserId
+    public int? UserId
     {
         get
         {
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.TryParse(userId, out var id) ? id : null;
+            return int.TryParse(userId, out var id) ? id : null;
         }
     }
 
     public string? UserName => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Name);
 
-    public Guid? CompanyId
+    public int? CompanyId
     {
         get
         {
             var companyId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("CompanyId");
-            return Guid.TryParse(companyId, out var id) ? id : null;
+            return int.TryParse(companyId, out var id) ? id : null;
         }
     }
 
-    public Guid? CustomerId
+    public int? CustomerId
     {
         get
         {
             var customerId = _httpContextAccessor.HttpContext?.User?.FindFirstValue("CustomerId");
-            return Guid.TryParse(customerId, out var id) ? id : null;
+            return int.TryParse(customerId, out var id) ? id : null;
         }
     }
 

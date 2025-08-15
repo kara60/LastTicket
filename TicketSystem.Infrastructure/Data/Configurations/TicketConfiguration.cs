@@ -15,7 +15,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedOnAdd();
 
         builder.Property(x => x.TicketNumber)
             .IsRequired()
@@ -31,7 +31,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(x => x.Status)
             .HasConversion<string>()
             .HasMaxLength(20)
-            .HasDefaultValue(TicketStatus.Inceleniyor);
+            .HasDefaultValue(TicketStatus.İnceleniyor);
 
         // JSON column for dynamic form data
         builder.Property(x => x.FormData)

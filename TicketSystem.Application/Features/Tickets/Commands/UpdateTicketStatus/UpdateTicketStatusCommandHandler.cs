@@ -4,7 +4,6 @@ using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
-using TicketSystem.Infrastructure.Repositories;
 
 namespace TicketSystem.Application.Features.Tickets.Commands.UpdateTicketStatus;
 

@@ -1,6 +1,6 @@
 ﻿using TicketSystem.Domain.Entities;
 
-namespace TicketSystem.Infrastructure.Repositories;
+namespace TicketSystem.Application.Common.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
