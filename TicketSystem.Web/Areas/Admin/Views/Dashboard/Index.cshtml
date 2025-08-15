@@ -1,0 +1,151 @@
+﻿@model TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats.DashboardStatsDto
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Tickets -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-ticket-alt text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Toplam Ticket</p>
+                <p class="text-2xl font-semibold text-gray-900">@Model.TotalTickets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Tickets -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                <i class="fas fa-clock text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Aktif Ticket</p>
+                <p class="text-2xl font-semibold text-gray-900">@Model.ActiveTickets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved Tickets -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Çözülen Ticket</p>
+                <p class="text-2xl font-semibold text-gray-900">@Model.ResolvedTickets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closed Tickets -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-gray-100 text-gray-600">
+                <i class="fas fa-archive text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">Kapatılan Ticket</p>
+                <p class="text-2xl font-semibold text-gray-900">@Model.ClosedTickets</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Tickets by Status -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Duruma Göre Ticket'lar</h3>
+        <div class="space-y-3">
+            @foreach (var status in Model.TicketsByStatus)
+            {
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full mr-3" style="background-color: @status.Color"></div>
+                        <span class="text-sm font-medium text-gray-700">@status.Status</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900">@status.Count</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Tickets by Type -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Türe Göre Ticket'lar</h3>
+        <div class="space-y-3">
+            @foreach (var type in Model.TicketsByType)
+            {
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full mr-3" style="background-color: @type.Color"></div>
+                        <span class="text-sm font-medium text-gray-700">@type.TypeName</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900">@type.Count</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Customer Activity & Recent Tickets -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Top Customers -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">En Aktif Müşteriler</h3>
+        <div class="space-y-4">
+            @foreach (var customer in Model.TicketsByCustomer.Take(5))
+            {
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-building text-blue-600 text-xs"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">@customer.CustomerName</span>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900">@customer.Count</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Hızlı İşlemler</h3>
+        <div class="space-y-3">
+            <a href="@Url.Action("Index", "Tickets", new { area = "Admin" })"
+               class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition duration-200">
+                <i class="fas fa-ticket-alt text-blue-600 mr-3"></i>
+                <span class="font-medium text-gray-700">Tüm Ticket'ları Görüntüle</span>
+            </a>
+
+            <a href="@Url.Action("Create", "Users", new { area = "Admin" })"
+               class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition duration-200">
+                <i class="fas fa-user-plus text-green-600 mr-3"></i>
+                <span class="font-medium text-gray-700">Yeni Kullanıcı Ekle</span>
+            </a>
+
+            <a href="@Url.Action("Create", "TicketTypes", new { area = "Admin" })"
+               class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition duration-200">
+                <i class="fas fa-cog text-purple-600 mr-3"></i>
+                <span class="font-medium text-gray-700">Yeni Ticket Türü</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple chart simulation with bars
+        document.addEventListener('DOMContentLoaded', function() {
+            // This would normally use Chart.js, but for simplicity we'll use CSS bars
+            console.log('Dashboard loaded');
+        });
+    </script>
+}

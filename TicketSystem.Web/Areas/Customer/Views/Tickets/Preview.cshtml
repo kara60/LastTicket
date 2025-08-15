@@ -1,0 +1,159 @@
+﻿@model TicketSystem.Web.Areas.Customer.Models.CreateTicketStep4ViewModel
+@{
+    ViewData["Title"] = "Yeni Ticket Oluştur - Önizleme";
+}
+
+<!-- Progress Bar -->
+<div class="mb-8">
+    <div class="flex items-center">
+        <div class="flex items-center text-green-600">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
+                <i class="fas fa-check text-xs"></i>
+            </span>
+            <span class="ml-2 text-sm font-medium">Tür Seçimi</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
+        <div class="flex items-center text-green-600">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
+                <i class="fas fa-check text-xs"></i>
+            </span>
+            <span class="ml-2 text-sm font-medium">Kategori</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
+        <div class="flex items-center text-green-600">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
+                <i class="fas fa-check text-xs"></i>
+            </span>
+            <span class="ml-2 text-sm font-medium">Form</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
+        <div class="flex items-center text-blue-600">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium">4</span>
+            <span class="ml-2 text-sm font-medium">Önizleme</span>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Ticket Önizleme</h2>
+        <p class="text-gray-600 mt-1">Ticket bilgilerinizi kontrol edin ve onaylayın.</p>
+    </div>
+
+    <div class="p-6">
+        <!-- Ticket Summary -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-600">Başlık</dt>
+                        <dd class="text-lg font-semibold text-gray-900 mt-1">@Model.Title</dd>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div>
+                            <dt class="text-sm font-medium text-gray-600">Açıklama</dt>
+                            <dd class="text-gray-900 mt-1 whitespace-pre-wrap">@Model.Description</dd>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.SelectedModule))
+                    {
+                        <div>
+                            <dt class="text-sm font-medium text-gray-600">Seçilen Modül</dt>
+                            <dd class="text-gray-900 mt-1">
+                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                                    @Model.SelectedModule
+                                </span>
+                            </dd>
+                        </div>
+                    }
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-600">Ticket Türü</dt>
+                        <dd class="text-gray-900 mt-1 flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: @Model.SelectedType?.Color"></div>
+                            @Model.SelectedType?.Name
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-600">Kategori</dt>
+                        <dd class="text-gray-900 mt-1 flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: @Model.SelectedCategory?.Color"></div>
+                            @Model.SelectedCategory?.Name
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-gray-600">Durum</dt>
+                        <dd class="text-gray-900 mt-1">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                İnceleniyor
+                            </span>
+                        </dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Data -->
+        @if (Model.FormData.Any())
+        {
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Form Detayları</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4">
+                    <dl class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        @foreach (var field in Model.FormData)
+                        {
+                            <div>
+                                <dt class="text-sm font-medium text-gray-600">@field.Key</dt>
+                                <dd class="text-sm text-gray-900 mt-1">@field.Value</dd>
+                            </div>
+                        }
+                    </dl>
+                </div>
+            </div>
+        }
+
+        <!-- Confirmation -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                <div>
+                    <h4 class="text-sm font-medium text-blue-800">Ticket Oluşturma Onayı</h4>
+                    <p class="text-sm text-blue-700 mt-1">
+                        Ticket'ınız oluşturulduktan sonra sistem yöneticileri tarafından incelenecek ve size geri bildirim verilecektir.
+                        Ticket numaranız e-posta adresinize gönderilecektir.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
+        <a href="javascript:history.back()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            <i class="fas fa-arrow-left mr-2"></i>Geri
+        </a>
+
+        <form method="post" asp-action="SubmitTicket" class="inline">
+            <input type="hidden" asp-for="SelectedTypeId" />
+            <input type="hidden" asp-for="SelectedCategoryId" />
+            <input type="hidden" asp-for="Title" />
+            <input type="hidden" asp-for="Description" />
+            <input type="hidden" asp-for="SelectedModule" />
+            @foreach (var field in Model.FormData)
+            {
+                <input type="hidden" name="FormData[@field.Key]" value="@field.Value" />
+            }
+            <button type="submit" class="inline-flex items-center px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                <i class="fas fa-check mr-2"></i>Ticket'ı Oluştur
+            </button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,58 @@
+﻿@model TicketSystem.Web.Areas.Customer.Models.CreateTicketStep1ViewModel
+@{
+    ViewData["Title"] = "Yeni Ticket Oluştur - Tür Seçimi";
+}
+
+<!-- Progress Bar -->
+<div class="mb-8">
+    <div class="flex items-center">
+        <div class="flex items-center text-blue-600">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium">1</span>
+            <span class="ml-2 text-sm font-medium">Tür Seçimi</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
+        <div class="flex items-center text-gray-400">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">2</span>
+            <span class="ml-2 text-sm font-medium">Kategori</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
+        <div class="flex items-center text-gray-400">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">3</span>
+            <span class="ml-2 text-sm font-medium">Form</span>
+        </div>
+        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
+        <div class="flex items-center text-gray-400">
+            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">4</span>
+            <span class="ml-2 text-sm font-medium">Önizleme</span>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Ticket Türü Seçin</h2>
+        <p class="text-gray-600 mt-1">Oluşturmak istediğiniz ticket türünü seçiniz.</p>
+    </div>
+
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var type in Model.TicketTypes)
+            {
+                <form method="post" asp-action="SelectType">
+                    <input type="hidden" name="typeId" value="@type.Id" />
+                    <button type="submit" class="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition duration-200 text-left">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4" style="background-color: @type.Color; opacity: 0.1;">
+                                <i class="fas fa-@type.Icon text-2xl" style="color: @type.Color;"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">@type.Name</h3>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">@type.Description</p>
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

@@ -1,49 +1,198 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TicketSystem.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/TicketSystem.Web.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - Ticket System</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        .sidebar {
+            transition: all 0.3s;
+        }
+
+        .sidebar-collapsed {
+            width: 4rem;
+        }
+
+        .content-expanded {
+            margin-left: 4rem;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TicketSystem.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar bg-gray-900 text-white w-64 min-h-screen p-4">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-xl font-bold">Ticket System</h1>
+                <button id="sidebarToggle" class="text-white hover:text-gray-300">
+                    <i class="fas fa-bars"></i>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+            </div>
+
+            <!-- User Info -->
+            <div class="mb-8 p-3 bg-gray-800 rounded">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3 sidebar-text">
+                        <p class="font-medium">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value @User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value</p>
+                        <p class="text-sm text-gray-400">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+            <!-- Navigation -->
+            <nav class="space-y-2">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-gray-800" : "")">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span class="ml-3 sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Tickets", new { area = "Admin" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-gray-800" : "")">
+                        <i class="fas fa-ticket-alt w-5"></i>
+                        <span class="ml-3 sidebar-text">Tüm Ticket'lar</span>
+                    </a>
+
+                    <!-- Yönetim Section -->
+                    <div class="mt-6 mb-2">
+                        <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider">Yönetim</h3>
+                    </div>
+
+                    <a href="@Url.Action("Index", "Users", new { area = "Admin" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-gray-800" : "")">
+                        <i class="fas fa-users w-5"></i>
+                        <span class="ml-3 sidebar-text">Kullanıcılar</span>
+                    </a>
+
+                    <!-- Ayarlar Section -->
+                    <div class="mt-6 mb-2">
+                        <h3 class="sidebar-text text-xs font-semibold text-gray-400 uppercase tracking-wider">Ayarlar</h3>
+                    </div>
+
+                    <a href="@Url.Action("Index", "TicketTypes", new { area = "Admin" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "TicketTypes" ? "bg-gray-800" : "")">
+                        <i class="fas fa-cog w-5"></i>
+                        <span class="ml-3 sidebar-text">Ticket Türleri</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Categories", new { area = "Admin" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "bg-gray-800" : "")">
+                        <i class="fas fa-folder w-5"></i>
+                        <span class="ml-3 sidebar-text">Kategoriler</span>
+                    </a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", "Dashboard", new { area = "Customer" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-gray-800" : "")">
+                        <i class="fas fa-tachometer-alt w-5"></i>
+                        <span class="ml-3 sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="@Url.Action("Create", "Tickets", new { area = "Customer" })" class="flex items-center p-3 rounded hover:bg-gray-800">
+                        <i class="fas fa-plus w-5"></i>
+                        <span class="ml-3 sidebar-text">Yeni Ticket</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Tickets", new { area = "Customer" })" class="flex items-center p-3 rounded hover:bg-gray-800 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-gray-800" : "")">
+                        <i class="fas fa-ticket-alt w-5"></i>
+                        <span class="ml-3 sidebar-text">Ticket'larım</span>
+                    </a>
+                }
+            </nav>
+
+            <!-- Logout -->
+            <div class="absolute bottom-4 left-4 right-4">
+                <form method="post" action="@Url.Action("Logout", "Auth")">
+                    <button type="submit" class="flex items-center p-3 rounded hover:bg-gray-800 w-full text-left">
+                        <i class="fas fa-sign-out-alt w-5"></i>
+                        <span class="ml-3 sidebar-text">Çıkış</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" class="flex-1 flex flex-col">
+            <!-- Top Bar -->
+            <header class="bg-white shadow-sm border-b p-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold text-gray-800">@ViewData["Title"]</h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600">@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 p-6">
+                <!-- Alerts -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                        <div class="flex">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            @TempData["Success"]
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        <div class="flex">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            @TempData["Error"]
+                        </div>
+                    </div>
+                }
+
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                        <div class="flex">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            @TempData["Warning"]
+                        </div>
+                    </div>
+                }
+
+                <!-- Page Content -->
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - TicketSystem.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- JavaScript -->
+    <script>
+        // Sidebar Toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+
+            sidebar.classList.toggle('sidebar-collapsed');
+
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebarTexts.forEach(text => text.style.display = 'none');
+            } else {
+                sidebarTexts.forEach(text => text.style.display = 'inline');
+            }
+        });
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.bg-green-100, .bg-red-100, .bg-yellow-100');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

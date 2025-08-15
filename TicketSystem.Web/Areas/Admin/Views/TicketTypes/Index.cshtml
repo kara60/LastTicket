@@ -1,0 +1,97 @@
+﻿@model IEnumerable<TicketSystem.Domain.Entities.TicketType>
+@{
+    ViewData["Title"] = "Ticket Türleri";
+}
+
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold text-gray-900">Ticket Türleri</h2>
+    <a href="@Url.Action("Create")" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+        <i class="fas fa-plus mr-2"></i>Yeni Tür Ekle
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @foreach (var ticketType in Model)
+    {
+        <div class="bg-white rounded-lg shadow border-l-4" style="border-left-color: @ticketType.Color;">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4" style="background-color: @ticketType.Color; opacity: 0.1;">
+                            <i class="fas fa-@ticketType.Icon text-2xl" style="color: @ticketType.Color;"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">@ticketType.Name</h3>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    @(ticketType.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                                @(ticketType.IsActive ? "Aktif" : "Pasif")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-gray-600 text-sm mb-4">@ticketType.Description</p>
+
+                <div class="mb-4">
+                    <span class="text-xs text-gray-500">Sıralama: @ticketType.DisplayOrder</span>
+                </div>
+
+                <!-- Form Fields Count -->
+                @{
+                    var fieldCount = 0;
+                    if (!string.IsNullOrEmpty(ticketType.FormDefinition))
+                    {
+                        try
+                        {
+                            var formDef = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(ticketType.FormDefinition);
+                            if (formDef.TryGetProperty("fields", out var fieldsElement))
+                            {
+                                fieldCount = fieldsElement.GetArrayLength();
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                <div class="mb-4 p-3 bg-gray-50 rounded">
+                    <div class="flex items-center text-sm text-gray-600">
+                        <i class="fas fa-list mr-2"></i>
+                        <span>@fieldCount form alanı tanımlı</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex space-x-2">
+                    <a href="@Url.Action("Edit", new { id = ticketType.Id })"
+                       class="flex-1 bg-blue-600 text-white text-center py-2 px-3 rounded text-sm hover:bg-blue-700">
+                        <i class="fas fa-edit mr-1"></i>Düzenle
+                    </a>
+
+                    <form method="post" asp-action="ToggleStatus" asp-route-id="@ticketType.Id" class="flex-1">
+                        <button type="submit" class="w-full @(ticketType.IsActive ? "bg-yellow-600 hover:bg-yellow-700" : "bg-green-600 hover:bg-green-700") text-white py-2 px-3 rounded text-sm">
+                            <i class="fas fa-@(ticketType.IsActive ? "pause" : "play") mr-1"></i>
+                            @(ticketType.IsActive ? "Pasif" : "Aktif")
+                        </button>
+                    </form>
+
+                    <form method="post" asp-action="Delete" asp-route-id="@ticketType.Id" onsubmit="return confirm('Bu ticket türünü silmek istediğinizden emin misiniz?')">
+                        <button type="submit" class="bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-12">
+        <i class="fas fa-cog text-gray-400 text-4xl mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Henüz ticket türü yok</h3>
+        <p class="text-gray-500 mb-4">İlk ticket türünüzü oluşturun.</p>
+        <a href="@Url.Action("Create")" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <i class="fas fa-plus mr-2"></i>Yeni Tür Ekle
+        </a>
+    </div>
+}
