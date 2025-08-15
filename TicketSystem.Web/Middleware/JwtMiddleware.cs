@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TicketSystem.Web.Services;
 
 namespace TicketSystem.Web.Middleware;
 
@@ -10,11 +9,13 @@ public class JwtMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<JwtMiddleware> _logger;
 
-    public JwtMiddleware(RequestDelegate next, IConfiguration configuration)
+    public JwtMiddleware(RequestDelegate next, IConfiguration configuration, ILogger<JwtMiddleware> logger)
     {
         _next = next;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -36,7 +37,7 @@ public class JwtMiddleware
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]!);
 
-            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -46,17 +47,25 @@ public class JwtMiddleware
                 ValidAudience = _configuration["JwtSettings:Audience"],
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
-            }, out SecurityToken validatedToken);
+            };
 
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+            // Bu çok önemli - Authentication Type belirtmek gerekiyor
             var jwtToken = (JwtSecurityToken)validatedToken;
             var claims = jwtToken.Claims.ToList();
 
-            var identity = new ClaimsIdentity(claims, "jwt");
+            // Yeni Identity oluştur ve Authentication Type ekle
+            var identity = new ClaimsIdentity(claims, "Bearer", ClaimTypes.NameIdentifier, ClaimTypes.Role);
             context.User = new ClaimsPrincipal(identity);
+
+            _logger.LogInformation("JWT token validated successfully for user: {User}",
+                context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
         }
-        catch
+        catch (Exception ex)
         {
-            // Token geçersiz - kullanıcıyı context'e ekleme
+            // Token geçersiz - kullanıcıyı context'e ekleme ve cookie'yi sil
+            _logger.LogWarning("JWT token validation failed: {Error}", ex.Message);
             context.Response.Cookies.Delete("AuthToken");
         }
     }

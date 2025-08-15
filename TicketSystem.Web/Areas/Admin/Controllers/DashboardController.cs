@@ -1,24 +1,36 @@
-﻿using MediatR;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats;
 
 namespace TicketSystem.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Roles = "Admin")]
 public class DashboardController : Controller
 {
-    private readonly IMediator _mediator;
+    private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(IMediator mediator)
+    public DashboardController(ILogger<DashboardController> logger)
     {
-        _mediator = mediator;
+        _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-        var result = await _mediator.Send(new GetDashboardStatsQuery());
-        return View(result.Data);
+        _logger.LogInformation("Admin Dashboard accessed by user: {User}", User.Identity.Name);
+        _logger.LogInformation("User authenticated: {IsAuthenticated}", User.Identity.IsAuthenticated);
+        _logger.LogInformation("User role: {Role}", User.FindFirst("role")?.Value);
+
+        ViewBag.Message = "Admin Dashboard'a hoş geldiniz!";
+        ViewBag.IsAuthenticated = User.Identity.IsAuthenticated;
+        ViewBag.UserRole = User.FindFirst("role")?.Value;
+        ViewBag.UserName = User.Identity.Name;
+
+        // Geçici istatistikler
+        ViewBag.TotalTickets = 0;
+        ViewBag.ActiveTickets = 0;
+        ViewBag.ResolvedTickets = 0;
+        ViewBag.ClosedTickets = 0;
+
+        return View();
     }
 }
