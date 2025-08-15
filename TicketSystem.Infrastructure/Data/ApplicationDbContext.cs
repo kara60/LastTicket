@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Domain.Common;
 using TicketSystem.Domain.Entities;
-using TicketSystem.Infrastructure.Data.Configurations;
 
 namespace TicketSystem.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
@@ -26,45 +26,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Apply all configurations
-        modelBuilder.ApplyConfiguration(new CompanyConfiguration());
-        modelBuilder.ApplyConfiguration(new CustomerConfiguration());
-        modelBuilder.ApplyConfiguration(new UserConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketTypeConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketCategoryConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketCategoryModuleConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketCommentConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketAttachmentConfiguration());
-        modelBuilder.ApplyConfiguration(new TicketHistoryConfiguration());
-
-        // Global settings
-        ConfigureGlobalSettings(modelBuilder);
-    }
-
-    private void ConfigureGlobalSettings(ModelBuilder modelBuilder)
-    {
-        // PostgreSQL specific settings
-        modelBuilder.HasDefaultSchema("dbo");
-
-        // Configure all DateTime properties to use timestamp with time zone
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            foreach (var property in entityType.GetProperties())
-            {
-                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
-                {
-                    property.SetColumnType("timestamp with time zone");
-                }
-            }
-        }
-
-        // Configure all string properties default collation for Turkish characters
-        foreach (var property in modelBuilder.Model.GetEntityTypes().SelectMany(t => t.GetProperties()).Where(p => p.ClrType == typeof(string)))
-        {
-            property.SetCollation("tr-TR-x-icu");
-        }
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

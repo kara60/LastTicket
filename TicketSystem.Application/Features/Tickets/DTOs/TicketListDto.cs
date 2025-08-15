@@ -2,7 +2,7 @@
 
 public class TicketListDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string TicketNumber { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string StatusDisplay { get; set; } = string.Empty;

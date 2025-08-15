@@ -26,7 +26,7 @@ public class CategoriesController : Controller
         var categories = await _unitOfWork.TicketCategories.FindAsync(
             x => x.CompanyId == _currentUserService.CompanyId,
             x => x.Modules);
-        return View(categories.OrderBy(x => x.DisplayOrder));
+        return View(categories.OrderBy(x => x.SortOrder));
     }
 
     public IActionResult Create()
@@ -45,14 +45,14 @@ public class CategoriesController : Controller
 
         var category = new TicketCategory
         {
-            Id = Guid.NewGuid(),
+            Id = -1,
             CompanyId = _currentUserService.CompanyId!.Value,
             Name = model.Name,
             Description = model.Description,
             Icon = model.Icon,
             Color = model.Color,
             IsActive = true,
-            DisplayOrder = model.DisplayOrder
+            SortOrder = model.DisplayOrder
         };
 
         await _unitOfWork.TicketCategories.AddAsync(category);
@@ -62,7 +62,7 @@ public class CategoriesController : Controller
         return RedirectToAction("Index");
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var user = await _unitOfWork.Users.FirstOrDefaultAsync(
             x => x.Id == id && x.CompanyId == _currentUserService.CompanyId,
@@ -83,7 +83,6 @@ public class CategoriesController : Controller
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Username = user.Username,
             Role = user.Role,
             CustomerId = user.CustomerId,
             IsActive = user.IsActive
@@ -114,7 +113,7 @@ public class CategoriesController : Controller
 
         // Check if username already exists (excluding current user)
         var existingUser = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.Username == model.Username && x.CompanyId == _currentUserService.CompanyId && x.Id != model.Id);
+            x => x.CompanyId == _currentUserService.CompanyId && x.Id != model.Id);
         if (existingUser != null)
         {
             ModelState.AddModelError("Username", "Bu kullanıcı adı zaten kullanılıyor.");
@@ -127,7 +126,6 @@ public class CategoriesController : Controller
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
         user.Email = model.Email;
-        user.Username = model.Username;
         user.Role = model.Role;
         user.CustomerId = model.Role == UserRole.Customer ? model.CustomerId : null;
         user.IsActive = model.IsActive;
@@ -147,7 +145,7 @@ public class CategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(int id)
     {
         var user = await _unitOfWork.Users.FirstOrDefaultAsync(
             x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
@@ -165,7 +163,7 @@ public class CategoriesController : Controller
         }
 
         // Check if user has tickets
-        var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CreatedById == id || t.AssignedToId == id);
+        var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CreatedByUserId == id || t.AssignedToUserId == id);
         if (hasTickets)
         {
             TempData["Error"] = "Bu kullanıcının ticket'ları var, silinemez. Önce pasif hale getirin.";
@@ -181,7 +179,7 @@ public class CategoriesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
+    public async Task<IActionResult> ToggleStatus(int id)
     {
         var user = await _unitOfWork.Users.FirstOrDefaultAsync(
             x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);

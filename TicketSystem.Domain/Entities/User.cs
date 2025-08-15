@@ -13,6 +13,9 @@ public class User : AuditableEntity
     [Required, MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
 
+    [Required, MaxLength(100)]
+    public string Username { get; set; } = string.Empty;
+
     [Required]
     public Email Email { get; set; } = null!;
 
@@ -33,7 +36,7 @@ public class User : AuditableEntity
 
     // Foreign Keys
     public int CompanyId { get; set; }
-    public int? CustomerId { get; set; } // Null for Admin users
+    public int? CustomerId { get; set; }
 
     // Navigation Properties
     public virtual Company Company { get; set; } = null!;
@@ -42,9 +45,9 @@ public class User : AuditableEntity
     public virtual ICollection<Ticket> AssignedTickets { get; set; } = new List<Ticket>();
     public virtual ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
     public virtual ICollection<TicketHistory> TicketHistories { get; set; } = new List<TicketHistory>();
+    public virtual ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>();
 
-
-    // Computed Properties
+    // Computed
     public string FullName => $"{FirstName} {LastName}";
     public bool IsAdmin => Role == UserRole.Admin;
     public bool IsCustomer => Role == UserRole.Customer;

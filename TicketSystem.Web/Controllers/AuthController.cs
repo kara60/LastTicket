@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TicketSystem.Web.Models;
 using TicketSystem.Web.Services;
+using System.Security.Claims;
 
 namespace TicketSystem.Web.Controllers;
 
@@ -36,7 +37,6 @@ public class AuthController : Controller
 
         if (success)
         {
-            // Store token in cookie
             Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
                 HttpOnly = true,
@@ -45,19 +45,15 @@ public class AuthController : Controller
                 Expires = DateTimeOffset.UtcNow.AddHours(1)
             });
 
-            // Redirect based on role
             var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
-            var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role")?.Value;
+            var role = jwtToken.Claims.FirstOrDefault(x =>
+                x.Type == ClaimTypes.Role || x.Type == "role")?.Value;
 
             if (role == "Admin")
-            {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
             else
-            {
                 return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
-            }
         }
 
         ModelState.AddModelError("", error ?? "Giriş yapılamadı.");

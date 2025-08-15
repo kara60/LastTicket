@@ -5,9 +5,9 @@ namespace TicketSystem.Application.Features.Tickets.Queries.GetTicketById;
 
 public class GetTicketByIdQuery : IQuery<TicketDto>
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
-    public GetTicketByIdQuery(Guid id)
+    public GetTicketByIdQuery(int id)
     {
         Id = id;
     }

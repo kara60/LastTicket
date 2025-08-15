@@ -3,7 +3,6 @@ using TicketSystem.Application.Features.Common.DTOs;
 using TicketSystem.Application.Features.Tickets.DTOs;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
-using System.Text.Json;
 
 namespace TicketSystem.Application.Common.Mappings;
 
@@ -13,40 +12,24 @@ public class MappingProfile : Profile
     {
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
-            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email.Value));
 
         CreateMap<Customer, CustomerDto>();
 
+        // Deserialize işlemini handler’da yapacağız
         CreateMap<TicketType, TicketTypeDto>()
-            .ForMember(dest => dest.FormDefinition, opt => opt.MapFrom(src =>
-                string.IsNullOrEmpty(src.FormDefinition)
-                    ? new Dictionary<string, object>()
-                    : JsonSerializer.Deserialize<Dictionary<string, object>>(src.FormDefinition) ?? new Dictionary<string, object>()));
+            .ForMember(dest => dest.FormDefinition, opt => opt.Ignore());
 
         CreateMap<TicketCategory, TicketCategoryDto>();
-
         CreateMap<TicketCategoryModule, TicketCategoryModuleDto>();
 
+        // Deserialize işlemini handler’da yapacağız
         CreateMap<Ticket, TicketDto>()
             .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => GetStatusDisplay(src.Status)))
-            .ForMember(dest => dest.FormData, opt => opt.MapFrom(src =>
-                string.IsNullOrEmpty(src.FormData)
-                    ? new Dictionary<string, object>()
-                    : JsonSerializer.Deserialize<Dictionary<string, object>>(src.FormData) ?? new Dictionary<string, object>()));
-
-        CreateMap<Ticket, TicketListDto>()
-            .ForMember(dest => dest.StatusDisplay, opt => opt.MapFrom(src => GetStatusDisplay(src.Status)))
-            .ForMember(dest => dest.TypeName, opt => opt.MapFrom(src => src.Type.Name))
-            .ForMember(dest => dest.TypeColor, opt => opt.MapFrom(src => src.Type.Color))
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : ""))
-            .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}"))
-            .ForMember(dest => dest.AssignedToName, opt => opt.MapFrom(src => src.AssignedTo != null ? $"{src.AssignedTo.FirstName} {src.AssignedTo.LastName}" : null))
-            .ForMember(dest => dest.CommentCount, opt => opt.MapFrom(src => src.Comments.Count))
-            .ForMember(dest => dest.HasAttachments, opt => opt.MapFrom(src => src.Attachments.Any()));
+            .ForMember(dest => dest.FormData, opt => opt.Ignore());
 
         CreateMap<TicketComment, TicketCommentDto>();
-
         CreateMap<TicketAttachment, TicketAttachmentDto>();
     }
 

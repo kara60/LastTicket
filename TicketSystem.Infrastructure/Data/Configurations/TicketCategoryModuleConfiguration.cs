@@ -13,7 +13,7 @@ public class TicketCategoryModuleConfiguration : IEntityTypeConfiguration<Ticket
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedOnAdd();
 
         builder.Property(x => x.Name)
             .IsRequired()
@@ -25,25 +25,16 @@ public class TicketCategoryModuleConfiguration : IEntityTypeConfiguration<Ticket
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
 
-        builder.Property(x => x.DisplayOrder)
+        builder.Property(x => x.SortOrder)
             .HasDefaultValue(0);
 
-        // TicketCategory relationship
         builder.HasOne(x => x.TicketCategory)
             .WithMany(x => x.Modules)
             .HasForeignKey(x => x.TicketCategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Auditing
-        builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        builder.Property(x => x.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        // Indexes
         builder.HasIndex(x => x.TicketCategoryId);
         builder.HasIndex(x => new { x.TicketCategoryId, x.Name }).IsUnique();
-        builder.HasIndex(x => x.DisplayOrder);
+        builder.HasIndex(x => x.SortOrder);
     }
 }

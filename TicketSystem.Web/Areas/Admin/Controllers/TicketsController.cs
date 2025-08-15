@@ -26,7 +26,7 @@ public class TicketsController : Controller
         return View(result.Data);
     }
 
-    public async Task<IActionResult> Details(Guid id)
+    public async Task<IActionResult> Details(int id)
     {
         var result = await _mediator.Send(new GetTicketByIdQuery(id));
         if (!result.IsSuccess)
@@ -38,7 +38,7 @@ public class TicketsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateStatus(Guid ticketId, TicketStatus newStatus, string? comment, bool sendToPmo = false)
+    public async Task<IActionResult> UpdateStatus(int ticketId, TicketStatus newStatus, string? comment, bool sendToPmo = false)
     {
         var command = new UpdateTicketStatusCommand
         {
@@ -63,7 +63,7 @@ public class TicketsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddComment(Guid ticketId, string content, bool isInternal = false)
+    public async Task<IActionResult> AddComment(int ticketId, string content, bool isInternal = false)
     {
         var command = new AddTicketCommentCommand
         {

@@ -4,7 +4,7 @@ namespace TicketSystem.Application.Features.Tickets.DTOs;
 
 public class TicketAttachmentDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string FileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
     public long FileSize { get; set; }

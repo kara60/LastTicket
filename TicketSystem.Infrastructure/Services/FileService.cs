@@ -25,7 +25,7 @@ public class FileService : IFileService
 
         Directory.CreateDirectory(uploadsPath);
 
-        var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+        var uniqueFileName = $"{Guid.NewGuid():N}_{fileName}";
         var filePath = Path.Combine(uploadsPath, uniqueFileName);
 
         using var output = File.Create(filePath);

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
-using System.Text.Json;
 
 namespace TicketSystem.Infrastructure.Data.Configurations;
 
@@ -33,84 +32,79 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .HasMaxLength(20)
             .HasDefaultValue(TicketStatus.İnceleniyor);
 
-        // JSON column for dynamic form data
+        // JSON column for dynamic form data (stored as text/jsonb)
         builder.Property(x => x.FormData)
-            .HasColumnType("jsonb")
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
-                v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, JsonSerializerOptions.Default) ?? new Dictionary<string, object>()
-            );
+            .HasColumnType("jsonb");
 
         builder.Property(x => x.SelectedModule)
             .HasMaxLength(100);
 
-        // Company relationship
+        // Company
         builder.HasOne(x => x.Company)
             .WithMany(x => x.Tickets)
             .HasForeignKey(x => x.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Customer relationship
+        // Customer
         builder.HasOne(x => x.Customer)
             .WithMany(x => x.Tickets)
             .HasForeignKey(x => x.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // CreatedBy relationship
+        // CreatedBy
         builder.HasOne(x => x.CreatedBy)
             .WithMany(x => x.CreatedTickets)
-            .HasForeignKey(x => x.CreatedById)
+            .HasForeignKey(x => x.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // AssignedTo relationship
+        // AssignedTo
         builder.HasOne(x => x.AssignedTo)
             .WithMany(x => x.AssignedTickets)
-            .HasForeignKey(x => x.AssignedToId)
+            .HasForeignKey(x => x.AssignedToUserId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // TicketType relationship
+        // TicketType
         builder.HasOne(x => x.Type)
             .WithMany(x => x.Tickets)
             .HasForeignKey(x => x.TypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Category relationship
+        // Category
         builder.HasOne(x => x.Category)
             .WithMany(x => x.Tickets)
             .HasForeignKey(x => x.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Comments relationship
+        // Category Module
+        builder.HasOne(x => x.TicketCategoryModule)
+            .WithMany(x => x.Tickets)
+            .HasForeignKey(x => x.TicketCategoryModuleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Comments
         builder.HasMany(x => x.Comments)
             .WithOne(x => x.Ticket)
             .HasForeignKey(x => x.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Attachments relationship
+        // Attachments
         builder.HasMany(x => x.Attachments)
             .WithOne(x => x.Ticket)
             .HasForeignKey(x => x.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // History relationship
+        // History
         builder.HasMany(x => x.History)
             .WithOne(x => x.Ticket)
             .HasForeignKey(x => x.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Auditing
-        builder.Property(x => x.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        builder.Property(x => x.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
         // Indexes
         builder.HasIndex(x => x.TicketNumber).IsUnique();
         builder.HasIndex(x => x.CompanyId);
         builder.HasIndex(x => x.CustomerId);
-        builder.HasIndex(x => x.CreatedById);
-        builder.HasIndex(x => x.AssignedToId);
+        builder.HasIndex(x => x.CreatedByUserId);
+        builder.HasIndex(x => x.AssignedToUserId);
         builder.HasIndex(x => x.TypeId);
         builder.HasIndex(x => x.CategoryId);
         builder.HasIndex(x => x.Status);

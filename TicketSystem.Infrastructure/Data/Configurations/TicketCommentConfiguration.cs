@@ -13,7 +13,7 @@ public class TicketCommentConfiguration : IEntityTypeConfiguration<TicketComment
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedOnAdd();
 
         builder.Property(x => x.Content)
             .IsRequired()
@@ -22,26 +22,19 @@ public class TicketCommentConfiguration : IEntityTypeConfiguration<TicketComment
         builder.Property(x => x.IsInternal)
             .HasDefaultValue(false);
 
-        // Ticket relationship
         builder.HasOne(x => x.Ticket)
             .WithMany(x => x.Comments)
             .HasForeignKey(x => x.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // User relationship
         builder.HasOne(x => x.User)
             .WithMany(x => x.Comments)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Auditing
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        builder.Property(x => x.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        // Indexes
         builder.HasIndex(x => x.TicketId);
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.CreatedAt);

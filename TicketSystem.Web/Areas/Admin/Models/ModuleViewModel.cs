@@ -4,7 +4,7 @@ namespace TicketSystem.Web.Areas.Admin.Models
 {
     public class ModuleViewModel
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required(ErrorMessage = "Modül adı gereklidir.")]
         [Display(Name = "Modül Adı")]

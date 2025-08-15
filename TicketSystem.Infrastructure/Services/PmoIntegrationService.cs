@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Net.Http;
 using System.Text.Json;
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Infrastructure.Repositories;
@@ -21,13 +22,13 @@ public class PmoIntegrationService : IPmoIntegrationService
         _logger = logger;
     }
 
-    public async Task<bool> IsEnabledAsync(Guid companyId)
+    public async Task<bool> IsEnabledAsync(int companyId)
     {
         var company = await _unitOfWork.Companies.GetByIdAsync(companyId);
-        return company?.PmoIntegrationEnabled == true;
+        return company?.RequiresPMOIntegration == true;
     }
 
-    public async Task<bool> SendTicketToPmoAsync(Guid ticketId, string apiEndpoint, string apiKey)
+    public async Task<bool> SendTicketToPmoAsync(int ticketId, string apiEndpoint, string apiKey)
     {
         try
         {

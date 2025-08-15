@@ -62,7 +62,7 @@
 
             <div class="px-6 py-4">
                 <!-- Add Comment Form (only if not closed) -->
-                @if (Model.Status != TicketSystem.Domain.Enums.TicketStatus.Kapatildi)
+                @if (Model.Status != TicketSystem.Domain.Enums.TicketStatus.Kapandı)
                 {
                     <form method="post" asp-action="AddComment" class="mb-6">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
@@ -174,16 +174,16 @@
             <p class="text-sm text-blue-700">
                 @switch (Model.Status)
                 {
-                    case TicketSystem.Domain.Enums.TicketStatus.Inceleniyor:
+                    case TicketSystem.Domain.Enums.TicketStatus.İnceleniyor:
                         <text>Ticket'ınız sistem yöneticileri tarafından inceleniyor. En kısa sürede size geri dönüş yapılacaktır.</text>
                         break;
-                    case TicketSystem.Domain.Enums.TicketStatus.Islenmede:
+                    case TicketSystem.Domain.Enums.TicketStatus.İşlemde:
                         <text>Ticket'ınız onaylandı ve işlem aşamasında. Gelişmeler hakkında bilgilendirileceksiniz.</text>
                         break;
-                    case TicketSystem.Domain.Enums.TicketStatus.Cozuldu:
+                    case TicketSystem.Domain.Enums.TicketStatus.Çözüldü:
                         <text>Ticket'ınız çözüldü. Sorun devam ediyorsa yorum yazabilirsiniz.</text>
                         break;
-                    case TicketSystem.Domain.Enums.TicketStatus.Kapatildi:
+                    case TicketSystem.Domain.Enums.TicketStatus.Kapandı:
                         <text>Ticket'ınız kapatıldı. Yeni bir sorun için yeni ticket oluşturabilirsiniz.</text>
                         break;
                 }

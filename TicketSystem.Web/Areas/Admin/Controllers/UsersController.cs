@@ -5,6 +5,7 @@ using TicketSystem.Infrastructure.Repositories;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Domain.Enums;
 using TicketSystem.Web.Areas.Admin.Models;
+using TicketSystem.Application.Common.Interfaces;
 
 namespace TicketSystem.Web.Areas.Admin.Controllers;
 
@@ -44,8 +45,8 @@ public class UsersController : Controller
 
         var user = new User
         {
-            Id = Guid.NewGuid(),
-            CompanyId = Guid.Parse("your-company-id"), // Bu değer current user'dan alınmalı
+            Id = -1,
+            CompanyId = int.Parse("your-company-id"), // Bu değer current user'dan alınmalı
             CustomerId = model.Role == UserRole.Customer ? model.CustomerId : null,
             FirstName = model.FirstName,
             LastName = model.LastName,

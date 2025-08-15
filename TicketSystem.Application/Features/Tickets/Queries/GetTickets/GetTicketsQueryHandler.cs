@@ -31,71 +31,44 @@ public class GetTicketsQueryHandler : IQueryHandler<GetTicketsQuery, PaginatedLi
             return Result<PaginatedList<TicketListDto>>.Failure("Kullanıcı doğrulanamadı.");
         }
 
-        // Build filter expression
-        Expression<Func<Ticket, bool>> predicate = x => x.CompanyId == _currentUserService.CompanyId;
+        var filters = new List<Expression<Func<Ticket, bool>>>
+        {
+            x => x.CompanyId == _currentUserService.CompanyId
+        };
 
-        // Customer filter for admin users
         if (request.CustomerId.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.CustomerId == request.CustomerId;
-        }
+            filters.Add(x => x.CustomerId == request.CustomerId);
 
-        // Customer users can only see their own customer tickets
         if (_currentUserService.IsCustomer && _currentUserService.CustomerId.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.CustomerId == _currentUserService.CustomerId;
-        }
+            filters.Add(x => x.CustomerId == _currentUserService.CustomerId);
 
-        // Other filters
         if (request.TypeId.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.TypeId == request.TypeId;
-        }
+            filters.Add(x => x.TypeId == request.TypeId);
 
         if (request.CategoryId.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.CategoryId == request.CategoryId;
-        }
+            filters.Add(x => x.CategoryId == request.CategoryId);
 
         if (request.Status.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.Status == request.Status;
-        }
+            filters.Add(x => x.Status == request.Status);
 
         if (request.AssignedToId.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.AssignedToUserId == request.AssignedToId;
-        }
+            filters.Add(x => x.AssignedToUserId == request.AssignedToId);
 
         if (!string.IsNullOrEmpty(request.SearchTerm))
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) &&
-                           (x.Title.Contains(request.SearchTerm) ||
-                            x.TicketNumber.Contains(request.SearchTerm) ||
-                            (x.Description != null && x.Description.Contains(request.SearchTerm)));
-        }
+            filters.Add(x =>
+                x.Title.Contains(request.SearchTerm!) ||
+                x.TicketNumber.Contains(request.SearchTerm!) ||
+                (x.Description != null && x.Description.Contains(request.SearchTerm!)));
 
         if (request.CreatedFrom.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.CreatedAt >= request.CreatedFrom;
-        }
+            filters.Add(x => x.CreatedAt >= request.CreatedFrom);
 
         if (request.CreatedTo.HasValue)
-        {
-            var originalPredicate = predicate;
-            predicate = x => originalPredicate.Invoke(x) && x.CreatedAt <= request.CreatedTo;
-        }
+            filters.Add(x => x.CreatedAt <= request.CreatedTo);
 
-        // Order by expression
-        Expression<Func<Ticket, object>> orderBy = request.SortBy.ToLower() switch
+        var predicate = CombineAnd(filters);
+
+        Expression<Func<Ticket, object>> orderBy = request.SortBy?.ToLower() switch
         {
             "title" => x => x.Title,
             "status" => x => x.Status,
@@ -139,6 +112,27 @@ public class GetTicketsQueryHandler : IQueryHandler<GetTicketsQuery, PaginatedLi
 
         var result = new PaginatedList<TicketListDto>(ticketDtos, totalCount, request.Page, request.PageSize);
         return Result<PaginatedList<TicketListDto>>.Success(result);
+    }
+
+    private static Expression<Func<Ticket, bool>> CombineAnd(IEnumerable<Expression<Func<Ticket, bool>>> expressions)
+    {
+        var param = Expression.Parameter(typeof(Ticket), "x");
+        Expression body = Expression.Constant(true);
+
+        foreach (var expr in expressions)
+        {
+            var replaced = new ParameterReplacer(param).Visit(expr.Body)!;
+            body = Expression.AndAlso(body, replaced);
+        }
+
+        return Expression.Lambda<Func<Ticket, bool>>(body, param);
+    }
+
+    private sealed class ParameterReplacer : ExpressionVisitor
+    {
+        private readonly ParameterExpression _parameter;
+        public ParameterReplacer(ParameterExpression parameter) => _parameter = parameter;
+        protected override Expression VisitParameter(ParameterExpression node) => _parameter;
     }
 
     private static string GetStatusDisplay(Domain.Enums.TicketStatus status)

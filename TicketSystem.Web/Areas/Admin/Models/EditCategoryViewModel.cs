@@ -4,7 +4,7 @@ namespace TicketSystem.Web.Areas.Admin.Models
 {
     public class EditCategoryViewModel : CreateCategoryViewModel
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "Aktif")]
         public bool IsActive { get; set; } = true;

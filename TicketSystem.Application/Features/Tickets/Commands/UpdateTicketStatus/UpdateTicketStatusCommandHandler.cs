@@ -45,14 +45,14 @@ public class UpdateTicketStatusCommandHandler : ICommandHandler<UpdateTicketStat
 
         // If status is approved and PMO integration enabled, send to PMO
         if (request.SendToPmo &&
-            request.NewStatus == TicketStatus.Islenmede &&
-            ticket.Company.PmoIntegrationEnabled &&
-            !string.IsNullOrEmpty(ticket.Company.PmoApiEndpoint))
+            request.NewStatus == TicketStatus.İşlemde &&
+            ticket.Company.RequiresPMOIntegration &&
+            !string.IsNullOrEmpty(ticket.Company.PMOApiEndpoint))
         {
             var pmoResult = await _pmoIntegrationService.SendTicketToPmoAsync(
                 ticket.Id,
-                ticket.Company.PmoApiEndpoint,
-                ticket.Company.PmoApiKey ?? "");
+                ticket.Company.PMOApiEndpoint,
+                ticket.Company.PMOApiKey ?? "");
 
             if (!pmoResult)
             {
@@ -67,7 +67,7 @@ public class UpdateTicketStatusCommandHandler : ICommandHandler<UpdateTicketStat
         {
             var comment = new TicketComment
             {
-                Id = Guid.NewGuid(),
+                Id = -1,
                 TicketId = ticket.Id,
                 UserId = _currentUserService.UserId!.Value,
                 Content = request.Comment,
@@ -80,7 +80,7 @@ public class UpdateTicketStatusCommandHandler : ICommandHandler<UpdateTicketStat
         // Add history record
         var history = new TicketHistory
         {
-            Id = Guid.NewGuid(),
+            Id = -1,
             TicketId = ticket.Id,
             UserId = _currentUserService.UserId!.Value,
             Action = "Durum Değişikliği",

@@ -33,5 +33,5 @@ public class CreateUserViewModel
     public UserRole Role { get; set; }
 
     [Display(Name = "Müşteri")]
-    public Guid? CustomerId { get; set; }
+    public int? CustomerId { get; set; }
 }

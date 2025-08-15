@@ -28,7 +28,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
                     .GroupBy(x => x.PropertyName, x => x.ErrorMessage)
                     .ToDictionary(failureGroup => failureGroup.Key, failureGroup => failureGroup.ToArray());
 
-                throw new ValidationException(errors);
+                throw new Exceptions.ValidationException(errors);
             }
         }
 

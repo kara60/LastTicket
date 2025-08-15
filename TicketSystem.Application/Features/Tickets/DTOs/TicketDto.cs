@@ -5,7 +5,7 @@ namespace TicketSystem.Application.Features.Tickets.DTOs;
 
 public class TicketDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string TicketNumber { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }

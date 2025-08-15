@@ -32,12 +32,14 @@ public class Company : AuditableEntity
     [MaxLength(500)]
     public string? Website { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     // System Settings
     public bool RequiresPMOIntegration { get; set; } = false;
     public bool AutoApproveTickets { get; set; } = false;
     public bool SendEmailNotifications { get; set; } = true;
     public bool AllowFileAttachments { get; set; } = true;
-    public int MaxFileSize { get; set; } = 10; // MB
+    public int MaxFileSize { get; set; } = 10;
 
     [MaxLength(1000)]
     public string? PMOApiEndpoint { get; set; }
@@ -45,9 +47,10 @@ public class Company : AuditableEntity
     [MaxLength(500)]
     public string? PMOApiKey { get; set; }
 
-    // Navigation Properties
+    // Navigation
     public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
     public virtual ICollection<User> Users { get; set; } = new List<User>();
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
     public virtual ICollection<TicketCategory> TicketCategories { get; set; } = new List<TicketCategory>();
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

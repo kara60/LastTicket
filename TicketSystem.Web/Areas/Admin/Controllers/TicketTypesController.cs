@@ -26,7 +26,7 @@ public class TicketTypesController : Controller
     {
         var ticketTypes = await _unitOfWork.TicketTypes.FindAsync(
             x => x.CompanyId == _currentUserService.CompanyId);
-        return View(ticketTypes.OrderBy(x => x.DisplayOrder));
+        return View(ticketTypes.OrderBy(x => x.SortOrder));
     }
 
     public IActionResult Create()
@@ -43,7 +43,6 @@ public class TicketTypesController : Controller
             return View(model);
         }
 
-        // Form fields'ları JSON'a çevir
         var formDefinition = new
         {
             fields = model.FormFields.Where(f => !string.IsNullOrEmpty(f.Name)).Select(f => new
@@ -66,7 +65,6 @@ public class TicketTypesController : Controller
 
         var ticketType = new TicketType
         {
-            Id = Guid.NewGuid(),
             CompanyId = _currentUserService.CompanyId!.Value,
             Name = model.Name,
             Description = model.Description,
@@ -74,7 +72,7 @@ public class TicketTypesController : Controller
             Color = model.Color,
             FormDefinition = JsonSerializer.Serialize(formDefinition),
             IsActive = true,
-            DisplayOrder = model.DisplayOrder
+            SortOrder = model.DisplayOrder
         };
 
         await _unitOfWork.TicketTypes.AddAsync(ticketType);
@@ -84,7 +82,7 @@ public class TicketTypesController : Controller
         return RedirectToAction("Index");
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var ticketType = await _unitOfWork.TicketTypes.GetByIdAsync(id);
         if (ticketType == null || ticketType.CompanyId != _currentUserService.CompanyId)
@@ -99,11 +97,10 @@ public class TicketTypesController : Controller
             Description = ticketType.Description,
             Icon = ticketType.Icon,
             Color = ticketType.Color,
-            DisplayOrder = ticketType.DisplayOrder,
+            DisplayOrder = ticketType.SortOrder,
             IsActive = ticketType.IsActive
         };
 
-        // JSON'dan form fields'ları parse et
         if (!string.IsNullOrEmpty(ticketType.FormDefinition))
         {
             try
@@ -164,7 +161,6 @@ public class TicketTypesController : Controller
             return NotFound();
         }
 
-        // Form fields'ları JSON'a çevir
         var formDefinition = new
         {
             fields = model.FormFields.Where(f => !string.IsNullOrEmpty(f.Name)).Select(f => new
@@ -189,7 +185,7 @@ public class TicketTypesController : Controller
         ticketType.Description = model.Description;
         ticketType.Icon = model.Icon;
         ticketType.Color = model.Color;
-        ticketType.DisplayOrder = model.DisplayOrder;
+        ticketType.SortOrder = model.DisplayOrder;
         ticketType.IsActive = model.IsActive;
         ticketType.FormDefinition = JsonSerializer.Serialize(formDefinition);
 
@@ -202,7 +198,7 @@ public class TicketTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(int id)
     {
         var ticketType = await _unitOfWork.TicketTypes.GetByIdAsync(id);
         if (ticketType == null || ticketType.CompanyId != _currentUserService.CompanyId)
@@ -210,7 +206,6 @@ public class TicketTypesController : Controller
             return NotFound();
         }
 
-        // Check if there are tickets using this type
         var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.TypeId == id);
         if (hasTickets)
         {
@@ -227,7 +222,7 @@ public class TicketTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(Guid id)
+    public async Task<IActionResult> ToggleStatus(int id)
     {
         var ticketType = await _unitOfWork.TicketTypes.GetByIdAsync(id);
         if (ticketType == null || ticketType.CompanyId != _currentUserService.CompanyId)

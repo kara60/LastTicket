@@ -13,7 +13,7 @@ public class TicketAttachmentConfiguration : IEntityTypeConfiguration<TicketAtta
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedOnAdd();
 
         builder.Property(x => x.FileName)
             .IsRequired()
@@ -27,28 +27,24 @@ public class TicketAttachmentConfiguration : IEntityTypeConfiguration<TicketAtta
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(x => x.FileSize)
+        builder.Property(x => x.FileSizeBytes)
             .IsRequired();
 
-        // Ticket relationship
         builder.HasOne(x => x.Ticket)
             .WithMany(x => x.Attachments)
             .HasForeignKey(x => x.TicketId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // UploadedBy relationship
-        builder.HasOne(x => x.UploadedBy)
+        builder.HasOne(x => x.UploadedByUser)
             .WithMany(x => x.Attachments)
-            .HasForeignKey(x => x.UploadedById)
+            .HasForeignKey(x => x.UploadedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Auditing
         builder.Property(x => x.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Indexes
         builder.HasIndex(x => x.TicketId);
-        builder.HasIndex(x => x.UploadedById);
+        builder.HasIndex(x => x.UploadedByUserId);
         builder.HasIndex(x => x.CreatedAt);
     }
 }

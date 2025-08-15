@@ -13,7 +13,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Database Context
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -23,7 +22,6 @@ public static class DependencyInjection
                 builder.CommandTimeout(120);
             });
 
-            // Development ortamında detaylı logging
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 options.EnableSensitiveDataLogging();
@@ -32,14 +30,14 @@ public static class DependencyInjection
             }
         });
 
-        // Repository Pattern
+        services.AddHttpClient();
+
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // Application DbContext Interface
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        // IApplicationDbContext uygulaması
+        services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 
-        // Services
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<IPmoIntegrationService, PmoIntegrationService>();

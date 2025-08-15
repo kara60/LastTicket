@@ -142,11 +142,11 @@
                 <h3 class="text-lg font-medium text-gray-900">Durum İşlemleri</h3>
             </div>
             <div class="px-6 py-4 space-y-3">
-                @if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.Inceleniyor)
+                @if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.İnceleniyor)
                 {
                     <form method="post" asp-action="UpdateStatus" class="space-y-3">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
-                        <input type="hidden" name="newStatus" value="Islenmede" />
+                        <input type="hidden" name="newStatus" value="İşlemde" />
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Onay Notu</label>
@@ -167,17 +167,17 @@
 
                     <form method="post" asp-action="UpdateStatus">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
-                        <input type="hidden" name="newStatus" value="Kapatildi" />
+                        <input type="hidden" name="newStatus" value="Kapandı" />
                         <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
                             <i class="fas fa-times mr-2"></i>Reddet
                         </button>
                     </form>
                 }
-                else if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.Islenmede)
+                else if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.İşlemde)
                 {
                     <form method="post" asp-action="UpdateStatus">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
-                        <input type="hidden" name="newStatus" value="Cozuldu" />
+                        <input type="hidden" name="newStatus" value="Çözüldü" />
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Çözüm Notu</label>
                             <textarea name="comment" rows="2"
@@ -189,11 +189,11 @@
                         </button>
                     </form>
                 }
-                else if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.Cozuldu)
+                else if (Model.Status == TicketSystem.Domain.Enums.TicketStatus.Çözüldü)
                 {
                     <form method="post" asp-action="UpdateStatus">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
-                        <input type="hidden" name="newStatus" value="Kapatildi" />
+                        <input type="hidden" name="newStatus" value="Kapandı" />
                         <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
                             <i class="fas fa-archive mr-2"></i>Ticket'ı Kapat
                         </button>

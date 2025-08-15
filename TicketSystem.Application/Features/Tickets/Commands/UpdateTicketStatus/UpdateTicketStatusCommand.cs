@@ -5,7 +5,7 @@ namespace TicketSystem.Application.Features.Tickets.Commands.UpdateTicketStatus;
 
 public class UpdateTicketStatusCommand : ICommand
 {
-    public Guid TicketId { get; set; }
+    public int TicketId { get; set; }
     public TicketStatus NewStatus { get; set; }
     public string? Comment { get; set; }
     public bool SendToPmo { get; set; }
