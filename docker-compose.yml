@@ -1,24 +1,2 @@
-version: '3.8'
-
-services:
-  ticketsystem-db:
-    image: postgres:15
-    container_name: ticketsystem-postgres
-    environment:
-      POSTGRES_DB: TicketSystemDb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - ticketsystem-network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  ticketsystem-network:
-    driver: bridge
+version: "3.9"
+services: {}

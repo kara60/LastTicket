@@ -107,6 +107,7 @@
             <!-- Logout -->
             <div class="absolute bottom-4 left-4 right-4">
                 <form method="post" action="@Url.Action("Logout", "Auth")">
+                    @Html.AntiForgeryToken()
                     <button type="submit" class="flex items-center p-3 rounded hover:bg-gray-800 w-full text-left">
                         <i class="fas fa-sign-out-alt w-5"></i>
                         <span class="ml-3 sidebar-text">Çıkış</span>

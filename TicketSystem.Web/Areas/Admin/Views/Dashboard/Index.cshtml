@@ -178,6 +178,7 @@
             <!-- Logout -->
             <div class="mt-8 text-center">
                 <form method="post" action="/Auth/Logout" class="inline">
+                    @Html.AntiForgeryToken()
                     <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
                         🚪 Çıkış Yap
                     </button>

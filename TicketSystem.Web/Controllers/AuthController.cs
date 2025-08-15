@@ -2,6 +2,7 @@
 using TicketSystem.Web.Models;
 using TicketSystem.Web.Services;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace TicketSystem.Web.Controllers;
 
@@ -21,10 +22,20 @@ public class AuthController : Controller
     {
         _logger.LogInformation("=== LOGIN GET METHOD CALLED ===");
 
+        // Zaten giriş yapmış kullanıcıyı yönlendir
         if (User.Identity?.IsAuthenticated == true)
         {
-            _logger.LogInformation("User already authenticated, redirecting...");
-            return RedirectToAction("Index", "Dashboard", new { area = User.IsInRole("Admin") ? "Admin" : "Customer" });
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            _logger.LogInformation("User already authenticated with role: {Role}", userRole);
+
+            if (userRole == "Admin")
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            }
+            else
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
+            }
         }
 
         _logger.LogInformation("Showing login view");
@@ -32,6 +43,7 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         _logger.LogInformation("=== LOGIN POST METHOD CALLED ===");
@@ -41,73 +53,102 @@ public class AuthController : Controller
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("ModelState is invalid");
-            foreach (var er in ModelState)
+            foreach (var error in ModelState)
             {
                 _logger.LogWarning("ModelState Error - Key: {Key}, Errors: {Errors}",
-                    er.Key, string.Join(", ", er.Value.Errors.Select(e => e.ErrorMessage)));
+                    error.Key, string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage)));
             }
             return View(model);
         }
 
-        _logger.LogInformation("Calling AuthService.LoginAsync...");
-        var (success, token, error) = await _authService.LoginAsync(model.Username, model.Password);
-        _logger.LogInformation("AuthService.LoginAsync result - Success: {Success}, Error: {Error}", success, error);
-
-        if (success)
+        try
         {
-            _logger.LogInformation("Login successful for user: {Username}", model.Username);
+            _logger.LogInformation("Calling AuthService.LoginAsync for user: {Username}", model.Username);
+            var (success, token, error) = await _authService.LoginAsync(model.Username, model.Password);
 
-            Response.Cookies.Append("AuthToken", token, new CookieOptions
+            _logger.LogInformation("AuthService.LoginAsync result - Success: {Success}", success);
+
+            if (success && !string.IsNullOrEmpty(token))
             {
-                HttpOnly = true,
-                Secure = Request.IsHttps,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddHours(8)
-            });
+                _logger.LogInformation("Login successful, setting auth cookie");
 
-            _logger.LogInformation("AuthToken cookie set");
+                // Cookie ayarları
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = Request.IsHttps,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddHours(8)
+                };
 
-            var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token);
-            var role = jwtToken.Claims.FirstOrDefault(x =>
-                x.Type == ClaimTypes.Role || x.Type == "role")?.Value;
+                Response.Cookies.Append("AuthToken", token, cookieOptions);
 
-            _logger.LogInformation("User role from token: {Role}", role);
+                // Token'dan role bilgisini al
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var role = jwtToken.Claims.FirstOrDefault(x =>
+                    x.Type == ClaimTypes.Role || x.Type == "role")?.Value;
 
-            if (role == "Admin")
-            {
-                _logger.LogInformation("Redirecting to Admin Dashboard");
-                var redirectUrl = Url.Action("Index", "Dashboard", new { area = "Admin" });
-                _logger.LogInformation("Redirect URL: {Url}", redirectUrl);
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                _logger.LogInformation("User role from token: {Role}", role);
+
+                // Role'e göre yönlendir
+                if (role == "Admin")
+                {
+                    _logger.LogInformation("Redirecting to Admin Dashboard");
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                }
+                else if (role == "Customer")
+                {
+                    _logger.LogInformation("Redirecting to Customer Dashboard");
+                    return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
+                }
+                else
+                {
+                    _logger.LogWarning("Unknown role: {Role}", role);
+                    ModelState.AddModelError("", "Geçersiz kullanıcı rolü.");
+                    return View(model);
+                }
             }
             else
             {
-                _logger.LogInformation("Redirecting to Customer Dashboard");
-                var redirectUrl = Url.Action("Index", "Dashboard", new { area = "Customer" });
-                _logger.LogInformation("Redirect URL: {Url}", redirectUrl);
-                return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
+                _logger.LogWarning("Login failed for user: {Username}, Error: {Error}", model.Username, error);
+                ModelState.AddModelError("", error ?? "Giriş yapılamadı.");
+                return View(model);
             }
         }
-
-        _logger.LogWarning("Login failed for user: {Username}, Error: {Error}", model.Username, error);
-        ModelState.AddModelError("", error ?? "Giriş yapılamadı.");
-        return View(model);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception during login for user: {Username}", model.Username);
+            ModelState.AddModelError("", "Giriş işlemi sırasında bir hata oluştu.");
+            return View(model);
+        }
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
         _logger.LogInformation("=== LOGOUT METHOD CALLED ===");
+
+        // Cookie'yi sil
         Response.Cookies.Delete("AuthToken");
+
+        _logger.LogInformation("User logged out, redirecting to login");
         return RedirectToAction("Login");
     }
 
-    // Test method
+    // Test endpoint
     [HttpGet]
     public IActionResult Test()
     {
         _logger.LogInformation("=== TEST METHOD CALLED ===");
-        return Content($"AuthController çalışıyor! Time: {DateTime.Now}");
+        return Json(new
+        {
+            message = "AuthController çalışıyor!",
+            time = DateTime.Now,
+            isAuthenticated = User.Identity?.IsAuthenticated ?? false,
+            userName = User.Identity?.Name,
+            role = User.FindFirstValue(ClaimTypes.Role)
+        });
     }
 }

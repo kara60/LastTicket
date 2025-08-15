@@ -12,7 +12,7 @@ using TicketSystem.Infrastructure.Data;
 namespace TicketSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250815172403_Mig1")]
+    [Migration("20250815201655_Mig1")]
     partial class Mig1
     {
         /// <inheritdoc />

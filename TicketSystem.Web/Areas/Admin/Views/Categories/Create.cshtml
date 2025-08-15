@@ -8,7 +8,8 @@
         <h2 class="text-xl font-semibold text-gray-900">Yeni Kategori Oluştur</h2>
     </div>
 
-    <form method="post" asp-action="Create" class="p-6">
+    <form method="post" asp-action="Create" asp-controller="Categories" asp-area="Admin" class="p-6">
+        @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

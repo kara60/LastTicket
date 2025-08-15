@@ -23,9 +23,17 @@
             <p class="text-gray-600 mt-2">Hesabınıza giriş yapın</p>
         </div>
 
+        <!-- Error Messages -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                <div asp-validation-summary="All" class="text-sm"></div>
+            </div>
+        }
+
         <!-- Login Form -->
-        <form method="post" asp-action="Login">
-            <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded hidden"></div>
+        <form method="post" asp-action="Login" asp-controller="Auth">
+            @Html.AntiForgeryToken()
 
             <!-- Username -->
             <div class="mb-4">
@@ -34,7 +42,8 @@
                 </label>
                 <input asp-for="Username"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Kullanıcı adınızı giriniz" />
+                       placeholder="Kullanıcı adınızı giriniz"
+                       autocomplete="username" />
                 <span asp-validation-for="Username" class="text-red-500 text-sm"></span>
             </div>
 
@@ -45,7 +54,8 @@
                 </label>
                 <input asp-for="Password"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Şifrenizi giriniz" />
+                       placeholder="Şifrenizi giriniz"
+                       autocomplete="current-password" />
                 <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
             </div>
 
@@ -74,14 +84,16 @@
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Loading Animation -->
     <script>
-        // Form validation display
         document.addEventListener('DOMContentLoaded', function() {
-            const validationSummary = document.querySelector('[asp-validation-summary]');
-            if (validationSummary && validationSummary.textContent.trim()) {
-                validationSummary.classList.remove('hidden');
-            }
+            const form = document.querySelector('form');
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            form.addEventListener('submit', function() {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Giriş yapılıyor...';
+            });
         });
     </script>
 </body>
