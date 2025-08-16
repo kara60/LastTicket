@@ -1,45 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
-using TicketSystem.Domain.Entities;
+﻿using System.ComponentModel.DataAnnotations;
 using TicketSystem.Domain.Enums;
-using TicketSystem.Web.Areas.Admin.Models;
 
-namespace TicketSystem.Web.Areas.Admin.Models
+namespace TicketSystem.Web.Areas.Admin.Models;
+
+public class EditUserViewModel
 {
-    public class EditUserViewModel
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required(ErrorMessage = "Ad gereklidir.")]
-        [Display(Name = "Ad")]
-        public string FirstName { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Ad gereklidir.")]
+    [StringLength(100, ErrorMessage = "Ad en fazla 100 karakter olabilir.")]
+    [Display(Name = "Ad")]
+    public string FirstName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Soyad gereklidir.")]
-        [Display(Name = "Soyad")]
-        public string LastName { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Soyad gereklidir.")]
+    [StringLength(100, ErrorMessage = "Soyad en fazla 100 karakter olabilir.")]
+    [Display(Name = "Soyad")]
+    public string LastName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "E-posta gereklidir.")]
-        [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
-        [Display(Name = "E-posta")]
-        public string Email { get; set; } = string.Empty;
+    [Required(ErrorMessage = "E-posta gereklidir.")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
+    [StringLength(200, ErrorMessage = "E-posta en fazla 200 karakter olabilir.")]
+    [Display(Name = "E-posta")]
+    public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Kullanıcı adı gereklidir.")]
-        [Display(Name = "Kullanıcı Adı")]
-        public string Username { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Kullanıcı adı gereklidir.")]
+    [StringLength(100, ErrorMessage = "Kullanıcı adı en fazla 100 karakter olabilir.")]
+    [Display(Name = "Kullanıcı Adı")]
+    public string Username { get; set; } = string.Empty;
 
-        [MinLength(6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Yeni Şifre (Boş bırakılırsa değişmez)")]
-        public string? NewPassword { get; set; }
+    [StringLength(100, MinimumLength = 6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Yeni Şifre")]
+    public string? NewPassword { get; set; }
 
-        [Required(ErrorMessage = "Rol seçilmelidir.")]
-        [Display(Name = "Rol")]
-        public UserRole Role { get; set; }
+    [Required(ErrorMessage = "Rol seçimi gereklidir.")]
+    [Display(Name = "Rol")]
+    public UserRole Role { get; set; }
 
-        [Display(Name = "Müşteri")]
-        public int? CustomerId { get; set; }
+    [Display(Name = "Müşteri")]
+    public int? CustomerId { get; set; }
 
-        [Display(Name = "Aktif")]
-        public bool IsActive { get; set; } = true;
-    }
+    [Display(Name = "Aktif")]
+    public bool IsActive { get; set; } = true;
+
+    public string FullName => $"{FirstName} {LastName}";
 }

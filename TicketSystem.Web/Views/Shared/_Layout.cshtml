@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Ticket System</title>
+    <title>@ViewData["Title"] - SoftDesk</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -85,8 +85,8 @@
         }
 
         .nav-item-hover:hover {
-            transform: translateX(4px);
-            background: rgba(59, 130, 246, 0.1);
+            transform: translateX(2px);
+            background: rgba(59, 130, 246, 0.08);
         }
 
         .sidebar-transition {
@@ -100,6 +100,16 @@
         .notification-badge {
             animation: pulse 2s infinite;
         }
+
+        /* Compact sidebar styles */
+        .sidebar-compact .nav-item {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar-compact .nav-icon {
+            margin: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-display" x-data="{ sidebarOpen: true, showProfileMenu: false }">
@@ -107,43 +117,123 @@
         <!-- Sidebar -->
         <div id="sidebar"
              :class="sidebarOpen ? 'w-64' : 'w-16'"
-             class="sidebar-transition bg-white shadow-xl border-r border-gray-200 min-h-screen relative z-20">
+             class="sidebar-transition bg-white shadow-lg border-r border-gray-200 min-h-screen relative z-20 flex flex-col">
 
             <!-- Logo Section -->
-            <div class="p-4 border-b border-gray-200">
+            <div class="p-3 border-b border-gray-200 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3" :class="!sidebarOpen && 'justify-center'">
-                        <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-ticket-alt text-white text-lg"></i>
+                        <div class="w-9 h-9 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-ticket-alt text-white text-sm"></i>
                         </div>
                         <div x-show="sidebarOpen" x-transition class="flex flex-col">
-                            <h1 class="text-xl font-bold text-gray-900">Ticket System</h1>
+                            <h1 class="text-lg font-bold text-gray-900">SoftDesk</h1>
                             <p class="text-xs text-gray-500">v2.0</p>
                         </div>
                     </div>
                     <button @@click ="sidebarOpen = !sidebarOpen"
-                            class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                            class="p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200">
                         <i :class="sidebarOpen ? 'fa-chevron-left' : 'fa-chevron-right'"
-                           class="fas text-gray-600 text-sm transition-transform duration-200"></i>
+                           class="fas text-gray-600 text-xs transition-transform duration-200"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- User Profile Section -->
-            <div class="p-4 border-b border-gray-200" x-show="sidebarOpen" x-transition>
+            <!-- Navigation -->
+            <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
+                @if (User.IsInRole("Admin"))
+                {
+                    <!-- Dashboard -->
+                    <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-tachometer-alt w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Dashboard</span>
+                    </a>
+
+                    <!-- Tickets -->
+                    <a href="@Url.Action("Index", "Tickets", new { area = "Admin" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-ticket-alt w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Tüm Ticket'lar</span>
+                        <span x-show="sidebarOpen" x-transition class="ml-auto bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded-full notification-badge">12</span>
+                    </a>
+
+                    <!-- Management Section -->
+                    <div x-show="sidebarOpen" x-transition class="pt-3">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Yönetim</h3>
+                    </div>
+
+                    <a href="@Url.Action("Index", "Users", new { area = "Admin" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-users w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Kullanıcılar</span>
+                    </a>
+
+                    <!-- Settings Section -->
+                    <div x-show="sidebarOpen" x-transition class="pt-3">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Ayarlar</h3>
+                    </div>
+
+                    <a href="@Url.Action("Index", "TicketTypes", new { area = "Admin" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "TicketTypes" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-cog w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Ticket Türleri</span>
+                    </a>
+
+                    <a href="@Url.Action("Index", "Categories", new { area = "Admin" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-folder w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Kategoriler</span>
+                    </a>
+                }
+                else
+                {
+                    <!-- Customer Navigation -->
+                    <a href="@Url.Action("Index", "Dashboard", new { area = "Customer" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-tachometer-alt w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Dashboard</span>
+                    </a>
+
+                    @* <a href="@Url.Action("Create", "Tickets", new { area = "Customer" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 text-gray-700 hover:text-primary-600 hover:bg-green-50"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-plus w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Yeni Ticket</span>
+                    </a> *@
+
+                    <a href="@Url.Action("Index", "Tickets", new { area = "Customer" })"
+                       class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                       :class="!sidebarOpen && 'justify-center'">
+                        <i class="fas fa-ticket-alt w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                        <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Ticket'larım</span>
+                        <span x-show="sidebarOpen" x-transition class="ml-auto bg-blue-100 text-blue-600 text-xs px-1.5 py-0.5 rounded-full">3</span>
+                    </a>
+                }
+            </nav>
+
+            <!-- User Profile Section - Alt kısımda sabit -->
+            <div class="p-3 border-t border-gray-200 flex-shrink-0">
                 <div class="relative" x-data="{ showMenu: false }">
                     <button @@click ="showMenu = !showMenu"
-                            class="w-full flex items-center space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
-                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span class="text-white font-medium text-sm">
+                            class="w-full flex items-center space-x-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                            :class="!sidebarOpen && 'justify-center'">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-medium text-xs">
                                 @(User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value?.Substring(0, 1) ?? "U")@(User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value?.Substring(0, 1) ?? "")
                             </span>
                         </div>
-                        <div class="flex-1 text-left">
-                            <p class="font-medium text-gray-900 text-sm">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value @User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value</p>
+                        <div x-show="sidebarOpen" x-transition class="flex-1 text-left min-w-0">
+                            <p class="font-medium text-gray-900 text-sm truncate">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value @User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value</p>
                             <p class="text-xs text-gray-500">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</p>
                         </div>
-                        <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform duration-200"
+                        <i x-show="sidebarOpen" x-transition class="fas fa-chevron-down text-gray-400 text-xs transition-transform duration-200 flex-shrink-0"
                            :class="showMenu && 'rotate-180'"></i>
                     </button>
 
@@ -155,112 +245,41 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-1 scale-100"
                          x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-30">
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                            <i class="fas fa-user-circle mr-3 text-gray-400"></i>Profil
-                        </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                            <i class="fas fa-cog mr-3 text-gray-400"></i>Ayarlar
-                        </a>
-                        <hr class="my-2">
+                         class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-30">
                         <form method="post" asp-area="" asp-controller="Auth" asp-action="Logout" class="block">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                <i class="fas fa-sign-out-alt mr-3"></i>Çıkış Yap
+                            <button type="submit" class="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
+                                <i class="fas fa-sign-out-alt mr-2 text-xs"></i>Çıkış Yap
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
-
-            <!-- Navigation -->
-            <nav class="p-4 space-y-2">
-                @if (User.IsInRole("Admin"))
-                {
-                    <!-- Dashboard -->
-                    <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-tachometer-alt w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Dashboard</span>
-                    </a>
-
-                    <!-- Tickets -->
-                    <a href="@Url.Action("Index", "Tickets", new { area = "Admin" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-ticket-alt w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Tüm Ticket'lar</span>
-                        <span x-show="sidebarOpen" x-transition class="ml-auto bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full notification-badge">12</span>
-                    </a>
-
-                    <!-- Management Section -->
-                    <div x-show="sidebarOpen" x-transition class="pt-4">
-                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Yönetim</h3>
-                    </div>
-
-                    <a href="@Url.Action("Index", "Users", new { area = "Admin" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-users w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Kullanıcılar</span>
-                    </a>
-
-                    <!-- Settings Section -->
-                    <div x-show="sidebarOpen" x-transition class="pt-4">
-                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Ayarlar</h3>
-                    </div>
-
-                    <a href="@Url.Action("Index", "TicketTypes", new { area = "Admin" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "TicketTypes" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-cog w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Ticket Türleri</span>
-                    </a>
-
-                    <a href="@Url.Action("Index", "Categories", new { area = "Admin" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-folder w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Kategoriler</span>
-                    </a>
-                }
-                else
-                {
-                    <!-- Customer Navigation -->
-                    <a href="@Url.Action("Index", "Dashboard", new { area = "Customer" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-tachometer-alt w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Dashboard</span>
-                    </a>
-
-                    <a href="@Url.Action("Create", "Tickets", new { area = "Customer" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 text-gray-700 hover:text-primary-600 hover:bg-green-50">
-                        <i class="fas fa-plus w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Yeni Ticket</span>
-                    </a>
-
-                    <a href="@Url.Action("Index", "Tickets", new { area = "Customer" })"
-                       class="nav-item-hover flex items-center p-3 rounded-xl transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tickets" ? "bg-primary-50 text-primary-700 border-r-2 border-primary-500" : "text-gray-700 hover:text-primary-600")">
-                        <i class="fas fa-ticket-alt w-5 flex-shrink-0"></i>
-                        <span x-show="sidebarOpen" x-transition class="ml-3 font-medium">Ticket'larım</span>
-                        <span x-show="sidebarOpen" x-transition class="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">3</span>
-                    </a>
-                }
-            </nav>
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col content-transition"
-             :class="sidebarOpen ? 'ml-0' : 'ml-0'">
-
+        <div class="flex-1 flex flex-col">
             <!-- Top Header -->
-            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex-shrink-0">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <h1 class="text-2xl font-bold text-gray-900">@ViewData["Title"]</h1>
-                        <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>@DateTime.Now.ToString("dd MMMM yyyy, dddd", new System.Globalization.CultureInfo("tr-TR"))</span>
-                        </div>
+                    <div class="flex items-center space-x-4 min-w-0 flex-1">
+                        <h1 class="text-xl font-bold text-gray-900 truncate">@ViewData["Title"]</h1>
                     </div>
 
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3 flex-shrink-0">
+
+                        <!-- Quick Actions -->
+                        <div class="hidden md:flex items-center">
+                            @if (User.IsInRole("Customer"))
+                            {
+                                <a href="@Url.Action("Create", "Tickets", new { area = "Customer" })"
+                                   class="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2">
+                                    <i class="fas fa-plus text-xs"></i>
+                                    <span>Yeni Ticket Oluştur</span>
+                                </a>
+                            }
+                        </div>
+
                         <!-- Notifications -->
                         <div class="relative" x-data="{ show: false }">
                             <button @@click ="show = !show" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative">
@@ -301,67 +320,54 @@
                             </div>
                         </div>
 
-                        <!-- Quick Actions -->
-                        <div class="hidden md:flex items-center space-x-2">
-                            @if (User.IsInRole("Customer"))
-                            {
-                                <a href="@Url.Action("Create", "Tickets", new { area = "Customer" })"
-                                   class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2">
-                                    <i class="fas fa-plus"></i>
-                                    <span>Yeni Ticket</span>
-                                </a>
-                            }
-                        </div>
-
-                        <!-- User Menu -->
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-900">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</div>
-                            <div class="text-xs text-gray-500">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</div>
+                        <div class="hidden lg:flex items-center space-x-2 text-sm text-gray-500">
+                            <i class="fas fa-calendar-alt text-xs"></i>
+                            <span class="whitespace-nowrap">@DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</span>
                         </div>
                     </div>
                 </div>
             </header>
 
             <!-- Content Area -->
-            <main class="flex-1 p-6 bg-gray-50">
+            <main class="flex-1 p-4 bg-gray-50 overflow-y-auto">
                 <!-- Alert Messages -->
-                <div class="mb-6 space-y-4">
+                <div class="mb-4 space-y-3">
                     @if (TempData["Success"] != null)
                     {
-                        <div class="animate-fade-in bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg shadow-sm">
+                        <div class="animate-fade-in bg-green-50 border-l-4 border-green-400 p-3 rounded-r-lg shadow-sm">
                             <div class="flex items-center">
-                                <i class="fas fa-check-circle text-green-400 mr-3"></i>
-                                <div class="text-green-700 font-medium">@TempData["Success"]</div>
+                                <i class="fas fa-check-circle text-green-400 mr-3 text-sm"></i>
+                                <div class="text-green-700 font-medium text-sm">@TempData["Success"]</div>
                             </div>
                         </div>
                     }
 
                     @if (TempData["Error"] != null)
                     {
-                        <div class="animate-fade-in bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg shadow-sm">
+                        <div class="animate-fade-in bg-red-50 border-l-4 border-red-400 p-3 rounded-r-lg shadow-sm">
                             <div class="flex items-center">
-                                <i class="fas fa-exclamation-circle text-red-400 mr-3"></i>
-                                <div class="text-red-700 font-medium">@TempData["Error"]</div>
+                                <i class="fas fa-exclamation-circle text-red-400 mr-3 text-sm"></i>
+                                <div class="text-red-700 font-medium text-sm">@TempData["Error"]</div>
                             </div>
                         </div>
                     }
 
                     @if (TempData["Warning"] != null)
                     {
-                        <div class="animate-fade-in bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
+                        <div class="animate-fade-in bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-lg shadow-sm">
                             <div class="flex items-center">
-                                <i class="fas fa-exclamation-triangle text-yellow-400 mr-3"></i>
-                                <div class="text-yellow-700 font-medium">@TempData["Warning"]</div>
+                                <i class="fas fa-exclamation-triangle text-yellow-400 mr-3 text-sm"></i>
+                                <div class="text-yellow-700 font-medium text-sm">@TempData["Warning"]</div>
                             </div>
                         </div>
                     }
 
                     @if (TempData["Info"] != null)
                     {
-                        <div class="animate-fade-in bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg shadow-sm">
+                        <div class="animate-fade-in bg-blue-50 border-l-4 border-blue-400 p-3 rounded-r-lg shadow-sm">
                             <div class="flex items-center">
-                                <i class="fas fa-info-circle text-blue-400 mr-3"></i>
-                                <div class="text-blue-700 font-medium">@TempData["Info"]</div>
+                                <i class="fas fa-info-circle text-blue-400 mr-3 text-sm"></i>
+                                <div class="text-blue-700 font-medium text-sm">@TempData["Info"]</div>
                             </div>
                         </div>
                     }
@@ -389,20 +395,20 @@
     <!-- Scripts -->
     <script>
         // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50, .bg-yellow-50, .bg-blue-50');
-            alerts.forEach(alert => {
-                alert.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-                alert.style.opacity = '0';
-                alert.style.transform = 'translateX(100%)';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 5000);
+        // setTimeout(function() {
+        //     const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50, .bg-yellow-50, .bg-blue-50');
+        //     alerts.forEach(alert => {
+        //         alert.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        //         alert.style.opacity = '0';
+        //         alert.style.transform = 'translateX(100%)';
+        //         setTimeout(() => alert.remove(), 500);
+        //     });
+        // }, 5000);
 
         // Mobile responsiveness
         window.addEventListener('resize', function() {
             if (window.innerWidth >= 768) {
-                Alpine.store('sidebarOpen', true);
+                // Reset sidebar state on desktop
             }
         });
 
@@ -411,7 +417,8 @@
             // Ctrl + B to toggle sidebar
             if (e.ctrlKey && e.key === 'b') {
                 e.preventDefault();
-                Alpine.store('sidebarOpen', !Alpine.store('sidebarOpen'));
+                // Toggle sidebar using Alpine
+                document.dispatchEvent(new CustomEvent('toggle-sidebar'));
             }
         });
 
