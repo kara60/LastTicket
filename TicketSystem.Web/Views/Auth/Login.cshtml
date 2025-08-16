@@ -10,91 +10,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Giriş - Ticket System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="bg-gradient-to-br from-blue-600 to-purple-700 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-600 rounded-full mx-auto flex items-center justify-center mb-4">
-                <i class="fas fa-ticket-alt text-white text-2xl"></i>
-            </div>
-            <h1 class="text-2xl font-bold text-gray-800">Ticket System</h1>
-            <p class="text-gray-600 mt-2">Hesabınıza giriş yapın</p>
-        </div>
-
-        <!-- Error Messages -->
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                <div asp-validation-summary="All" class="text-sm"></div>
-            </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.6s ease-out',
+                        'pulse-slow': 'pulse 3s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(0)' }
+                        }
+                    },
+                    fontFamily: {
+                        'display': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
         }
 
-        <!-- Login Form -->
-        <form method="post" asp-action="Login" asp-controller="Auth">
-            @Html.AntiForgeryToken()
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
-            <!-- Username -->
-            <div class="mb-4">
-                <label asp-for="Username" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-user mr-2"></i>Kullanıcı Adı
-                </label>
-                <input asp-for="Username"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Kullanıcı adınızı giriniz"
-                       autocomplete="username" />
-                <span asp-validation-for="Username" class="text-red-500 text-sm"></span>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center relative overflow-hidden">
+    <!-- Background animations -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-10 -left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse-slow"></div>
+        <div class="absolute -bottom-10 -right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse-slow" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse-slow" style="animation-delay: 4s;"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-md px-6">
+        <!-- Main Card -->
+        <div class="glass-effect rounded-3xl p-8 shadow-2xl animate-fade-in">
+            <!-- Logo Section -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+                    <i class="fas fa-ticket-alt text-white text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Ticket System</h1>
+                <p class="text-gray-200 text-sm">Hesabınıza güvenli giriş yapın</p>
             </div>
 
-            <!-- Password -->
-            <div class="mb-6">
-                <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-lock mr-2"></i>Şifre
-                </label>
-                <input asp-for="Password"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Şifrenizi giriniz"
-                       autocomplete="current-password" />
-                <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
-            </div>
+            <!-- Error Messages -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="mb-6 p-4 bg-red-500/20 border border-red-500/30 text-red-100 rounded-xl backdrop-filter backdrop-blur-sm animate-slide-in">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-3 text-red-300"></i>
+                        <div asp-validation-summary="All" class="text-sm"></div>
+                    </div>
+                </div>
+            }
 
-            <!-- Remember Me -->
-            <div class="mb-6">
-                <label class="flex items-center">
-                    <input asp-for="RememberMe" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                    <span class="ml-2 text-sm text-gray-700">Beni hatırla</span>
-                </label>
-            </div>
+            <!-- Login Form -->
+            <form method="post" asp-action="Login" asp-controller="Auth" class="space-y-6">
+                @Html.AntiForgeryToken()
 
-            <!-- Submit Button -->
-            <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
-                <i class="fas fa-sign-in-alt mr-2"></i>Giriş Yap
-            </button>
-        </form>
+                <!-- Username Field -->
+                <div class="space-y-2">
+                    <label asp-for="Username" class="block text-sm font-medium text-gray-200">
+                        <i class="fas fa-user mr-2 text-blue-300"></i>Kullanıcı Adı
+                    </label>
+                    <input asp-for="Username"
+                           class="input-focus w-full px-4 py-3 bg-white/10 border border-gray-300/30 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
+                           placeholder="Kullanıcı adınızı giriniz"
+                           autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-red-300 text-sm"></span>
+                </div>
 
-        <!-- Demo Accounts -->
-        <div class="mt-8 p-4 bg-gray-50 rounded-md">
-            <h3 class="text-sm font-medium text-gray-700 mb-2">Demo Hesaplar:</h3>
-            <div class="text-xs text-gray-600 space-y-1">
-                <div><strong>Admin:</strong> admin / Admin123!</div>
-                <div><strong>Customer:</strong> ahmet / Customer123!</div>
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <label asp-for="Password" class="block text-sm font-medium text-gray-200">
+                        <i class="fas fa-lock mr-2 text-blue-300"></i>Şifre
+                    </label>
+                    <div class="relative">
+                        <input asp-for="Password"
+                               class="input-focus w-full px-4 py-3 bg-white/10 border border-gray-300/30 rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 pr-12"
+                               placeholder="Şifrenizi giriniz"
+                               autocomplete="current-password"
+                               id="passwordInput" />
+                        <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-white transition-colors">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-red-300 text-sm"></span>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center text-sm text-gray-200">
+                        <input asp-for="RememberMe" type="checkbox" class="h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300 rounded bg-white/10 border-gray-300/30">
+                        <span class="ml-2">Beni hatırla</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit"
+                        class="btn-hover w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-xl font-medium transition-all duration-300 flex items-center justify-center space-x-2">
+                    <span id="loginText">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Giriş Yap
+                    </span>
+                    <span id="loadingText" class="hidden">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Giriş yapılıyor...
+                    </span>
+                </button>
+            </form>
+
+            <!-- Demo Accounts -->
+            <div class="mt-8 p-4 bg-white/5 border border-gray-300/20 rounded-xl backdrop-filter backdrop-blur-sm">
+                <h3 class="text-sm font-medium text-gray-200 mb-3 flex items-center">
+                    <i class="fas fa-info-circle mr-2 text-blue-300"></i>Demo Hesaplar
+                </h3>
+                <div class="space-y-2 text-xs text-gray-300">
+                    <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                        <span><strong class="text-blue-300">Admin:</strong> admin</span>
+                        <span class="text-gray-400">Admin123!</span>
+                    </div>
+                    <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg">
+                        <span><strong class="text-green-300">Müşteri:</strong> ahmet</span>
+                        <span class="text-gray-400">Customer123!</span>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-6 text-gray-300 text-sm">
+            <p>&copy; 2024 Ticket System. Tüm hakları saklıdır.</p>
         </div>
     </div>
 
-    <!-- Loading Animation -->
     <script>
+        // Password toggle functionality
+        function togglePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Form submission handling
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             const submitButton = form.querySelector('button[type="submit"]');
+            const loginText = document.getElementById('loginText');
+            const loadingText = document.getElementById('loadingText');
 
             form.addEventListener('submit', function() {
                 submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Giriş yapılıyor...';
+                loginText.classList.add('hidden');
+                loadingText.classList.remove('hidden');
+
+                // Reset after 5 seconds if something goes wrong
+                setTimeout(() => {
+                    submitButton.disabled = false;
+                    loginText.classList.remove('hidden');
+                    loadingText.classList.add('hidden');
+                }, 5000);
+            });
+
+            // Auto-fill demo credentials
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === '1') {
+                    e.preventDefault();
+                    document.querySelector('[name="Username"]').value = 'admin';
+                    document.querySelector('[name="Password"]').value = 'Admin123!';
+                }
+                if (e.ctrlKey && e.key === '2') {
+                    e.preventDefault();
+                    document.querySelector('[name="Username"]').value = 'ahmet';
+                    document.querySelector('[name="Password"]').value = 'Customer123!';
+                }
             });
         });
+
+        // Add floating animation to background elements
+        function animateBackground() {
+            const elements = document.querySelectorAll('.absolute.w-72.h-72');
+            elements.forEach((el, index) => {
+                const delay = index * 2000;
+                setTimeout(() => {
+                    el.style.transform = `translate(${Math.sin(Date.now() / 1000) * 20}px, ${Math.cos(Date.now() / 1000) * 20}px)`;
+                }, delay);
+            });
+        }
+
+        setInterval(animateBackground, 3000);
     </script>
 </body>
 </html>

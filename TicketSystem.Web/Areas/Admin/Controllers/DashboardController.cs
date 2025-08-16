@@ -1,36 +1,68 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats;
 
 namespace TicketSystem.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = "AdminOnly")]
 public class DashboardController : Controller
 {
+    private readonly IMediator _mediator;
     private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(ILogger<DashboardController> logger)
+    public DashboardController(IMediator mediator, ILogger<DashboardController> logger)
     {
+        _mediator = mediator;
         _logger = logger;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        _logger.LogInformation("Admin Dashboard accessed by user: {User}", User.Identity.Name);
-        _logger.LogInformation("User authenticated: {IsAuthenticated}", User.Identity.IsAuthenticated);
-        _logger.LogInformation("User role: {Role}", User.FindFirst("role")?.Value);
+        try
+        {
+            _logger.LogInformation("Admin dashboard requested by user: {UserId}",
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
 
-        ViewBag.Message = "Admin Dashboard'a hoş geldiniz!";
-        ViewBag.IsAuthenticated = User.Identity.IsAuthenticated;
-        ViewBag.UserRole = User.FindFirst("role")?.Value;
-        ViewBag.UserName = User.Identity.Name;
+            // Dashboard istatistiklerini al
+            var query = new GetDashboardStatsQuery();
+            var result = await _mediator.Send(query);
 
-        // Geçici istatistikler
-        ViewBag.TotalTickets = 0;
-        ViewBag.ActiveTickets = 0;
-        ViewBag.ResolvedTickets = 0;
-        ViewBag.ClosedTickets = 0;
+            if (result.IsSuccess)
+            {
+                ViewData["Title"] = "Admin Dashboard";
+                return View(result.Data);
+            }
+            else
+            {
+                _logger.LogWarning("Dashboard stats query failed: {Errors}", string.Join(", ", result.Errors));
+                TempData["Error"] = "Dashboard verileri yüklenirken bir hata oluştu.";
 
-        return View();
+                // Fallback data
+                var fallbackData = new DashboardStatsDto
+                {
+                    TotalTickets = 0,
+                    ActiveTickets = 0,
+                    ResolvedTickets = 0,
+                    ClosedTickets = 0,
+                    TicketsByStatus = new List<TicketsByStatusDto>(),
+                    TicketsByType = new List<TicketsByTypeDto>(),
+                    TicketsByCustomer = new List<TicketsByCustomerDto>(),
+                    TicketsTrend = new List<TicketsTrendDto>()
+                };
+
+                return View(fallbackData);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading admin dashboard");
+            TempData["Error"] = "Dashboard yüklenirken beklenmeyen bir hata oluştu.";
+
+            // Empty model for error case
+            var emptyData = new DashboardStatsDto();
+            return View(emptyData);
+        }
     }
 }

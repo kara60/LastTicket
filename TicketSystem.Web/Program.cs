@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using TicketSystem.Application;
 using TicketSystem.Domain.Entities;
@@ -18,6 +19,21 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddWebServices(builder.Configuration);
 
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("./keys"))
+    .SetApplicationName("TicketSystem");
+
+// Session desteði ekle (opsiyonel, ama logout için güvenli)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".TicketSystem.Session";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -36,9 +52,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// JWT Middleware - Authentication'dan önce olmalý
+// Session middleware
+app.UseSession();
+
+// ÖNEMLÝ: JWT Middleware Authentication'dan ÖNCE olmalý
 app.UseMiddleware<JwtMiddleware>();
 
+// Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -68,14 +88,13 @@ using (var scope = app.Services.CreateScope())
 
         // Seed data
         await SeedInitialDataAsync(context, logger);
-        //await DataSeeder.SeedAsync(context);
 
         logger.LogInformation("Database operations completed successfully");
     }
     catch (Exception ex)
     {
         app.Logger.LogError(ex, "An error occurred while setting up the database");
-        throw; // Uygulama baþlamasýn hata varsa
+        throw;
     }
 }
 
@@ -113,10 +132,6 @@ static async Task SeedInitialDataAsync(ApplicationDbContext context, ILogger log
         await context.SaveChangesAsync();
         logger.LogInformation("Company created with ID: {CompanyId}", company.Id);
     }
-    else
-    {
-        logger.LogInformation("Company already exists with ID: {CompanyId}", company.Id);
-    }
 
     // Customer kontrolü ve oluþturma
     var customer = await context.Customers.FirstOrDefaultAsync(c => c.CompanyId == company.Id);
@@ -139,10 +154,6 @@ static async Task SeedInitialDataAsync(ApplicationDbContext context, ILogger log
         context.Customers.Add(customer);
         await context.SaveChangesAsync();
         logger.LogInformation("Customer created with ID: {CustomerId}", customer.Id);
-    }
-    else
-    {
-        logger.LogInformation("Customer already exists with ID: {CustomerId}", customer.Id);
     }
 
     // Admin user kontrolü ve oluþturma
@@ -168,10 +179,6 @@ static async Task SeedInitialDataAsync(ApplicationDbContext context, ILogger log
         await context.SaveChangesAsync();
         logger.LogInformation("Admin user created - Username: admin, Password: Admin123!");
     }
-    else
-    {
-        logger.LogInformation("Admin user already exists with ID: {UserId}", adminUser.Id);
-    }
 
     // Customer user kontrolü ve oluþturma
     var customerUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "ahmet");
@@ -196,10 +203,6 @@ static async Task SeedInitialDataAsync(ApplicationDbContext context, ILogger log
         context.Users.Add(customerUser);
         await context.SaveChangesAsync();
         logger.LogInformation("Customer user created - Username: ahmet, Password: Customer123!");
-    }
-    else
-    {
-        logger.LogInformation("Customer user already exists with ID: {UserId}", customerUser.Id);
     }
 
     logger.LogInformation("=== LOGIN CREDENTIALS ===");

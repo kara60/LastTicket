@@ -1,189 +1,271 @@
-﻿@{
+﻿@model TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats.DashboardStatsDto
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="min-h-screen bg-gray-50">
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Header -->
-            <div class="md:flex md:items-center md:justify-between">
-                <div class="flex-1 min-w-0">
-                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                        Admin Dashboard
-                    </h2>
-                </div>
-                <div class="mt-4 flex md:mt-0 md:ml-4">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        ✅ Login Başarılı!
-                    </span>
-                </div>
-            </div>
-
-            <!-- Welcome Card -->
-            <div class="mt-8">
-                <div class="bg-white overflow-hidden shadow rounded-lg">
-                    <div class="px-4 py-5 sm:p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
-                            Hoş Geldiniz! 🎉
-                        </h3>
-                        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Kullanıcı:</strong> @ViewBag.UserName
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Rol:</strong> @ViewBag.UserRole
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Kimlik Doğrulandı:</strong> @(ViewBag.IsAuthenticated ? "✅ Evet" : "❌ Hayır")
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Giriş Zamanı:</strong> @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <strong>Durum:</strong> <span class="text-green-600">Aktif</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="mt-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Hızlı İstatistikler</h3>
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <!-- Total Tickets -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">📊</span>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Toplam Ticket</dt>
-                                        <dd class="text-lg font-medium text-gray-900">@ViewBag.TotalTickets</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Tickets -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">🔄</span>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Aktif Ticket</dt>
-                                        <dd class="text-lg font-medium text-gray-900">@ViewBag.ActiveTickets</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Resolved Tickets -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">✅</span>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Çözülen Ticket</dt>
-                                        <dd class="text-lg font-medium text-gray-900">@ViewBag.ResolvedTickets</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Closed Tickets -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg">
-                        <div class="p-5">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-gray-500 rounded-md flex items-center justify-center">
-                                        <span class="text-white text-sm font-bold">🔒</span>
-                                    </div>
-                                </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">Kapalı Ticket</dt>
-                                        <dd class="text-lg font-medium text-gray-900">@ViewBag.ClosedTickets</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Navigation Links -->
-            <div class="mt-8">
-                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Hızlı Erişim</h3>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <a href="/Admin/Tickets" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <span class="text-2xl">🎫</span>
-                            </div>
-                            <div class="ml-4">
-                                <h4 class="text-lg font-medium text-gray-900">Ticket Yönetimi</h4>
-                                <p class="text-gray-600">Tüm ticket'ları görüntüle ve yönet</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <a href="/Admin/Users" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <span class="text-2xl">👥</span>
-                            </div>
-                            <div class="ml-4">
-                                <h4 class="text-lg font-medium text-gray-900">Kullanıcı Yönetimi</h4>
-                                <p class="text-gray-600">Kullanıcıları ekle, düzenle, sil</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <a href="/Admin/Categories" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <span class="text-2xl">📂</span>
-                            </div>
-                            <div class="ml-4">
-                                <h4 class="text-lg font-medium text-gray-900">Kategori Yönetimi</h4>
-                                <p class="text-gray-600">Ticket kategorilerini düzenle</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Logout -->
-            <div class="mt-8 text-center">
-                <form method="post" action="/Auth/Logout" class="inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
-                        🚪 Çıkış Yap
-                    </button>
-                </form>
+<!-- Welcome Banner -->
+<div class="bg-gradient-to-r from-blue-600 to-purple-700 rounded-xl text-white p-6 mb-8 shadow-lg">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p class="text-blue-100">
+                Hoş geldiniz, @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
+                @User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value
+            </p>
+            <p class="text-blue-200 text-sm mt-1">Sistem yönetim paneli</p>
+        </div>
+        <div class="text-right">
+            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                <p class="text-blue-100 text-sm">Bugün</p>
+                <p class="text-xl font-semibold">@DateTime.Now.ToString("dd.MM.yyyy")</p>
+                <p class="text-blue-200 text-sm">@DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("tr-TR"))</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Tickets -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Toplam Ticket</p>
+                <p class="text-3xl font-bold text-gray-900">@Model.TotalTickets</p>
+                <p class="text-xs text-gray-500 mt-1">Tüm zamanlar</p>
+            </div>
+            <div class="p-3 rounded-full bg-blue-100">
+                <i class="fas fa-ticket-alt text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Tickets -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Aktif Ticket</p>
+                <p class="text-3xl font-bold text-orange-600">@Model.ActiveTickets</p>
+                <p class="text-xs text-gray-500 mt-1">İşlem bekliyor</p>
+            </div>
+            <div class="p-3 rounded-full bg-orange-100">
+                <i class="fas fa-clock text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved Tickets -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Çözülen Ticket</p>
+                <p class="text-3xl font-bold text-green-600">@Model.ResolvedTickets</p>
+                <p class="text-xs text-gray-500 mt-1">Başarıyla çözüldü</p>
+            </div>
+            <div class="p-3 rounded-full bg-green-100">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closed Tickets -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Kapatılan Ticket</p>
+                <p class="text-3xl font-bold text-gray-600">@Model.ClosedTickets</p>
+                <p class="text-xs text-gray-500 mt-1">Arşivlendi</p>
+            </div>
+            <div class="p-3 rounded-full bg-gray-100">
+                <i class="fas fa-archive text-gray-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Analytics -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Status Distribution -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">Durum Dağılımı</h3>
+            <div class="p-2 rounded-lg bg-gray-50">
+                <i class="fas fa-chart-pie text-gray-600"></i>
+            </div>
+        </div>
+
+        @if (Model.TicketsByStatus?.Any() == true)
+        {
+            <div class="space-y-4">
+                @foreach (var status in Model.TicketsByStatus)
+                {
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full mr-3" style="background-color: @status.Color"></div>
+                            <span class="text-sm font-medium text-gray-700">@status.Status</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-semibold text-gray-900">@status.Count</span>
+                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full"
+                                     style="background-color: @status.Color; width: @(Model.TotalTickets > 0 ? (status.Count * 100 / Model.TotalTickets) : 0)%"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <i class="fas fa-chart-pie text-gray-300 text-3xl mb-3"></i>
+                <p class="text-gray-500">Henüz veri bulunmuyor</p>
+            </div>
+        }
+    </div>
+
+    <!-- Type Distribution -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">Tür Dağılımı</h3>
+            <div class="p-2 rounded-lg bg-gray-50">
+                <i class="fas fa-chart-bar text-gray-600"></i>
+            </div>
+        </div>
+
+        @if (Model.TicketsByType?.Any() == true)
+        {
+            <div class="space-y-4">
+                @foreach (var type in Model.TicketsByType)
+                {
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full mr-3" style="background-color: @type.Color"></div>
+                            <span class="text-sm font-medium text-gray-700">@type.TypeName</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-semibold text-gray-900">@type.Count</span>
+                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                <div class="h-2 rounded-full"
+                                     style="background-color: @type.Color; width: @(Model.TotalTickets > 0 ? (type.Count * 100 / Model.TotalTickets) : 0)%"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <i class="fas fa-chart-bar text-gray-300 text-3xl mb-3"></i>
+                <p class="text-gray-500">Henüz veri bulunmuyor</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Top Customers -->
+@if (Model.TicketsByCustomer?.Any() == true)
+{
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">En Aktif Müşteriler</h3>
+            <div class="p-2 rounded-lg bg-gray-50">
+                <i class="fas fa-users text-gray-600"></i>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            @foreach (var customer in Model.TicketsByCustomer.Take(5))
+            {
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-blue-600 font-semibold text-sm">@customer.CustomerName.Substring(0, 1)</span>
+                        </div>
+                        <span class="font-medium text-gray-900">@customer.CustomerName</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">@customer.Count ticket</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                            @customer.Count
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <a href="@Url.Action("Index", "Tickets")"
+       class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 mr-4">
+                <i class="fas fa-ticket-alt text-blue-600 text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900">Ticket Yönetimi</h4>
+                <p class="text-sm text-gray-600">Tüm ticket'ları yönet</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="@Url.Action("Index", "Users")"
+       class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 mr-4">
+                <i class="fas fa-users text-green-600 text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900">Kullanıcılar</h4>
+                <p class="text-sm text-gray-600">Kullanıcı yönetimi</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="@Url.Action("Index", "TicketTypes")"
+       class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-purple-100 mr-4">
+                <i class="fas fa-cog text-purple-600 text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900">Ticket Türleri</h4>
+                <p class="text-sm text-gray-600">Tür ayarları</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="@Url.Action("Index", "Categories")"
+       class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200 hover:-translate-y-1">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 mr-4">
+                <i class="fas fa-folder text-yellow-600 text-xl"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900">Kategoriler</h4>
+                <p class="text-sm text-gray-600">Kategori yönetimi</p>
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Performance Metrics (if there's data) -->
+@if (Model.TicketsTrend?.Any() == true)
+{
+    <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">Son 30 Gün Trend</h3>
+            <div class="p-2 rounded-lg bg-gray-50">
+                <i class="fas fa-chart-line text-gray-600"></i>
+            </div>
+        </div>
+
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-chart-line text-gray-300 text-3xl mb-3"></i>
+            <p>Grafik komponenti yakında eklenecek</p>
+        </div>
+    </div>
+}
