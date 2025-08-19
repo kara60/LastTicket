@@ -3,217 +3,236 @@
     ViewData["Title"] = "Yeni Ticket Türü";
 }
 
-<div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Yeni Ticket Türü Oluştur</h2>
-    </div>
-
-    <form method="post" asp-action="Create" class="p-6">
-        <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
-
-        <!-- Basic Info -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div>
-                <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="Name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div>
-                <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="DisplayOrder" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div class="lg:col-span-2">
-                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <textarea asp-for="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-                <span asp-validation-for="Description" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div>
-                <label asp-for="Icon" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <select asp-for="Icon" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <option value="bug">🐛 Bug (Hata)</option>
-                    <option value="lightbulb">💡 Light Bulb (Yeni Özellik)</option>
-                    <option value="graduation-cap">🎓 Education (Eğitim)</option>
-                    <option value="cog">⚙️ Settings (Bakım)</option>
-                    <option value="question-circle">❓ Question (Soru)</option>
-                    <option value="exclamation-triangle">⚠️ Warning (Uyarı)</option>
-                    <option value="tools">🔧 Tools (Araçlar)</option>
-                    <option value="chart-line">📈 Chart (Analiz)</option>
-                </select>
-                <span asp-validation-for="Icon" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div>
-                <label asp-for="Color" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <div class="flex space-x-2">
-                    <input asp-for="Color" type="color" class="w-16 h-10 border border-gray-300 rounded-md" />
-                    <input asp-for="Color" type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="#3b82f6" />
-                </div>
-                <span asp-validation-for="Color" class="text-red-500 text-sm"></span>
-            </div>
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Yeni Ticket Türü Oluştur</h2>
         </div>
 
-        <!-- Form Designer -->
-        <div class="border-t border-gray-200 pt-8">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-medium text-gray-900">Form Alanları Tasarımı</h3>
-                <button type="button" id="addFieldBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                    <i class="fas fa-plus mr-2"></i>Alan Ekle
+        <form method="post" action="@Url.Action("Create")" class="p-6" id="createForm">
+            @Html.AntiForgeryToken()
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <strong>Hatalar:</strong>
+                    <ul class="list-disc pl-5 mt-2">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- Basic Info -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label for="Name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Tür Adı <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="Name"
+                           name="Name"
+                           value="@Model.Name"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Örn: Hata Bildirimi"
+                           required />
+                    @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-red-500 text-sm" })
+                </div>
+
+                <div>
+                    <label for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2">Sıralama</label>
+                    <input type="number"
+                           id="DisplayOrder"
+                           name="DisplayOrder"
+                           value="@Model.DisplayOrder"
+                           min="0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                    @Html.ValidationMessageFor(m => m.DisplayOrder, "", new { @class = "text-red-500 text-sm" })
+                </div>
+
+                <div class="lg:col-span-2">
+                    <label for="Description" class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                    <textarea id="Description"
+                              name="Description"
+                              rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Bu ticket türünün açıklaması...">@Model.Description</textarea>
+                    @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-red-500 text-sm" })
+                </div>
+            </div>
+
+            <!-- Visual Settings -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label for="Icon" class="block text-sm font-medium text-gray-700 mb-2">
+                        İkon <span class="text-red-500">*</span>
+                    </label>
+                    <select id="Icon"
+                            name="Icon"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required>
+                        <option value="bug" @(Model.Icon == "bug" ? "selected" : "")>🐛 Bug (Hata)</option>
+                        <option value="lightbulb" @(Model.Icon == "lightbulb" ? "selected" : "")>💡 Light Bulb (Yeni Özellik)</option>
+                        <option value="graduation-cap" @(Model.Icon == "graduation-cap" ? "selected" : "")>🎓 Education (Eğitim)</option>
+                        <option value="cog" @(Model.Icon == "cog" ? "selected" : "")>⚙️ Settings (Bakım)</option>
+                        <option value="question-circle" @(Model.Icon == "question-circle" ? "selected" : "")>❓ Question (Soru)</option>
+                        <option value="exclamation-triangle" @(Model.Icon == "exclamation-triangle" ? "selected" : "")>⚠️ Warning (Uyarı)</option>
+                        <option value="tools" @(Model.Icon == "tools" ? "selected" : "")>🔧 Tools (Araçlar)</option>
+                        <option value="chart-line" @(Model.Icon == "chart-line" ? "selected" : "")>📈 Chart (Analiz)</option>
+                        <option value="headset" @(Model.Icon == "headset" ? "selected" : "")>🎧 Support (Destek)</option>
+                        <option value="rocket" @(Model.Icon == "rocket" ? "selected" : "")>🚀 Feature (Özellik)</option>
+                    </select>
+                    @Html.ValidationMessageFor(m => m.Icon, "", new { @class = "text-red-500 text-sm" })
+                </div>
+
+                <div>
+                    <label for="Color" class="block text-sm font-medium text-gray-700 mb-2">
+                        Renk <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                           id="Color"
+                           name="Color"
+                           value="@Model.Color"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="#3b82f6"
+                           pattern="^#[0-9A-Fa-f]{6}$"
+                           required />
+                    @Html.ValidationMessageFor(m => m.Color, "", new { @class = "text-red-500 text-sm" })
+                </div>
+            </div>
+
+            <!-- Form Fields (Basitleştirilmiş) -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Form Alanları (İsteğe Bağlı)</h3>
+                    <button type="button" onclick="addSimpleField()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        <i class="fas fa-plus mr-2"></i>Alan Ekle
+                    </button>
+                </div>
+
+                <div id="formFields" class="space-y-4">
+                    <!-- Dynamic form fields will be added here -->
+                </div>
+
+                <!-- Hidden field for form fields JSON -->
+                <input type="hidden" name="FormFieldsJson" id="formFieldsJson" value="" />
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-3">
+                <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    İptal
+                </a>
+
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Oluştur
                 </button>
             </div>
 
-            <div id="formFields" class="space-y-4">
-                <!-- Dynamic form fields will be added here -->
+            <!-- DEBUG SECTION -->
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                <h4 class="font-medium text-yellow-800 mb-2">🧪 DEBUG</h4>
+                <button type="button" onclick="checkFormData()" class="bg-yellow-600 text-white px-3 py-2 rounded text-sm">
+                    Form Data Kontrol Et
+                </button>
+                <div id="debugOutput" class="mt-2 text-xs text-yellow-800"></div>
             </div>
-
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 class="font-medium text-blue-800 mb-2">Önizleme</h4>
-                <div id="formPreview" class="bg-white p-4 rounded border">
-                    <p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8 flex justify-end space-x-3">
-            <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                İptal
-            </a>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Oluştur
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
     <script>
         let fieldIndex = 0;
 
-        document.getElementById('addFieldBtn').addEventListener('click', function() {
-            addFormField();
-        });
+        function checkFormData() {
+            const formData = new FormData(document.getElementById('createForm'));
+            const debugOutput = document.getElementById('debugOutput');
 
-        function addFormField(field = null) {
-            const formFields = document.getElementById('formFields');
+            let html = '<strong>Form Data:</strong><br>';
+            for (let [key, value] of formData.entries()) {
+                html += `${key}: "${value}"<br>`;
+            }
+
+            debugOutput.innerHTML = html;
+
+            console.log('=== FORM DATA CHECK ===');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}"`);
+            }
+        }
+
+        function addSimpleField() {
+            const container = document.getElementById('formFields');
             const fieldDiv = document.createElement('div');
-            fieldDiv.className = 'border border-gray-200 rounded-lg p-4';
+            fieldDiv.className = 'border border-gray-200 rounded-md p-4 bg-gray-50';
             fieldDiv.innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-medium text-gray-900">Alan ${fieldIndex + 1}</h4>
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-medium text-gray-900">Form Alanı ${fieldIndex + 1}</h4>
                     <button type="button" onclick="removeField(this)" class="text-red-600 hover:text-red-800">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Alan Adı</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Name" value="${field?.Name || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
+                        <input type="text" data-field="name" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="örn: hata_aciklamasi" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Etiket</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Label" value="${field?.Label || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tip</label>
-                        <select name="FormFields[${fieldIndex}].Type" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview(); toggleOptions(this)">
-                            <option value="text" ${field?.Type === 'text' ? 'selected' : ''}>Metin</option>
-                            <option value="textarea" ${field?.Type === 'textarea' ? 'selected' : ''}>Uzun Metin</option>
-                            <option value="number" ${field?.Type === 'number' ? 'selected' : ''}>Sayı</option>
-                            <option value="email" ${field?.Type === 'email' ? 'selected' : ''}>E-posta</option>
-                            <option value="tel" ${field?.Type === 'tel' ? 'selected' : ''}>Telefon</option>
-                            <option value="date" ${field?.Type === 'date' ? 'selected' : ''}>Tarih</option>
-                            <option value="select" ${field?.Type === 'select' ? 'selected' : ''}>Seçim Listesi</option>
-                            <option value="checkbox" ${field?.Type === 'checkbox' ? 'selected' : ''}>Onay Kutusu</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Placeholder" value="${field?.Placeholder || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
-                    </div>
-                    <div class="options-field" style="display: ${field?.Type === 'select' ? 'block' : 'none'}">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Seçenekler (virgülle ayırın)</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Options" value="${field?.Options || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
-                    </div>
-                    <div class="flex items-center">
-                        <label class="flex items-center">
-                            <input type="checkbox" name="FormFields[${fieldIndex}].Required" value="true" ${field?.Required ? 'checked' : ''} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updatePreview()">
-                            <span class="ml-2 text-sm text-gray-700">Zorunlu</span>
-                        </label>
+                        <input type="text" data-field="label" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" placeholder="örn: Hata Açıklaması" />
                     </div>
                 </div>
             `;
-            formFields.appendChild(fieldDiv);
+            container.appendChild(fieldDiv);
             fieldIndex++;
-            updatePreview();
         }
 
         function removeField(button) {
             button.closest('.border').remove();
-            updatePreview();
         }
 
-        function toggleOptions(selectElement) {
-            const optionsField = selectElement.closest('.grid').querySelector('.options-field');
-            optionsField.style.display = selectElement.value === 'select' ? 'block' : 'none';
-        }
+        function collectFormFields() {
+            const fields = [];
+            const fieldDivs = document.querySelectorAll('#formFields .border');
 
-        function updatePreview() {
-            const preview = document.getElementById('formPreview');
-            const fields = document.querySelectorAll('#formFields .border');
-
-            if (fields.length === 0) {
-                preview.innerHTML = '<p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>';
-                return;
-            }
-
-            let previewHtml = '<div class="space-y-4">';
-
-            fields.forEach(field => {
-                const name = field.querySelector('input[name$=".Name"]').value;
-                const label = field.querySelector('input[name$=".Label"]').value;
-                const type = field.querySelector('select[name$=".Type"]').value;
-                const placeholder = field.querySelector('input[name$=".Placeholder"]').value;
-                const required = field.querySelector('input[name$=".Required"]').checked;
-                const options = field.querySelector('input[name$=".Options"]')?.value;
+            fieldDivs.forEach(div => {
+                const name = div.querySelector('[data-field="name"]')?.value || '';
+                const label = div.querySelector('[data-field="label"]')?.value || '';
 
                 if (name && label) {
-                    previewHtml += `<div>`;
-                    previewHtml += `<label class="block text-sm font-medium text-gray-700 mb-1">${label}${required ? ' *' : ''}</label>`;
-
-                    switch (type) {
-                        case 'textarea':
-                            previewHtml += `<textarea placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" rows="3" disabled></textarea>`;
-                            break;
-                        case 'select':
-                            previewHtml += `<select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" disabled>`;
-                            previewHtml += `<option>Seçiniz...</option>`;
-                            if (options) {
-                                options.split(',').forEach(opt => {
-                                    previewHtml += `<option>${opt.trim()}</option>`;
-                                });
-                            }
-                            previewHtml += `</select>`;
-                            break;
-                        case 'checkbox':
-                            previewHtml += `<label class="flex items-center"><input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" disabled><span class="ml-2 text-sm text-gray-700">${placeholder || label}</span></label>`;
-                            break;
-                        default:
-                            previewHtml += `<input type="${type}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" disabled />`;
-                    }
-                    previewHtml += `</div>`;
+                    fields.push({
+                        Name: name,
+                        Label: label,
+                        Type: 'text',
+                        Required: false,
+                        Placeholder: '',
+                        Options: ''
+                    });
                 }
             });
 
-            previewHtml += '</div>';
-            preview.innerHTML = previewHtml;
+            return fields;
         }
 
-        // Initialize with empty field for demonstration
+        // Form submit event
         document.addEventListener('DOMContentLoaded', function() {
-            // addFormField(); // Uncomment to start with one field
+            const form = document.getElementById('createForm');
+
+            form.addEventListener('submit', function(e) {
+                console.log('=== FORM SUBMIT ===');
+
+                // Collect and set form fields JSON
+                const formFields = collectFormFields();
+                document.getElementById('formFieldsJson').value = JSON.stringify(formFields);
+
+                console.log('Form fields JSON set:', document.getElementById('formFieldsJson').value);
+
+                // Debug form data
+                checkFormData();
+            });
         });
     </script>
 }

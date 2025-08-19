@@ -3,94 +3,291 @@
     ViewData["Title"] = "Ticket Türü Düzenle";
 }
 
-<div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Ticket Türü Düzenle</h2>
-    </div>
-
-    <form method="post" asp-action="Edit" class="p-6">
-        <input type="hidden" asp-for="Id" />
-        <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
-
-        <!-- Basic Info -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<div class="h-screen overflow-hidden bg-gray-50 p-4">
+    <div class="max-w-6xl mx-auto h-full flex flex-col">
+        <!-- Header - Fixed -->
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="Name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
+                <h1 class="text-2xl font-bold text-gray-900">Ticket Türü Düzenle</h1>
+                <p class="text-gray-600">@Model.Name türünü düzenleyin ve form alanlarını güncelleyin</p>
             </div>
-
-            <div>
-                <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="DisplayOrder" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div class="lg:col-span-2">
-                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <textarea asp-for="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-            </div>
-
-            <div>
-                <label asp-for="Icon" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <select asp-for="Icon" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <option value="bug">🐛 Bug (Hata)</option>
-                    <option value="lightbulb">💡 Light Bulb (Yeni Özellik)</option>
-                    <option value="graduation-cap">🎓 Education (Eğitim)</option>
-                    <option value="cog">⚙️ Settings (Bakım)</option>
-                    <option value="question-circle">❓ Question (Soru)</option>
-                    <option value="exclamation-triangle">⚠️ Warning (Uyarı)</option>
-                    <option value="tools">🔧 Tools (Araçlar)</option>
-                    <option value="chart-line">📈 Chart (Analiz)</option>
-                </select>
-            </div>
-
-            <div>
-                <label asp-for="Color" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <div class="flex space-x-2">
-                    <input asp-for="Color" type="color" class="w-16 h-10 border border-gray-300 rounded-md" />
-                    <input asp-for="Color" type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-            </div>
-
-            <div class="lg:col-span-2">
-                <label class="flex items-center">
-                    <input asp-for="IsActive" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                    <span class="ml-2 text-sm text-gray-700">Aktif</span>
-                </label>
-            </div>
-        </div>
-
-        <!-- Form Designer -->
-        <div class="border-t border-gray-200 pt-8">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-medium text-gray-900">Form Alanları Tasarımı</h3>
-                <button type="button" id="addFieldBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                    <i class="fas fa-plus mr-2"></i>Alan Ekle
+            <div class="flex items-center space-x-3">
+                <a href="@Url.Action("Index")"
+                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Geri Dön
+                </a>
+                <button onclick="if(confirm('Bu ticket türünü silmek istediğinizden emin misiniz?')) { document.getElementById('deleteForm').submit(); }"
+                        class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center">
+                    <i class="fas fa-trash mr-2"></i>
+                    Sil
                 </button>
             </div>
+        </div>
 
-            <div id="formFields" class="space-y-4">
-                <!-- Existing form fields will be loaded here -->
-            </div>
+        <!-- Content - Scrollable -->
+        <div class="flex-1 overflow-y-auto">
+            <form method="post" asp-action="Edit" class="space-y-8" id="editTicketTypeForm">
+                <input type="hidden" asp-for="Id" />
+                @Html.AntiForgeryToken()
 
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 class="font-medium text-blue-800 mb-2">Önizleme</h4>
-                <div id="formPreview" class="bg-white p-4 rounded border">
-                    <p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>
+                <!-- Validation Summary -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Lütfen aşağıdaki hataları düzeltin:</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Basic Information Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-info-circle text-blue-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Temel Bilgiler</h3>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Name -->
+                            <div>
+                                <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Ticket Türü Adı
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input asp-for="Name"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                       placeholder="Örn: Hata Bildirimi, Yeni Özellik İsteği" />
+                                <span asp-validation-for="Name" class="text-red-500 text-sm mt-1 block"></span>
+                            </div>
+
+                            <!-- Display Order -->
+                            <div>
+                                <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Görüntüleme Sırası
+                                </label>
+                                <input asp-for="DisplayOrder" type="number" min="0" max="999"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                       placeholder="0" />
+                                <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm mt-1 block"></span>
+                                <p class="text-xs text-gray-500 mt-1">Küçük sayılar önce görüntülenir</p>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="lg:col-span-2">
+                                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Açıklama
+                                </label>
+                                <textarea asp-for="Description" rows="3"
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                          placeholder="Bu ticket türünün amacını ve kullanım alanını açıklayın..."></textarea>
+                                <span asp-validation-for="Description" class="text-red-500 text-sm mt-1 block"></span>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="lg:col-span-2">
+                                <div class="flex items-center p-4 @(Model.IsActive ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200") rounded-lg">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input asp-for="IsActive" type="checkbox"
+                                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <span class="ml-3 text-sm font-medium @(Model.IsActive ? "text-green-700" : "text-red-700")">
+                                            @(Model.IsActive ? "Bu ticket türü aktif" : "Bu ticket türü pasif")
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="mt-8 flex justify-end space-x-3">
-            <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                İptal
-            </a>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Güncelle
-            </button>
+                <!-- Visual Settings Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-palette text-purple-600"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Görsel Ayarlar</h3>
+                            </div>
+                            <div class="preview-badge px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">
+                                Önizleme
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Icon Selection -->
+                            <div>
+                                <label asp-for="Icon" class="block text-sm font-medium text-gray-700 mb-2">
+                                    İkon
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <select asp-for="Icon" id="iconSelect"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none">
+                                        <option value="bug" data-emoji="🐛">Bug (Hata)</option>
+                                        <option value="lightbulb" data-emoji="💡">Light Bulb (Yeni Özellik)</option>
+                                        <option value="graduation-cap" data-emoji="🎓">Education (Eğitim)</option>
+                                        <option value="cog" data-emoji="⚙️">Settings (Bakım)</option>
+                                        <option value="question-circle" data-emoji="❓">Question (Soru)</option>
+                                        <option value="exclamation-triangle" data-emoji="⚠️">Warning (Uyarı)</option>
+                                        <option value="tools" data-emoji="🔧">Tools (Araçlar)</option>
+                                        <option value="chart-line" data-emoji="📈">Chart (Analiz)</option>
+                                        <option value="headset" data-emoji="🎧">Support (Destek)</option>
+                                        <option value="rocket" data-emoji="🚀">Feature (Özellik)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Icon" class="text-red-500 text-sm mt-1 block"></span>
+                            </div>
+
+                            <!-- Color Picker -->
+                            <div>
+                                <label asp-for="Color" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Renk
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex space-x-3">
+                                    <!-- Color Input -->
+                                    <div class="relative">
+                                        <input asp-for="Color" type="color" id="colorPicker"
+                                               class="w-16 h-12 border border-gray-300 rounded-lg cursor-pointer" />
+                                    </div>
+                                    <!-- Text Input -->
+                                    <div class="flex-1">
+                                        <input asp-for="Color" type="text" id="colorText"
+                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                               placeholder="#3b82f6" />
+                                    </div>
+                                </div>
+                                <!-- Color Presets -->
+                                <div class="flex space-x-2 mt-3">
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #3b82f6" data-color="#3b82f6"></button>
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #ef4444" data-color="#ef4444"></button>
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #10b981" data-color="#10b981"></button>
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #f59e0b" data-color="#f59e0b"></button>
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #8b5cf6" data-color="#8b5cf6"></button>
+                                    <button type="button" class="color-preset w-8 h-8 rounded-full border-2 border-gray-300"
+                                            style="background-color: #06b6d4" data-color="#06b6d4"></button>
+                                </div>
+                                <span asp-validation-for="Color" class="text-red-500 text-sm mt-1 block"></span>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview -->
+                        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Canlı Önizleme</h4>
+                            <div class="max-w-sm">
+                                <div id="livePreview" class="bg-white rounded-lg shadow border-l-4" style="border-left-color: @Model.Color">
+                                    <div class="p-4">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" id="previewIconContainer">
+                                                <span id="previewIcon" class="text-lg"></span>
+                                            </div>
+                                            <div>
+                                                <h3 id="previewName" class="font-medium text-gray-900">@Model.Name</h3>
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full @(Model.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                                                    @(Model.IsActive ? "Aktif" : "Pasif")
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p id="previewDesc" class="text-gray-600 text-sm mt-2">@Model.Description</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Fields Designer Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-list-alt text-green-600"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Form Alanları Tasarımı</h3>
+                            </div>
+                            <button type="button" id="addFieldBtn"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                                <i class="fas fa-plus mr-2"></i>
+                                Alan Ekle
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <!-- Form Fields Container -->
+                        <div id="formFields" class="space-y-4 mb-6">
+                            <!-- Existing form fields will be loaded here -->
+                        </div>
+
+                        <!-- Form Preview -->
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-medium text-blue-800">Form Önizleme</h4>
+                                <span class="text-xs text-blue-600 bg-white px-2 py-1 rounded">Dinamik</span>
+                            </div>
+                            <div id="formPreview" class="bg-white p-4 rounded-lg border">
+                                <p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Değişiklikleri Kaydet</h3>
+                            <p class="text-gray-600 text-sm">Tüm bilgileri kontrol edin ve güncelleyin</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <a href="@Url.Action("Index")"
+                               class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                                İptal
+                            </a>
+                            <button type="submit" id="submitBtn"
+                                    class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                                <i class="fas fa-save mr-2"></i>
+                                Güncelle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Hidden Delete Form -->
+            <form id="deleteForm" method="post" asp-action="Delete" asp-route-id="@Model.Id" class="hidden">
+                @Html.AntiForgeryToken()
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {
@@ -100,103 +297,238 @@
         // Load existing form fields
         const existingFields = @Html.Raw(Json.Serialize(Model.FormFields ?? new List<TicketSystem.Web.Areas.Admin.Models.FormFieldViewModel>()));
 
-        document.getElementById('addFieldBtn').addEventListener('click', function() {
-            addFormField();
+        // Color picker sync
+        const colorPicker = document.getElementById('colorPicker');
+        const colorText = document.getElementById('colorText');
+
+        if (colorPicker && colorText) {
+            colorPicker.addEventListener('change', function() {
+                colorText.value = this.value;
+                updatePreview();
+            });
+
+            colorText.addEventListener('input', function() {
+                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                    colorPicker.value = this.value;
+                    updatePreview();
+                }
+            });
+        }
+
+        // Color presets
+        document.querySelectorAll('.color-preset').forEach(button => {
+            button.addEventListener('click', function() {
+                const color = this.dataset.color;
+                if (colorPicker && colorText) {
+                    colorPicker.value = color;
+                    colorText.value = color;
+                    updatePreview();
+                }
+            });
         });
+
+        // Live preview updates
+        const nameInput = document.getElementById('Name');
+        const descInput = document.getElementById('Description');
+        const iconSelect = document.getElementById('iconSelect');
+
+        if (nameInput) nameInput.addEventListener('input', updatePreview);
+        if (descInput) descInput.addEventListener('input', updatePreview);
+        if (iconSelect) iconSelect.addEventListener('change', updatePreview);
+
+        function updatePreview() {
+            const nameEl = document.getElementById('Name');
+            const descEl = document.getElementById('Description');
+            const colorTextEl = document.getElementById('colorText');
+            const iconSelectEl = document.getElementById('iconSelect');
+            const previewNameEl = document.getElementById('previewName');
+            const previewDescEl = document.getElementById('previewDesc');
+            const previewIconEl = document.getElementById('previewIcon');
+            const previewEl = document.getElementById('livePreview');
+            const previewIconContainer = document.getElementById('previewIconContainer');
+
+            if (!nameEl || !descEl || !colorTextEl || !iconSelectEl || !previewNameEl || !previewDescEl || !previewIconEl || !previewEl) {
+                return;
+            }
+
+            const name = nameEl.value || '@Html.Raw(Model.Name)';
+            const desc = descEl.value || '@Html.Raw(Model.Description)';
+            const color = colorTextEl.value || '@Model.Color';
+            const selectedOption = iconSelectEl.options[iconSelectEl.selectedIndex];
+            const emoji = selectedOption ? selectedOption.dataset.emoji : getEmojiForIcon('@Model.Icon');
+
+            previewNameEl.textContent = name;
+            previewDescEl.textContent = desc;
+            previewIconEl.textContent = emoji;
+
+            previewEl.style.borderLeftColor = color;
+            if (previewIconContainer) {
+                previewIconContainer.style.backgroundColor = color + '20';
+            }
+        }
+
+        function getEmojiForIcon(icon) {
+            const iconMap = {
+                'bug': '🐛',
+                'lightbulb': '💡',
+                'graduation-cap': '🎓',
+                'cog': '⚙️',
+                'question-circle': '❓',
+                'exclamation-triangle': '⚠️',
+                'tools': '🔧',
+                'chart-line': '📈',
+                'headset': '🎧',
+                'rocket': '🚀'
+            };
+            return iconMap[icon] || '🐛';
+        }
+
+        // Form fields management
+        const addFieldBtn = document.getElementById('addFieldBtn');
+        if (addFieldBtn) {
+            addFieldBtn.addEventListener('click', function() {
+                addFormField();
+            });
+        }
 
         function addFormField(field = null) {
             const formFields = document.getElementById('formFields');
+            if (!formFields) return;
+
             const fieldDiv = document.createElement('div');
-            fieldDiv.className = 'border border-gray-200 rounded-lg p-4';
+            fieldDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
             fieldDiv.innerHTML = `
                 <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-medium text-gray-900">Alan ${fieldIndex + 1}</h4>
-                    <button type="button" onclick="removeField(this)" class="text-red-600 hover:text-red-800">
+                    <h4 class="font-medium text-gray-900 flex items-center">
+                        <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-xs font-semibold text-blue-600 mr-2">
+                            ${fieldIndex + 1}
+                        </span>
+                        Form Alanı
+                    </h4>
+                    <button type="button" onclick="removeField(this)"
+                            class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alan Adı</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Name" value="${field?.name || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alan Adı <span class="text-red-500">*</span></label>
+                        <input type="text" name="FormFields[${fieldIndex}].Name" value="${field?.name || ''}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="örn: hata_aciklamasi"
+                               onchange="updateFormPreview()" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Etiket</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Label" value="${field?.label || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Etiket <span class="text-red-500">*</span></label>
+                        <input type="text" name="FormFields[${fieldIndex}].Label" value="${field?.label || ''}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="örn: Hata Açıklaması"
+                               onchange="updateFormPreview()" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tip</label>
-                        <select name="FormFields[${fieldIndex}].Type" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview(); toggleOptions(this)">
-                            <option value="text" ${field?.type === 'text' ? 'selected' : ''}>Metin</option>
-                            <option value="textarea" ${field?.type === 'textarea' ? 'selected' : ''}>Uzun Metin</option>
-                            <option value="number" ${field?.type === 'number' ? 'selected' : ''}>Sayı</option>
-                            <option value="email" ${field?.type === 'email' ? 'selected' : ''}>E-posta</option>
-                            <option value="tel" ${field?.type === 'tel' ? 'selected' : ''}>Telefon</option>
-                            <option value="date" ${field?.type === 'date' ? 'selected' : ''}>Tarih</option>
-                            <option value="select" ${field?.type === 'select' ? 'selected' : ''}>Seçim Listesi</option>
-                            <option value="checkbox" ${field?.type === 'checkbox' ? 'selected' : ''}>Onay Kutusu</option>
+                        <select name="FormFields[${fieldIndex}].Type"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="updateFormPreview(); toggleOptions(this)">
+                            <option value="text" ${field?.type === 'text' ? 'selected' : ''}>📝 Metin</option>
+                            <option value="textarea" ${field?.type === 'textarea' ? 'selected' : ''}>📄 Uzun Metin</option>
+                            <option value="number" ${field?.type === 'number' ? 'selected' : ''}>🔢 Sayı</option>
+                            <option value="email" ${field?.type === 'email' ? 'selected' : ''}>📧 E-posta</option>
+                            <option value="tel" ${field?.type === 'tel' ? 'selected' : ''}>📞 Telefon</option>
+                            <option value="date" ${field?.type === 'date' ? 'selected' : ''}>📅 Tarih</option>
+                            <option value="select" ${field?.type === 'select' ? 'selected' : ''}>📋 Seçim Listesi</option>
+                            <option value="checkbox" ${field?.type === 'checkbox' ? 'selected' : ''}>☑️ Onay Kutusu</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Placeholder" value="${field?.placeholder || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
+                        <input type="text" name="FormFields[${fieldIndex}].Placeholder" value="${field?.placeholder || ''}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Kullanıcıya ipucu..."
+                               onchange="updateFormPreview()" />
                     </div>
                     <div class="options-field" style="display: ${field?.type === 'select' ? 'block' : 'none'}">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Seçenekler (virgülle ayırın)</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Options" value="${field?.options || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="updatePreview()" />
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Seçenekler</label>
+                        <input type="text" name="FormFields[${fieldIndex}].Options" value="${field?.options || ''}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Seçenek1, Seçenek2, Seçenek3"
+                               onchange="updateFormPreview()" />
+                        <p class="text-xs text-gray-500 mt-1">Virgülle ayırın</p>
                     </div>
                     <div class="flex items-center">
                         <label class="flex items-center">
-                            <input type="checkbox" name="FormFields[${fieldIndex}].Required" value="true" ${field?.required ? 'checked' : ''} class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="updatePreview()">
-                            <span class="ml-2 text-sm text-gray-700">Zorunlu</span>
+                            <input type="checkbox" name="FormFields[${fieldIndex}].Required" value="true" ${field?.required ? 'checked' : ''}
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                   onchange="updateFormPreview()">
+                            <span class="ml-2 text-sm text-gray-700">Zorunlu Alan</span>
                         </label>
                     </div>
                 </div>
             `;
             formFields.appendChild(fieldDiv);
             fieldIndex++;
-            updatePreview();
+            updateFormPreview();
         }
 
         function removeField(button) {
-            button.closest('.border').remove();
-            updatePreview();
+            if (button && button.closest) {
+                const fieldDiv = button.closest('.border');
+                if (fieldDiv && fieldDiv.remove) {
+                    fieldDiv.remove();
+                    updateFormPreview();
+                }
+            }
         }
 
         function toggleOptions(selectElement) {
+            if (!selectElement || !selectElement.closest) return;
+
             const optionsField = selectElement.closest('.grid').querySelector('.options-field');
-            optionsField.style.display = selectElement.value === 'select' ? 'block' : 'none';
+            if (optionsField) {
+                optionsField.style.display = selectElement.value === 'select' ? 'block' : 'none';
+            }
         }
 
-        function updatePreview() {
+        function updateFormPreview() {
             const preview = document.getElementById('formPreview');
+            if (!preview) return;
+
             const fields = document.querySelectorAll('#formFields .border');
 
             if (fields.length === 0) {
-                preview.innerHTML = '<p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>';
+                preview.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Form alanları burada önizlenecek...</p>';
                 return;
             }
 
             let previewHtml = '<div class="space-y-4">';
 
             fields.forEach(field => {
-                const name = field.querySelector('input[name$=".Name"]').value;
-                const label = field.querySelector('input[name$=".Label"]').value;
-                const type = field.querySelector('select[name$=".Type"]').value;
-                const placeholder = field.querySelector('input[name$=".Placeholder"]').value;
-                const required = field.querySelector('input[name$=".Required"]').checked;
-                const options = field.querySelector('input[name$=".Options"]')?.value;
+                const nameInput = field.querySelector('input[name$=".Name"]');
+                const labelInput = field.querySelector('input[name$=".Label"]');
+                const typeSelect = field.querySelector('select[name$=".Type"]');
+                const placeholderInput = field.querySelector('input[name$=".Placeholder"]');
+                const requiredInput = field.querySelector('input[name$=".Required"]');
+                const optionsInput = field.querySelector('input[name$=".Options"]');
+
+                if (!nameInput || !labelInput || !typeSelect) return;
+
+                const name = nameInput.value;
+                const label = labelInput.value;
+                const type = typeSelect.value;
+                const placeholder = placeholderInput ? placeholderInput.value : '';
+                const required = requiredInput ? requiredInput.checked : false;
+                const options = optionsInput ? optionsInput.value : '';
 
                 if (name && label) {
                     previewHtml += `<div>`;
-                    previewHtml += `<label class="block text-sm font-medium text-gray-700 mb-1">${label}${required ? ' *' : ''}</label>`;
+                    previewHtml += `<label class="block text-sm font-medium text-gray-700 mb-1">${label}${required ? ' <span class="text-red-500">*</span>' : ''}</label>`;
 
                     switch (type) {
                         case 'textarea':
-                            previewHtml += `<textarea placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" rows="3" disabled></textarea>`;
+                            previewHtml += `<textarea placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" rows="3" disabled></textarea>`;
                             break;
                         case 'select':
-                            previewHtml += `<select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" disabled>`;
+                            previewHtml += `<select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" disabled>`;
                             previewHtml += `<option>Seçiniz...</option>`;
                             if (options) {
                                 options.split(',').forEach(opt => {
@@ -209,7 +541,7 @@
                             previewHtml += `<label class="flex items-center"><input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" disabled><span class="ml-2 text-sm text-gray-700">${placeholder || label}</span></label>`;
                             break;
                         default:
-                            previewHtml += `<input type="${type}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" disabled />`;
+                            previewHtml += `<input type="${type}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" disabled />`;
                     }
                     previewHtml += `</div>`;
                 }
@@ -219,11 +551,33 @@
             preview.innerHTML = previewHtml;
         }
 
+        // Form submission
+        const editTicketTypeForm = document.getElementById('editTicketTypeForm');
+        if (editTicketTypeForm) {
+            editTicketTypeForm.addEventListener('submit', function() {
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Güncelleniyor...';
+                    submitBtn.disabled = true;
+                }
+            });
+        }
+
         // Load existing fields on page load
         document.addEventListener('DOMContentLoaded', function() {
-            existingFields.forEach(field => {
-                addFormField(field);
-            });
+            if (existingFields && existingFields.length > 0) {
+                existingFields.forEach(field => {
+                    addFormField(field);
+                });
+            }
+            updatePreview();
+
+            // Set initial icon
+            const iconSelect = document.getElementById('iconSelect');
+            if (iconSelect) {
+                iconSelect.value = '@Model.Icon';
+                updatePreview();
+            }
         });
     </script>
 }
