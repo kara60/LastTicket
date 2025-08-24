@@ -439,26 +439,7 @@
 
                 <!-- Management Section -->
                 <div x-show="sidebarOpen" x-transition class="pt-3">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Yönetim</h3>
-                </div>
-
-                <a href="@Url.Action("Index", "Users", new { area = "Admin" })"
-                   class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
-                   :class="!sidebarOpen && 'justify-center'">
-                    <i class="fas fa-users w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
-                    <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Kullanıcılar</span>
-                </a>
-
-                <a href="@Url.Action("Index", "Customers", new { area = "Admin" })"
-                   class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
-                   :class="!sidebarOpen && 'justify-center'">
-                    <i class="fas fa-building w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
-                    <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Müşteriler</span>
-                </a>
-
-                <!-- Settings Section -->
-                <div x-show="sidebarOpen" x-transition class="pt-3">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Ayarlar</h3>
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Genel</h3>
                 </div>
 
                 <a href="@Url.Action("Index", "TicketTypes", new { area = "Admin" })"
@@ -475,11 +456,18 @@
                     <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Kategoriler</span>
                 </a>
 
-                <a href="@Url.Action("Index", "TicketFormDesigner", new { area = "Admin" })"
-                   class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "TicketFormDesigner" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                <a href="@Url.Action("Index", "Customers", new { area = "Admin" })"
+                   class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customers" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
                    :class="!sidebarOpen && 'justify-center'">
-                    <i class="fas fa-edit w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
-                    <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Form Tasarımı</span>
+                    <i class="fas fa-building w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                    <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Müşteriler</span>
+                </a>
+
+                <a href="@Url.Action("Index", "Users", new { area = "Admin" })"
+                   class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
+                   :class="!sidebarOpen && 'justify-center'">
+                    <i class="fas fa-users w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
+                    <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Kullanıcılar</span>
                 </a>
 
                 <!-- System Section -->

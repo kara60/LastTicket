@@ -3,63 +3,385 @@
     ViewData["Title"] = "Yeni Kategori";
 }
 
-<div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Yeni Kategori Oluştur</h2>
-    </div>
-
-    <form method="post" asp-action="Create" asp-controller="Categories" asp-area="Admin" class="p-6">
-        @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="h-screen overflow-hidden bg-gray-50 p-4">
+    <div class="max-w-5xl mx-auto h-full flex flex-col">
+        <!-- Header - Fixed -->
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="Name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-folder text-purple-600 mr-3"></i>
+                    Yeni Kategori Oluştur
+                </h1>
+                <p class="text-gray-600">Ticket kategorisi oluşturun ve özelliklerini belirleyin</p>
             </div>
-
-            <div>
-                <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <input asp-for="DisplayOrder" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm"></span>
-            </div>
-
-            <div class="lg:col-span-2">
-                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <textarea asp-for="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-            </div>
-
-            <div>
-                <label asp-for="Icon" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <select asp-for="Icon" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <option value="folder">📁 Folder</option>
-                    <option value="globe">🌐 Web</option>
-                    <option value="mobile-alt">📱 Mobile</option>
-                    <option value="code">💻 Code</option>
-                    <option value="database">🗃️ Database</option>
-                    <option value="cog">⚙️ Settings</option>
-                    <option value="shield-alt">🛡️ Security</option>
-                    <option value="chart-bar">📊 Analytics</option>
-                </select>
-            </div>
-
-            <div>
-                <label asp-for="Color" class="block text-sm font-medium text-gray-700 mb-2"></label>
-                <div class="flex space-x-2">
-                    <input asp-for="Color" type="color" class="w-16 h-10 border border-gray-300 rounded-md" />
-                    <input asp-for="Color" type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="#6366f1" />
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8 flex justify-end space-x-3">
-            <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                İptal
+            <a href="@Url.Action("Index")"
+               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Geri Dön
             </a>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Oluştur
-            </button>
         </div>
-    </form>
+
+        <!-- Form Container - Scrollable -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <form method="post"
+                      asp-action="Create"
+                      asp-controller="Categories"
+                      asp-area="Admin"
+                      autocomplete="off"
+                      class="p-6">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Dummy hidden inputs -->
+                    <input type="text" name="fake_category" autocomplete="username" style="display:none;" />
+                    <input type="password" name="fake_pass" autocomplete="current-password" style="display:none;" />
+
+                    <!-- Validation Summary -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
+                            <h3 class="font-medium mb-2">Lütfen aşağıdaki hataları düzeltin:</h3>
+                            <div asp-validation-summary="ModelOnly" class="text-sm"></div>
+                        </div>
+                    }
+
+                    <!-- Form Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                        <!-- Sol Kolon: Temel Bilgiler -->
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-purple-500 pl-4">
+                                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-info-circle mr-2 text-purple-500"></i>
+                                    Temel Bilgiler
+                                </h2>
+                                <p class="text-sm text-gray-600 mt-1">Kategorinin genel özelliklerini belirleyin</p>
+                            </div>
+
+                            <!-- Kategori Adı -->
+                            <div>
+                                <label for="Name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Kategori Adı <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-folder text-gray-400"></i>
+                                    </div>
+                                    <input type="text"
+                                           id="Name"
+                                           name="Name"
+                                           value="@(Model?.Name ?? "")"
+                                           autocomplete="new-password"
+                                           readonly
+                                           onfocus="this.removeAttribute('readonly');"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                           placeholder="Örn: Web Geliştirme, Mobil Uygulama"
+                                           required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Açıklama -->
+                            <div>
+                                <label for="Description" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Açıklama
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute top-3 left-3 pointer-events-none">
+                                        <i class="fas fa-comment-alt text-gray-400"></i>
+                                    </div>
+                                    <textarea id="Description"
+                                              name="Description"
+                                              autocomplete="new-password"
+                                              readonly
+                                              onfocus="this.removeAttribute('readonly');"
+                                              rows="4"
+                                              class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+                                              placeholder="Kategori hakkında detaylı bilgi...">@(Model?.Description ?? "")</textarea>
+                                </div>
+                                <span asp-validation-for="Description" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Sıralama -->
+                            <div>
+                                <label for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Sıralama
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-sort-numeric-up text-gray-400"></i>
+                                    </div>
+                                    <input type="number"
+                                           id="DisplayOrder"
+                                           name="DisplayOrder"
+                                           value="@(Model?.DisplayOrder ?? 0)"
+                                           min="0"
+                                           max="999"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                           placeholder="0" />
+                                </div>
+                                <span asp-validation-for="DisplayOrder" class="text-rose-500 text-xs mt-1 block"></span>
+                                <p class="text-xs text-gray-500 mt-1">Küçük sayılar önde görünür (0-999)</p>
+                            </div>
+                        </div>
+
+                        <!-- Sağ Kolon: Görsel Özellikler -->
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-indigo-500 pl-4">
+                                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-palette mr-2 text-indigo-500"></i>
+                                    Görsel Özellikler
+                                </h2>
+                                <p class="text-sm text-gray-600 mt-1">Kategorinin görsel tasarımını belirleyin</p>
+                            </div>
+
+                            <!-- İkon Seçimi -->
+                            <div>
+                                <label for="Icon" class="block text-sm font-medium text-gray-700 mb-3">
+                                    İkon <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="grid grid-cols-4 gap-3">
+                                    @{
+                                        var iconOptions = new Dictionary<string, string>
+                                        {
+                                            ["folder"] = "📁 Genel",
+                                            ["globe"] = "🌐 Web",
+                                            ["mobile-alt"] = "📱 Mobil",
+                                            ["code"] = "💻 Kod",
+                                            ["database"] = "🗃️ Veri",
+                                            ["cog"] = "⚙️ Ayar",
+                                            ["shield-alt"] = "🛡️ Güvenlik",
+                                            ["chart-bar"] = "📊 Rapor",
+                                            ["users"] = "👥 Kullanıcı",
+                                            ["server"] = "🖥️ Sunucu",
+                                            ["bug"] = "🐛 Hata",
+                                            ["lightbulb"] = "💡 Özellik"
+                                        };
+                                    }
+
+                                    @foreach (var icon in iconOptions)
+                                    {
+                                        <label class="cursor-pointer">
+                                            <input type="radio"
+                                                   name="Icon"
+                                                   value="@icon.Key"
+                                                   @(Model?.Icon == icon.Key || (Model?.Icon == null && icon.Key == "folder") ? "checked" : "")
+                                                   class="sr-only" />
+                                            <div class="icon-option p-3 border-2 border-gray-200 rounded-lg text-center hover:border-purple-300 transition-all">
+                                                <i class="fas fa-@icon.Key text-2xl text-gray-600 mb-2"></i>
+                                                <div class="text-xs text-gray-600">@icon.Value</div>
+                                            </div>
+                                        </label>
+                                    }
+                                </div>
+                                <span asp-validation-for="Icon" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Renk Seçimi -->
+                            <div>
+                                <label for="Color" class="block text-sm font-medium text-gray-700 mb-3">
+                                    Renk <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="space-y-4">
+                                    <!-- Hazır Renkler -->
+                                    <div class="grid grid-cols-8 gap-2">
+                                        @{
+                                            var colorOptions = new[]
+                                            {
+                                                                                "#6366f1", "#8b5cf6", "#ec4899", "#f59e0b",
+                                                                                "#10b981", "#06b6d4", "#ef4444", "#6b7280"
+                                                                                };
+                                        }
+
+                                        @foreach (var color in colorOptions)
+                                        {
+                                            <label class="cursor-pointer">
+                                                <input type="radio"
+                                                       name="Color"
+                                                       value="@color"
+                                                       @(Model?.Color == color || (Model?.Color == null && color == "#6366f1") ? "checked" : "")
+                                                       class="sr-only" />
+                                                <div class="color-option w-8 h-8 rounded-lg border-2 border-gray-200 hover:border-gray-400 transition-all"
+                                                     style="background-color: @color;"></div>
+                                            </label>
+                                        }
+                                    </div>
+
+                                    <!-- Manuel Renk -->
+                                    <div class="flex space-x-3">
+                                        <input type="color"
+                                               id="ColorPicker"
+                                               class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                                               value="@(Model?.Color ?? "#6366f1")" />
+                                        <input type="text"
+                                               id="Color"
+                                               name="Color"
+                                               value="@(Model?.Color ?? "#6366f1")"
+                                               readonly
+                                               onfocus="this.removeAttribute('readonly');"
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                                               placeholder="#6366f1" />
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Color" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Önizleme -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Önizleme</h4>
+                                <div id="categoryPreview" class="bg-white rounded-lg shadow border-l-4 p-4" style="border-left-color: #6366f1;">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: rgba(99, 102, 241, 0.1);">
+                                            <i id="previewIcon" class="fas fa-folder text-xl" style="color: #6366f1;"></i>
+                                        </div>
+                                        <div>
+                                            <h3 id="previewName" class="text-base font-medium text-gray-900">Kategori Adı</h3>
+                                            <p id="previewDescription" class="text-sm text-gray-600">Kategori açıklaması</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Info Box -->
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-purple-600 mr-2 mt-0.5"></i>
+                                    <div class="text-sm text-purple-700">
+                                        <p class="font-medium mb-1">Kategori Kullanımı</p>
+                                        <ul class="text-xs space-y-1">
+                                            <li>• Kategoriler ticket'ları gruplamak için kullanılır</li>
+                                            <li>• Her kategoriye özel modüller ekleyebilirsiniz</li>
+                                            <li>• İkon ve renk kategorinin görsel kimliğini belirler</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons - Fixed Bottom -->
+                    <div class="flex items-center justify-end space-x-4 pt-6 mt-8 border-t border-gray-200">
+                        <a href="@Url.Action("Index")"
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            İptal
+                        </a>
+                        <button type="submit"
+                                id="submitBtn"
+                                class="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+                            <i class="fas fa-save mr-2"></i>
+                            Kategori Oluştur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const inputs = form.querySelectorAll('input[readonly], textarea[readonly]');
+
+        // Form submit edilirken readonly'leri kaldır
+        form.addEventListener('submit', function() {
+            inputs.forEach(input => {
+                input.removeAttribute('readonly');
+            });
+        });
+
+        // Icon selection
+        const iconRadios = document.querySelectorAll('input[name="Icon"]');
+        iconRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Update visual selection
+                document.querySelectorAll('.icon-option').forEach(option => {
+                    option.classList.remove('border-purple-500', 'bg-purple-50');
+                    option.classList.add('border-gray-200');
+                });
+
+                if (this.checked) {
+                    const option = this.nextElementSibling;
+                    option.classList.remove('border-gray-200');
+                    option.classList.add('border-purple-500', 'bg-purple-50');
+                }
+
+                updatePreview();
+            });
+        });
+
+        // Color selection
+        const colorRadios = document.querySelectorAll('input[name="Color"]');
+        const colorPicker = document.getElementById('ColorPicker');
+        const colorInput = document.getElementById('Color');
+
+        colorRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Update visual selection
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.classList.remove('ring-2', 'ring-purple-500');
+                });
+
+                if (this.checked) {
+                    const option = this.nextElementSibling;
+                    option.classList.add('ring-2', 'ring-purple-500');
+
+                    colorInput.value = this.value;
+                    colorPicker.value = this.value;
+                }
+
+                updatePreview();
+            });
+        });
+
+        // Color picker change
+        colorPicker.addEventListener('change', function() {
+            colorInput.value = this.value;
+            // Uncheck radio buttons
+            colorRadios.forEach(radio => {
+                radio.checked = false;
+                radio.nextElementSibling.classList.remove('ring-2', 'ring-purple-500');
+            });
+            updatePreview();
+        });
+
+        // Text inputs for preview
+        document.getElementById('Name').addEventListener('input', updatePreview);
+        document.getElementById('Description').addEventListener('input', updatePreview);
+
+        function updatePreview() {
+            const name = document.getElementById('Name').value || 'Kategori Adı';
+            const description = document.getElementById('Description').value || 'Kategori açıklaması';
+            const icon = document.querySelector('input[name="Icon"]:checked')?.value || 'folder';
+            const color = colorInput.value || '#6366f1';
+
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('previewDescription').textContent = description;
+            document.getElementById('previewIcon').className = `fas fa-${icon} text-xl`;
+            document.getElementById('previewIcon').style.color = color;
+
+            const preview = document.getElementById('categoryPreview');
+            preview.style.borderLeftColor = color;
+            preview.querySelector('.w-10').style.backgroundColor = color + '1a'; // Add transparency
+        }
+
+        // Initialize selection states
+        iconRadios.forEach(radio => {
+            if (radio.checked) {
+                const option = radio.nextElementSibling;
+                option.classList.remove('border-gray-200');
+                option.classList.add('border-purple-500', 'bg-purple-50');
+            }
+        });
+
+        colorRadios.forEach(radio => {
+            if (radio.checked) {
+                const option = radio.nextElementSibling;
+                option.classList.add('ring-2', 'ring-purple-500');
+            }
+        });
+
+        updatePreview();
+    });
+</script>

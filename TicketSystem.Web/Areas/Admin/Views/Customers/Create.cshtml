@@ -1,0 +1,285 @@
+﻿@model TicketSystem.Web.Areas.Admin.Models.CreateCustomerViewModel
+@{
+    ViewData["Title"] = "Yeni Müşteri";
+}
+
+<div class="h-screen overflow-hidden bg-gray-50 p-4">
+    <div class="max-w-6xl mx-auto h-full flex flex-col">
+        <!-- Header - Fixed -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-building text-blue-600 mr-3"></i>
+                    Yeni Müşteri Oluştur
+                </h1>
+                <p class="text-gray-600">Sisteme yeni bir müşteri ekleyin ve bilgilerini tanımlayın</p>
+            </div>
+            <a href="@Url.Action("Index")"
+               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Geri Dön
+            </a>
+        </div>
+
+        <!-- Form Container - Scrollable -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <form method="post"
+                      asp-action="Create"
+                      autocomplete="off"
+                      class="p-6">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Dummy hidden inputs -->
+                    <input type="text" name="fake_username" autocomplete="username" style="display:none;" />
+                    <input type="password" name="fake_password" autocomplete="current-password" style="display:none;" />
+
+                    <!-- Validation Summary -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
+                            <h3 class="font-medium mb-2">Lütfen aşağıdaki hataları düzeltin:</h3>
+                            <div asp-validation-summary="ModelOnly" class="text-sm"></div>
+                        </div>
+                    }
+
+                    <!-- Form Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+                        <!-- Sol Kolon: Temel Bilgiler -->
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-blue-500 pl-4">
+                                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                                    Temel Bilgiler
+                                </h2>
+                                <p class="text-sm text-gray-600 mt-1">Müşterinin genel bilgilerini girin</p>
+                            </div>
+
+                            <!-- Müşteri Adı -->
+                            <div>
+                                <label for="Name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Müşteri Adı <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-building text-gray-400"></i>
+                                    </div>
+                                    <input type="text"
+                                           id="Name"
+                                           name="Name"
+                                           value="@(Model?.Name ?? "")"
+                                           autocomplete="new-password"
+                                           readonly
+                                           onfocus="this.removeAttribute('readonly');"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="Örn: ABC Teknoloji Ltd. Şti."
+                                           required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Açıklama -->
+                            <div>
+                                <label for="Description" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Açıklama
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute top-3 left-3 pointer-events-none">
+                                        <i class="fas fa-comment-alt text-gray-400"></i>
+                                    </div>
+                                    <textarea id="Description"
+                                              name="Description"
+                                              autocomplete="new-password"
+                                              readonly
+                                              onfocus="this.removeAttribute('readonly');"
+                                              rows="4"
+                                              class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                              placeholder="Müşteri hakkında kısa bilgi...">@(Model?.Description ?? "")</textarea>
+                                </div>
+                                <span asp-validation-for="Description" class="text-rose-500 text-xs mt-1 block"></span>
+                                <p class="text-xs text-gray-500 mt-1">Müşteri hakkında kısa açıklama yazabilirsiniz</p>
+                            </div>
+
+                            <!-- Adres -->
+                            <div>
+                                <label for="Address" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Adres
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute top-3 left-3 pointer-events-none">
+                                        <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                    </div>
+                                    <textarea id="Address"
+                                              name="Address"
+                                              autocomplete="new-password"
+                                              readonly
+                                              onfocus="this.removeAttribute('readonly');"
+                                              rows="3"
+                                              class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                              placeholder="Tam adres bilgisi...">@(Model?.Address ?? "")</textarea>
+                                </div>
+                                <span asp-validation-for="Address" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+                        </div>
+
+                        <!-- Sağ Kolon: İletişim Bilgileri -->
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-green-500 pl-4">
+                                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i class="fas fa-address-book mr-2 text-green-500"></i>
+                                    İletişim Bilgileri
+                                </h2>
+                                <p class="text-sm text-gray-600 mt-1">Müşteri ile iletişim kurabilmek için gerekli bilgiler</p>
+                            </div>
+
+                            <!-- İletişim E-postası -->
+                            <div>
+                                <label for="ContactEmail" class="block text-sm font-medium text-gray-700 mb-1">
+                                    İletişim E-postası <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-envelope text-gray-400"></i>
+                                    </div>
+                                    <input type="email"
+                                           id="ContactEmail"
+                                           name="ContactEmail"
+                                           value="@(Model?.ContactEmail ?? "")"
+                                           autocomplete="new-password"
+                                           readonly
+                                           onfocus="this.removeAttribute('readonly');"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="ornek@email.com"
+                                           required />
+                                </div>
+                                <span asp-validation-for="ContactEmail" class="text-rose-500 text-xs mt-1 block"></span>
+                                <p class="text-xs text-gray-500 mt-1">Ticket bildirimleri bu adrese gönderilecek</p>
+                            </div>
+
+                            <!-- İletişim Telefonu -->
+                            <div>
+                                <label for="ContactPhone" class="block text-sm font-medium text-gray-700 mb-1">
+                                    İletişim Telefonu
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-phone text-gray-400"></i>
+                                    </div>
+                                    <input type="tel"
+                                           id="ContactPhone"
+                                           name="ContactPhone"
+                                           value="@(Model?.ContactPhone ?? "")"
+                                           autocomplete="new-password"
+                                           readonly
+                                           onfocus="this.removeAttribute('readonly');"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="+90 (5XX) XXX XX XX" />
+                                </div>
+                                <span asp-validation-for="ContactPhone" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- İletişim Kişisi -->
+                            <div>
+                                <label for="ContactPerson" class="block text-sm font-medium text-gray-700 mb-1">
+                                    İletişim Kişisi
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                    <input type="text"
+                                           id="ContactPerson"
+                                           name="ContactPerson"
+                                           value="@(Model?.ContactPerson ?? "")"
+                                           autocomplete="new-password"
+                                           readonly
+                                           onfocus="this.removeAttribute('readonly');"
+                                           class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="Ahmet Yılmaz" />
+                                </div>
+                                <span asp-validation-for="ContactPerson" class="text-rose-500 text-xs mt-1 block"></span>
+                            </div>
+
+                            <!-- Durum -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Müşteri Durumu
+                                </label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio"
+                                               name="IsActive"
+                                               value="true"
+                                               @(Model?.IsActive != false ? "checked" : "")
+                                               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300">
+                                        <span class="ml-2 text-sm text-gray-700 flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                            Aktif
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio"
+                                               name="IsActive"
+                                               value="false"
+                                               @(Model?.IsActive == false ? "checked" : "")
+                                               class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300">
+                                        <span class="ml-2 text-sm text-gray-700 flex items-center">
+                                            <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                                            Pasif
+                                        </span>
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Pasif müşterilerin kullanıcıları sisteme giriş yapamaz</p>
+                            </div>
+
+                            <!-- Info Box -->
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-600 mr-2 mt-0.5"></i>
+                                    <div class="text-sm text-blue-700">
+                                        <p class="font-medium mb-1">Önemli Notlar</p>
+                                        <ul class="text-xs space-y-1">
+                                            <li>• Müşteri oluşturduktan sonra kullanıcı ekleyebilirsiniz</li>
+                                            <li>• E-posta adresi benzersiz olmalıdır</li>
+                                            <li>• Aktif olmayan müşterilerin kullanıcıları giriş yapamaz</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons - Fixed Bottom -->
+                    <div class="flex items-center justify-end space-x-4 pt-6 mt-8 border-t border-gray-200">
+                        <a href="@Url.Action("Index")"
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            İptal
+                        </a>
+                        <button type="submit"
+                                id="submitBtn"
+                                class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-save mr-2"></i>
+                            Müşteri Oluştur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form Submit Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const inputs = form.querySelectorAll('input[readonly], textarea[readonly]');
+
+        // Form submit edilirken readonly'leri kaldır
+        form.addEventListener('submit', function() {
+            inputs.forEach(input => {
+                input.removeAttribute('readonly');
+            });
+        });
+    });
+</script>

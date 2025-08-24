@@ -66,14 +66,18 @@
                         <i class="fas fa-edit mr-1"></i>Düzenle
                     </a>
 
-                    <form method="post" asp-action="ToggleStatus" asp-route-id="@category.Id" class="flex-1">
+                    @* <form method="post" asp-action="ToggleStatus" asp-route-id="@category.Id" class="flex-1">
                         <button type="submit" class="w-full @(category.IsActive ? "bg-yellow-600 hover:bg-yellow-700" : "bg-green-600 hover:bg-green-700") text-white py-2 px-3 rounded text-sm">
                             <i class="fas fa-@(category.IsActive ? "pause" : "play") mr-1"></i>
                             @(category.IsActive ? "Pasif" : "Aktif")
                         </button>
-                    </form>
+                    </form> *@
 
-                    <form method="post" asp-action="Delete" asp-route-id="@category.Id" onsubmit="return confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')">
+                    <form method="post" 
+                        action="@Url.Action("Delete", "Categories", new { area = "Admin", id = category.Id })"
+                          asp-anti-forgery="true" 
+                          onsubmit="return confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')">
+                        @Html.AntiForgeryToken()
                         <button type="submit" class="bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700">
                             <i class="fas fa-trash"></i>
                         </button>

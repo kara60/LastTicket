@@ -37,6 +37,5 @@ public class TicketType : AuditableEntity
 
     // Navigation Properties
     public virtual Company Company { get; set; } = null!;
-    public virtual ICollection<TicketCategory> Categories { get; set; } = new List<TicketCategory>();
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

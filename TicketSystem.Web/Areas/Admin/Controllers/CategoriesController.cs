@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Domain.Entities;
-using TicketSystem.Domain.Enums;
-using TicketSystem.Infrastructure.Repositories;
 using TicketSystem.Web.Areas.Admin.Models;
 
 namespace TicketSystem.Web.Areas.Admin.Controllers;
@@ -14,19 +12,33 @@ public class CategoriesController : Controller
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ILogger<CategoriesController> _logger;
 
-    public CategoriesController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+    public CategoriesController(
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService,
+        ILogger<CategoriesController> logger)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index()
     {
-        var categories = await _unitOfWork.TicketCategories.FindAsync(
-            x => x.CompanyId == _currentUserService.CompanyId,
-            x => x.Modules);
-        return View(categories.OrderBy(x => x.SortOrder));
+        try
+        {
+            var categories = await _unitOfWork.TicketCategories.FindAsync(
+                x => x.CompanyId == _currentUserService.CompanyId,
+                x => x.Modules);
+            return View(categories.OrderBy(x => x.SortOrder));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading categories");
+            TempData["Error"] = "Kategoriler yüklenirken bir hata oluştu.";
+            return View(new List<TicketCategory>());
+        }
     }
 
     public IActionResult Create()
@@ -43,103 +55,214 @@ public class CategoriesController : Controller
             return View(model);
         }
 
-        var category = new TicketCategory
+        try
         {
-            Id = -1,
-            CompanyId = _currentUserService.CompanyId!.Value,
-            Name = model.Name,
-            Description = model.Description,
-            Icon = model.Icon,
-            Color = model.Color,
-            IsActive = true,
-            SortOrder = model.DisplayOrder
-        };
+            // CompanyId kontrolü
+            if (!_currentUserService.CompanyId.HasValue)
+            {
+                _logger.LogError("CompanyId is null for current user");
+                ModelState.AddModelError("", "Şirket bilgisi alınamadı. Lütfen tekrar giriş yapın.");
+                return View(model);
+            }
 
-        await _unitOfWork.TicketCategories.AddAsync(category);
-        await _unitOfWork.SaveChangesAsync();
+            // Aynı isimde kategori var mı kontrol et
+            var companyCategories = await _unitOfWork.TicketCategories
+                .FindAsync(x => x.CompanyId == _currentUserService.CompanyId);
 
-        TempData["Success"] = "Kategori başarıyla oluşturuldu.";
-        return RedirectToAction("Index");
+            var nameExists = companyCategories.Any(c =>
+                c.Name.ToLower() == model.Name.Trim().ToLower());
+
+            if (nameExists)
+            {
+                ModelState.AddModelError("Name", "Bu isimde bir kategori zaten var.");
+                return View(model);
+            }
+
+            var category = new TicketCategory
+            {
+                CompanyId = _currentUserService.CompanyId.Value,
+                Name = model.Name.Trim(),
+                Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim(),
+                Icon = model.Icon,
+                Color = model.Color,
+                IsActive = true,
+                SortOrder = model.DisplayOrder,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = _currentUserService.UserName ?? "System"
+            };
+
+            await _unitOfWork.TicketCategories.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
+
+            TempData["Success"] = "Kategori başarıyla oluşturuldu.";
+            return RedirectToAction("Index");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating category");
+            ModelState.AddModelError("", "Kategori oluşturulurken bir hata oluştu: " + ex.Message);
+            return View(model);
+        }
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var user = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.Id == id && x.CompanyId == _currentUserService.CompanyId,
-            x => x.Customer!);
-
-        if (user == null)
+        try
         {
-            return NotFound();
+            var category = await _unitOfWork.TicketCategories.FirstOrDefaultAsync(
+                x => x.Id == id && x.CompanyId == _currentUserService.CompanyId,
+                x => x.Modules);
+
+            if (category == null)
+            {
+                TempData["Error"] = "Kategori bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            var model = new EditCategoryViewModel
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                Icon = category.Icon,
+                Color = category.Color,
+                DisplayOrder = category.SortOrder,
+                IsActive = category.IsActive,
+                Modules = category.Modules.Select(m => new ModuleViewModel
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    DisplayOrder = m.SortOrder,
+                    IsActive = m.IsActive
+                }).OrderBy(m => m.DisplayOrder).ToList()
+            };
+
+            return View(model);
         }
-
-        var customers = await _unitOfWork.Customers.FindAsync(
-            x => x.CompanyId == _currentUserService.CompanyId && x.IsActive);
-        ViewBag.Customers = customers;
-
-        var model = new EditUserViewModel
+        catch (Exception ex)
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role,
-            CustomerId = user.CustomerId,
-            IsActive = user.IsActive
-        };
-
-        return View(model);
+            _logger.LogError(ex, "Error loading category for edit: {Id}", id);
+            TempData["Error"] = "Kategori yüklenirken bir hata oluştu.";
+            return RedirectToAction("Index");
+        }
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(EditUserViewModel model)
+    public async Task<IActionResult> Edit(EditCategoryViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            var customers = await _unitOfWork.Customers.FindAsync(
-                x => x.CompanyId == _currentUserService.CompanyId && x.IsActive);
-            ViewBag.Customers = customers;
             return View(model);
         }
 
-        var user = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.Id == model.Id && x.CompanyId == _currentUserService.CompanyId);
-
-        if (user == null)
+        try
         {
-            return NotFound();
+            var category = await _unitOfWork.TicketCategories.FirstOrDefaultAsync(
+                x => x.Id == model.Id && x.CompanyId == _currentUserService.CompanyId,
+                x => x.Modules);
+
+            if (category == null)
+            {
+                TempData["Error"] = "Kategori bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            // Aynı isimde başka kategori var mı kontrol et (kendisi hariç)
+            var companyCategories = await _unitOfWork.TicketCategories
+                .FindAsync(x => x.CompanyId == _currentUserService.CompanyId && x.Id != model.Id);
+
+            var nameExists = companyCategories.Any(c =>
+                c.Name.ToLower() == model.Name.Trim().ToLower());
+
+            if (nameExists)
+            {
+                ModelState.AddModelError("Name", "Bu isimde başka bir kategori var.");
+                return View(model);
+            }
+
+            // Update category
+            category.Name = model.Name.Trim();
+            category.Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim();
+            category.Icon = model.Icon;
+            category.Color = model.Color;
+            category.SortOrder = model.DisplayOrder;
+            category.IsActive = model.IsActive;
+            category.UpdatedAt = DateTime.UtcNow;
+            category.UpdatedBy = _currentUserService.UserName ?? "System";
+
+            // Update modules
+            // Önce mevcut modülleri sil
+            var existingModules = category.Modules.ToList();
+            foreach (var module in existingModules)
+            {
+                _unitOfWork.TicketCategoryModules.Remove(module);
+            }
+
+            // Yeni modülleri ekle
+            if (model.Modules != null && model.Modules.Any())
+            {
+                foreach (var moduleModel in model.Modules.Where(m => !string.IsNullOrWhiteSpace(m.Name)))
+                {
+                    var module = new TicketCategoryModule
+                    {
+                        TicketCategoryId = category.Id,
+                        Name = moduleModel.Name.Trim(),
+                        Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim(),
+                        SortOrder = moduleModel.DisplayOrder,
+                        IsActive = moduleModel.IsActive,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = _currentUserService.UserName ?? "System"
+                    };
+                    await _unitOfWork.TicketCategoryModules.AddAsync(module);
+                }
+            }
+
+            _unitOfWork.TicketCategories.Update(category);
+            await _unitOfWork.SaveChangesAsync();
+
+            TempData["Success"] = "Kategori başarıyla güncellendi.";
+            return RedirectToAction("Index");
         }
-
-        // Check if username already exists (excluding current user)
-        var existingUser = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.CompanyId == _currentUserService.CompanyId && x.Id != model.Id);
-        if (existingUser != null)
+        catch (Exception ex)
         {
-            ModelState.AddModelError("Username", "Bu kullanıcı adı zaten kullanılıyor.");
-            var customers = await _unitOfWork.Customers.FindAsync(
-                x => x.CompanyId == _currentUserService.CompanyId && x.IsActive);
-            ViewBag.Customers = customers;
+            _logger.LogError(ex, "Error updating category");
+            ModelState.AddModelError("", "Kategori güncellenirken bir hata oluştu: " + ex.Message);
             return View(model);
         }
+    }
 
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.Email = model.Email;
-        user.Role = model.Role;
-        user.CustomerId = model.Role == UserRole.Customer ? model.CustomerId : null;
-        user.IsActive = model.IsActive;
-
-        // Update password if provided
-        if (!string.IsNullOrEmpty(model.NewPassword))
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleStatus(int id)
+    {
+        try
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            var category = await _unitOfWork.TicketCategories.FirstOrDefaultAsync(
+                x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
+
+            if (category == null)
+            {
+                TempData["Error"] = "Kategori bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            category.IsActive = !category.IsActive;
+            category.UpdatedAt = DateTime.UtcNow;
+            category.UpdatedBy = _currentUserService.UserName ?? "System";
+
+            _unitOfWork.TicketCategories.Update(category);
+            await _unitOfWork.SaveChangesAsync();
+
+            TempData["Success"] = $"Kategori {(category.IsActive ? "aktif" : "pasif")} hale getirildi.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error toggling category status");
+            TempData["Error"] = "İşlem sırasında bir hata oluştu: " + ex.Message;
         }
 
-        _unitOfWork.Users.Update(user);
-        await _unitOfWork.SaveChangesAsync();
-
-        TempData["Success"] = "Kullanıcı başarıyla güncellendi.";
         return RedirectToAction("Index");
     }
 
@@ -147,60 +270,36 @@ public class CategoriesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var user = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
-
-        if (user == null)
+        try
         {
-            return NotFound();
+            var category = await _unitOfWork.TicketCategories.FirstOrDefaultAsync(
+                x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
+
+            if (category == null)
+            {
+                TempData["Error"] = "Kategori bulunamadı.";
+                return RedirectToAction("Index");
+            }
+
+            // Kategoriye bağlı ticketlar var mı kontrol et
+            var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CategoryId == id);
+            if (hasTickets)
+            {
+                TempData["Error"] = "Bu kategoriye ait ticketlar var, silinemez. Önce pasif hale getirin.";
+                return RedirectToAction("Index");
+            }
+
+            _unitOfWork.TicketCategories.Remove(category);
+            await _unitOfWork.SaveChangesAsync();
+
+            TempData["Success"] = "Kategori başarıyla silindi.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting category");
+            TempData["Error"] = "Kategori silinirken bir hata oluştu: " + ex.Message;
         }
 
-        // Don't allow deleting current user
-        if (user.Id == _currentUserService.UserId)
-        {
-            TempData["Error"] = "Kendi hesabınızı silemezsiniz.";
-            return RedirectToAction("Index");
-        }
-
-        // Check if user has tickets
-        var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CreatedByUserId == id || t.AssignedToUserId == id);
-        if (hasTickets)
-        {
-            TempData["Error"] = "Bu kullanıcının ticket'ları var, silinemez. Önce pasif hale getirin.";
-            return RedirectToAction("Index");
-        }
-
-        _unitOfWork.Users.Remove(user);
-        await _unitOfWork.SaveChangesAsync();
-
-        TempData["Success"] = "Kullanıcı başarıyla silindi.";
-        return RedirectToAction("Index");
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleStatus(int id)
-    {
-        var user = await _unitOfWork.Users.FirstOrDefaultAsync(
-            x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        // Don't allow deactivating current user
-        if (user.Id == _currentUserService.UserId)
-        {
-            TempData["Error"] = "Kendi hesabınızı pasif hale getiremezsiniz.";
-            return RedirectToAction("Index");
-        }
-
-        user.IsActive = !user.IsActive;
-        _unitOfWork.Users.Update(user);
-        await _unitOfWork.SaveChangesAsync();
-
-        TempData["Success"] = $"Kullanıcı {(user.IsActive ? "aktif" : "pasif")} hale getirildi.";
         return RedirectToAction("Index");
     }
 }

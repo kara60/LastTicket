@@ -171,7 +171,6 @@ public static class DataSeeder
             new TicketCategory
             {
                 CompanyId = company.Id,
-                TicketTypeId = type.Id,
                 Name = "Web Uygulaması",
                 Description = "Web tabanlı uygulamalar",
                 Icon = "globe",
@@ -182,7 +181,6 @@ public static class DataSeeder
             new TicketCategory
             {
                 CompanyId = company.Id,
-                TicketTypeId = type.Id,
                 Name = "Mobil Uygulama",
                 Description = "iOS ve Android uygulamalar",
                 Icon = "device-phone-mobile",

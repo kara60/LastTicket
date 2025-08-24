@@ -31,11 +31,9 @@ public class TicketCategory : AuditableEntity
 
     // Foreign Keys
     public int CompanyId { get; set; }
-    public int TicketTypeId { get; set; }
 
     // Navigation Properties
     public virtual Company Company { get; set; } = null!;
-    public virtual TicketType TicketType { get; set; } = null!;
     public virtual ICollection<TicketCategoryModule> Modules { get; set; } = new List<TicketCategoryModule>();
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

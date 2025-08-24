@@ -22,7 +22,7 @@
         <!-- Form Container - Scrollable -->
         <div class="flex-1 overflow-y-auto">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <form method="post" asp-action="Create" asp-anti-forgery="true" class="p-6">
+                <form method="post" asp-action="Create" asp-anti-forgery="true" class="p-6" autocomplete="off">
                     @Html.AntiForgeryToken()
 
                     <!-- Validation Summary -->
