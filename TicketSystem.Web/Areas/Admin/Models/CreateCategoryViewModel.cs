@@ -2,7 +2,6 @@
 
 namespace TicketSystem.Web.Areas.Admin.Models
 {
-
     public class CreateCategoryViewModel
     {
         [Required(ErrorMessage = "Kategori adı gereklidir.")]
@@ -23,5 +22,8 @@ namespace TicketSystem.Web.Areas.Admin.Models
         [Display(Name = "Sıralama")]
         [Range(0, 999, ErrorMessage = "Sıralama 0-999 arasında olmalıdır.")]
         public int DisplayOrder { get; set; }
+
+        // Modül listesi eklendi
+        public List<ModuleViewModel> Modules { get; set; } = new();
     }
 }

@@ -1,375 +1,310 @@
 ﻿@model TicketSystem.Web.Areas.Admin.Models.EditCategoryViewModel
+
 @{
     ViewData["Title"] = "Kategori Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="h-screen overflow-hidden bg-gray-50 p-4">
-    <div class="max-w-6xl mx-auto h-full flex flex-col">
-        <!-- Header - Fixed -->
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 flex items-center">
-                    <i class="fas fa-folder text-purple-600 mr-3"></i>
-                    Kategori Düzenle
-                </h1>
-                <p class="text-gray-600">Kategori bilgilerini ve modüllerini güncelleyin</p>
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Kategori Düzenle</h1>
+                    <p class="text-sm text-gray-600 mt-1">Kategori bilgilerini ve modüllerini düzenleyin</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                        ID: @Model.Id
+                    </span>
+                    <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>Geri Dön
+                    </a>
+                </div>
             </div>
-            <a href="@Url.Action("Index")"
-               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Geri Dön
-            </a>
+        </div>
+    </div>
+
+    <!-- Preview Section - ÜST TARAFA TAŞINDI -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-eye mr-2 text-blue-500"></i>
+                Önizleme
+            </h3>
+        </div>
+        <div class="p-6">
+            <div id="categoryPreview" class="bg-white rounded-lg shadow border-l-4 p-6" style="border-left-color: @Model.Color;">
+                <div class="flex items-center">
+                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mr-4" style="background-color: @(Model.Color)1a;">
+                        <i id="previewIcon" class="fas fa-@Model.Icon text-2xl" style="color: @Model.Color;"></i>
+                    </div>
+                    <div>
+                        <h3 id="previewName" class="text-xl font-medium text-gray-900">@Model.Name</h3>
+                        <p id="previewDescription" class="text-sm text-gray-600 mt-1">@(Model.Description ?? "Kategori açıklaması")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section - GENİŞLETİLDİ -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-edit mr-2 text-purple-500"></i>
+                Kategori Bilgileri
+            </h3>
         </div>
 
-        <!-- Form Container - Scrollable -->
-        <div class="flex-1 overflow-y-auto">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <form method="post"
-                      asp-action="Edit"
-                      autocomplete="off"
-                      class="p-6">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="Id" value="@Model.Id" />
+        <div class="p-6">
+            <form method="post" asp-action="Edit" asp-route-id="@Model.Id" id="categoryForm">
+                @Html.AntiForgeryToken()
 
-                    <!-- Dummy hidden inputs -->
-                    <input type="text" name="fake_category" autocomplete="username" style="display:none;" />
-                    <input type="password" name="fake_pass" autocomplete="current-password" style="display:none;" />
-
-                    <!-- Validation Summary -->
-                    @if (!ViewData.ModelState.IsValid)
-                    {
-                        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
-                            <h3 class="font-medium mb-2">Lütfen aşağıdaki hataları düzeltin:</h3>
-                            <div asp-validation-summary="ModelOnly" class="text-sm"></div>
-                        </div>
-                    }
-
-                    <!-- Basic Information Section -->
-                    <div class="mb-8">
-                        <div class="border-l-4 border-purple-500 pl-4 mb-6">
-                            <h2 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <i class="fas fa-info-circle mr-2 text-purple-500"></i>
-                                Temel Bilgiler
-                            </h2>
-                            <p class="text-sm text-gray-600 mt-1">Kategorinin genel özelliklerini güncelleyin</p>
+                <!-- Basic Category Info - GENİŞ LAYOUT -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Sol Kolon -->
+                    <div class="space-y-6">
+                        <!-- Name -->
+                        <div>
+                            <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2">Kategori Adı *</label>
+                            <input asp-for="Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-lg" />
+                            <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Sol Kolon -->
-                            <div class="space-y-6">
-                                <!-- Kategori Adı -->
-                                <div>
-                                    <label for="Name" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Kategori Adı <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="fas fa-folder text-gray-400"></i>
-                                        </div>
-                                        <input type="text"
-                                               id="Name"
-                                               name="Name"
-                                               value="@Model.Name"
-                                               autocomplete="new-password"
-                                               readonly
-                                               onfocus="this.removeAttribute('readonly');"
-                                               class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                                               required />
-                                    </div>
-                                    <span asp-validation-for="Name" class="text-rose-500 text-xs mt-1 block"></span>
-                                </div>
+                        <!-- Description -->
+                        <div>
+                            <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                            <textarea asp-for="Description" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"></textarea>
+                            <span asp-validation-for="Description" class="text-red-500 text-sm"></span>
+                        </div>
 
-                                <!-- Açıklama -->
-                                <div>
-                                    <label for="Description" class="block text-sm font-medium text-gray-700 mb-1">
-                                        Açıklama
-                                    </label>
-                                    <div class="relative">
-                                        <div class="absolute top-3 left-3 pointer-events-none">
-                                            <i class="fas fa-comment-alt text-gray-400"></i>
-                                        </div>
-                                        <textarea id="Description"
-                                                  name="Description"
-                                                  autocomplete="new-password"
-                                                  readonly
-                                                  onfocus="this.removeAttribute('readonly');"
-                                                  rows="4"
-                                                  class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none">@Model.Description</textarea>
-                                    </div>
-                                    <span asp-validation-for="Description" class="text-rose-500 text-xs mt-1 block"></span>
-                                </div>
-
-                                <!-- Sıralama ve Durum -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-1">
-                                            Sıralama
-                                        </label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-sort-numeric-up text-gray-400"></i>
-                                            </div>
-                                            <input type="number"
-                                                   id="DisplayOrder"
-                                                   name="DisplayOrder"
-                                                   value="@Model.DisplayOrder"
-                                                   min="0"
-                                                   max="999"
-                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" />
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-end">
-                                        <label class="flex items-center cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50 w-full">
-                                            <input type="checkbox"
-                                                   name="IsActive"
-                                                   value="true"
-                                                   @(Model.IsActive ? "checked" : "")
-                                                   class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                                            <span class="ml-2 text-sm font-medium text-gray-700 flex items-center">
-                                                <i class="fas fa-check-circle mr-2"></i>Aktif
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
+                        <!-- Display Order and Status -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2">Sıralama</label>
+                                <input asp-for="DisplayOrder" type="number" min="0" max="999" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" />
+                                <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm"></span>
                             </div>
-
-                            <!-- Sağ Kolon - Görsel -->
-                            <div class="space-y-6">
-                                <!-- İkon -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-3">
-                                        İkon <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="grid grid-cols-4 gap-2">
-                                        @{
-                                            var iconOptions = new Dictionary<string, string>
-                                            {
-                                                ["folder"] = "📁",
-                                                ["globe"] = "🌐",
-                                                ["mobile-alt"] = "📱",
-                                                ["code"] = "💻",
-                                                ["database"] = "🗃️",
-                                                ["cog"] = "⚙️",
-                                                ["shield-alt"] = "🛡️",
-                                                ["chart-bar"] = "📊"
-                                            };
-                                        }
-
-                                        @foreach (var icon in iconOptions)
-                                        {
-                                            <label class="cursor-pointer">
-                                                <input type="radio"
-                                                       name="Icon"
-                                                       value="@icon.Key"
-                                                       @(Model.Icon == icon.Key ? "checked" : "")
-                                                       class="sr-only" />
-                                                <div class="icon-option p-2 border-2 border-gray-200 rounded-lg text-center hover:border-purple-300 transition-all">
-                                                    <i class="fas fa-@icon.Key text-xl text-gray-600"></i>
-                                                </div>
-                                            </label>
-                                        }
-                                    </div>
-                                </div>
-
-                                <!-- Renk -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-3">
-                                        Renk <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="flex space-x-3">
-                                        <input type="color"
-                                               id="ColorPicker"
-                                               class="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer"
-                                               value="@Model.Color" />
-                                        <input type="text"
-                                               id="Color"
-                                               name="Color"
-                                               value="@Model.Color"
-                                               readonly
-                                               onfocus="this.removeAttribute('readonly');"
-                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" />
-                                    </div>
-                                </div>
-
-                                <!-- Önizleme -->
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="text-sm font-medium text-gray-700 mb-3">Önizleme</h4>
-                                    <div id="categoryPreview" class="bg-white rounded-lg shadow border-l-4 p-4" style="border-left-color: @Model.Color;">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @(Model.Color)1a;">
-                                                <i id="previewIcon" class="fas fa-@Model.Icon text-xl" style="color: @Model.Color;"></i>
-                                            </div>
-                                            <div>
-                                                <h3 id="previewName" class="text-base font-medium text-gray-900">@Model.Name</h3>
-                                                <p id="previewDescription" class="text-sm text-gray-600">@(Model.Description ?? "Kategori açıklaması")</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="flex items-end">
+                                <label class="flex items-center cursor-pointer p-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                    <input asp-for="IsActive" class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-3" />
+                                    <span class="text-sm font-medium text-gray-700">Aktif Durum</span>
+                                </label>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Modules Section -->
-                    <div class="border-t border-gray-200 pt-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="border-l-4 border-green-500 pl-4">
-                                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
-                                    <i class="fas fa-puzzle-piece mr-2 text-green-500"></i>
-                                    Modül Yönetimi
-                                </h2>
-                                <p class="text-sm text-gray-600 mt-1">Bu kategoriye ait modülleri yönetin</p>
+                    <!-- Sağ Kolon -->
+                    <div class="space-y-6">
+                        <!-- Icon Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Simge Seçin *</label>
+                            <div class="grid grid-cols-6 gap-3">
+                                @{
+                                    var icons = new[] { "bug", "lightbulb", "graduation-cap", "wrench", "question-circle", "exclamation-triangle", "chart-bar", "users", "desktop", "mobile-alt", "database", "shield-alt" };
+                                }
+                                @foreach (var icon in icons)
+                                {
+                                    <label class="cursor-pointer">
+                                        <input type="radio" asp-for="Icon" value="@icon" class="sr-only" />
+                                        <div class="icon-option w-14 h-14 border-2 border-gray-200 rounded-lg flex items-center justify-center hover:border-purple-300 transition-colors @(Model.Icon == icon ? "border-purple-500 bg-purple-50" : "")">
+                                            <i class="fas fa-@icon text-xl text-gray-600"></i>
+                                        </div>
+                                    </label>
+                                }
                             </div>
-                            <button type="button"
-                                    id="addModuleBtn"
-                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
-                                <i class="fas fa-plus mr-2"></i>Modül Ekle
-                            </button>
+                            <span asp-validation-for="Icon" class="text-red-500 text-sm"></span>
                         </div>
 
-                        <div id="modulesList" class="space-y-4">
-                            @for (int i = 0; i < Model.Modules.Count; i++)
-                            {
-                                <div class="module-item bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                    <input type="hidden" asp-for="Modules[i].Id" />
-                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Modül Adı</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <i class="fas fa-cube text-gray-400"></i>
-                                                </div>
-                                                <input asp-for="Modules[i].Name"
-                                                       autocomplete="new-password"
-                                                       readonly
-                                                       onfocus="this.removeAttribute('readonly');"
-                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
+                        <!-- Color Selection -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label asp-for="Color" class="block text-sm font-medium text-gray-700 mb-2">Renk Kodu</label>
+                                <input asp-for="Color" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-mono" />
+                                <span asp-validation-for="Color" class="text-red-500 text-sm"></span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Renk Seçici</label>
+                                <input type="color" id="ColorPicker" value="@Model.Color" class="w-full h-12 border border-gray-300 rounded-lg cursor-pointer" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modules Section -->
+                <div class="border-t border-gray-200 pt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                                <i class="fas fa-puzzle-piece mr-3 text-green-500"></i>
+                                Modül Yönetimi
+                            </h2>
+                            <p class="text-sm text-gray-600 mt-1">Bu kategoriye ait modülleri yönetin</p>
+                        </div>
+                        <button type="button"
+                                id="addModuleBtn"
+                                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center font-medium">
+                            <i class="fas fa-plus mr-2"></i>Modül Ekle
+                        </button>
+                    </div>
+
+                    <div id="modulesList" class="space-y-4">
+                        @for (int i = 0; i < Model.Modules.Count; i++)
+                        {
+                            <div class="module-item bg-gray-50 border border-gray-200 rounded-lg p-6">
+                                <input type="hidden" asp-for="Modules[i].Id" />
+                                <input type="hidden" name="Modules[@i].IsActive" value="false" />
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Modül Adı *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-cube text-gray-400"></i>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <i class="fas fa-comment text-gray-400"></i>
-                                                </div>
-                                                <input asp-for="Modules[i].Description"
-                                                       autocomplete="new-password"
-                                                       readonly
-                                                       onfocus="this.removeAttribute('readonly');"
-                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Sıralama</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <i class="fas fa-sort text-gray-400"></i>
-                                                </div>
-                                                <input asp-for="Modules[i].DisplayOrder"
-                                                       type="number"
-                                                       min="0"
-                                                       max="999"
-                                                       class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
-                                            </div>
-                                        </div>
-                                        <div class="flex items-end justify-between">
-                                            <label class="flex items-center cursor-pointer">
-                                                <input asp-for="Modules[i].IsActive"
-                                                       type="checkbox"
-                                                       class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                                                <span class="ml-2 text-sm text-gray-700">Aktif</span>
-                                            </label>
-                                            <button type="button"
-                                                    onclick="removeModule(this)"
-                                                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <input asp-for="Modules[i].Name"
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                   placeholder="Modül adını girin" />
                                         </div>
                                     </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-comment text-gray-400"></i>
+                                            </div>
+                                            <input asp-for="Modules[i].Description"
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                   placeholder="Açıklama (opsiyonel)" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Sıra</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-sort text-gray-400"></i>
+                                            </div>
+                                            <input asp-for="Modules[i].DisplayOrder"
+                                                   type="number"
+                                                   min="0"
+                                                   max="999"
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" />
+                                        </div>
+                                    </div>
+                                    <div class="flex items-end justify-between">
+                                        <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-100">
+                                            <input asp-for="Modules[i].IsActive"
+                                                   class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                            <span class="ml-2 text-sm text-gray-700">Aktif</span>
+                                        </label>
+                                        <button type="button"
+                                                onclick="removeModule(this)"
+                                                class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            }
-                        </div>
-
-                        @if (!Model.Modules.Any())
-                        {
-                            <div class="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                <i class="fas fa-puzzle-piece text-gray-400 text-2xl mb-2"></i>
-                                <p class="text-gray-500">Henüz modül eklenmemiş</p>
-                                <p class="text-sm text-gray-400">Modül eklemek için yukarıdaki butonu kullanın</p>
                             </div>
                         }
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex items-center justify-between pt-6 mt-8 border-t border-gray-200">
-                        <button type="button"
-                                onclick="if(confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'))
-                                { document.getElementById('deleteForm').submit(); }"
-                                class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center">
-                            <i class="fas fa-trash mr-2"></i>
-                            Kategoriyi Sil
-                        </button>
-
-                        <div class="flex items-center space-x-4">
-                            <a href="@Url.Action("Index")"
-                               class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                                İptal
-                            </a>
-                            <button type="submit"
-                                    id="submitBtn"
-                                    class="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
-                                <i class="fas fa-save mr-2"></i>
-                                Değişiklikleri Kaydet
-                            </button>
+                    @if (!Model.Modules.Any())
+                    {
+                        <div id="emptyModulesMessage" class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                            <i class="fas fa-puzzle-piece text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Henüz modül eklenmemiş</p>
+                            <p class="text-sm text-gray-400 mt-2">Modül eklemek için yukarıdaki butonu kullanın</p>
                         </div>
-                    </div>
-                </form>
+                    }
+                </div>
 
-                <!-- Hidden Delete Form -->
-                <form id="deleteForm" method="post" action="/Admin/Categories/Delete/@Model.Id" class="hidden">
-                    @Html.AntiForgeryToken()
-                </form>
-            </div>
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">
+                    <button type="button"
+                            onclick="if(confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) { document.getElementById('deleteForm').submit(); }"
+                            class="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center font-medium">
+                        <i class="fas fa-trash mr-2"></i>
+                        Kategoriyi Sil
+                    </button>
+
+                    <div class="flex items-center space-x-4">
+                        <a href="@Url.Action("Index")"
+                           class="px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                            İptal
+                        </a>
+                        <button type="submit"
+                                id="submitBtn"
+                                class="px-10 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center font-medium">
+                            <i class="fas fa-save mr-2"></i>
+                            Değişiklikleri Kaydet
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Hidden Delete Form -->
+            <form id="deleteForm" method="post" action="/Admin/Categories/Delete/@Model.Id" class="hidden">
+                @Html.AntiForgeryToken()
+            </form>
         </div>
     </div>
 </div>
 
 <!-- JavaScript -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        const inputs = form.querySelectorAll('input[readonly], textarea[readonly]');
-        let moduleIndex = @Model.Modules.Count;
+    // Global variables
+    let moduleIndex = @Model.Modules.Count;
 
-        // Form submit edilirken readonly'leri kaldır
-        form.addEventListener('submit', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded with moduleIndex:', moduleIndex);
+        console.log('Existing modules:', @Model.Modules.Count);
+
+        initializeFormHandlers();
+        initializePreview();
+        initializeModuleHandlers();
+        updatePreview();
+    });
+
+    function initializeFormHandlers() {
+        const form = document.getElementById('categoryForm');
+        const inputs = form.querySelectorAll('input[readonly], textarea[readonly]');
+
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitting...');
+
             inputs.forEach(input => {
                 input.removeAttribute('readonly');
             });
-        });
 
-        // Color picker functionality
+            if (!validateForm()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+
+    function initializePreview() {
         const colorPicker = document.getElementById('ColorPicker');
         const colorInput = document.getElementById('Color');
 
-        colorPicker.addEventListener('change', function() {
-            colorInput.value = this.value;
-            updatePreview();
-        });
-
-        colorInput.addEventListener('input', function() {
-            if (/^#[0-9A-F]{6}$/i.test(this.value)) {
-                colorPicker.value = this.value;
+        if (colorPicker && colorInput) {
+            colorPicker.addEventListener('change', function() {
+                colorInput.value = this.value;
                 updatePreview();
-            }
-        });
+            });
 
-        // Icon selection
+            colorInput.addEventListener('input', function() {
+                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                    colorPicker.value = this.value;
+                    updatePreview();
+                }
+            });
+        }
+
         const iconRadios = document.querySelectorAll('input[name="Icon"]');
         iconRadios.forEach(radio => {
             radio.addEventListener('change', function() {
-                // Update visual selection
                 document.querySelectorAll('.icon-option').forEach(option => {
                     option.classList.remove('border-purple-500', 'bg-purple-50');
                     option.classList.add('border-gray-200');
@@ -380,118 +315,214 @@
                     option.classList.remove('border-gray-200');
                     option.classList.add('border-purple-500', 'bg-purple-50');
                 }
-
                 updatePreview();
             });
         });
 
-        // Text inputs for preview
-        document.getElementById('Name').addEventListener('input', updatePreview);
-        document.getElementById('Description').addEventListener('input', updatePreview);
+        const nameInput = document.getElementById('Name');
+        const descriptionInput = document.getElementById('Description');
 
-        // Add module functionality
-        document.getElementById('addModuleBtn').addEventListener('click', function() {
-            addModule();
-        });
+        if (nameInput) nameInput.addEventListener('input', updatePreview);
+        if (descriptionInput) descriptionInput.addEventListener('input', updatePreview);
+    }
 
-        function addModule() {
-            const modulesList = document.getElementById('modulesList');
-            const moduleDiv = document.createElement('div');
-            moduleDiv.className = 'module-item bg-gray-50 border border-gray-200 rounded-lg p-4';
-            moduleDiv.innerHTML = `
-                <input type="hidden" name="Modules[${moduleIndex}].Id" value="0" />
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Modül Adı</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-cube text-gray-400"></i>
-                            </div>
-                            <input name="Modules[${moduleIndex}].Name"
-                                   autocomplete="new-password"
-                                   readonly
-                                   onfocus="this.removeAttribute('readonly');"
-                                   class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
+    function initializeModuleHandlers() {
+        const addModuleBtn = document.getElementById('addModuleBtn');
+        if (addModuleBtn) {
+            addModuleBtn.addEventListener('click', function() {
+                console.log('Adding module with index:', moduleIndex);
+                addModule();
+            });
+        }
+    }
+
+    function addModule() {
+        const modulesList = document.getElementById('modulesList');
+        const emptyMessage = document.getElementById('emptyModulesMessage');
+
+        if (emptyMessage) {
+            emptyMessage.style.display = 'none';
+        }
+
+        const moduleDiv = document.createElement('div');
+        moduleDiv.className = 'module-item bg-gray-50 border border-gray-200 rounded-lg p-6';
+        moduleDiv.innerHTML = `
+            <input type="hidden" name="Modules[${moduleIndex}].Id" value="0" />
+            <input type="hidden" name="Modules[${moduleIndex}].IsActive" value="false" />
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Modül Adı *</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-cube text-gray-400"></i>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-comment text-gray-400"></i>
-                            </div>
-                            <input name="Modules[${moduleIndex}].Description"
-                                   autocomplete="new-password"
-                                   readonly
-                                   onfocus="this.removeAttribute('readonly');"
-                                   class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sıralama</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-sort text-gray-400"></i>
-                            </div>
-                            <input name="Modules[${moduleIndex}].DisplayOrder"
-                                   type="number"
-                                   value="0"
-                                   min="0"
-                                   max="999"
-                                   class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm" />
-                        </div>
-                    </div>
-                    <div class="flex items-end justify-between">
-                        <label class="flex items-center cursor-pointer">
-                            <input name="Modules[${moduleIndex}].IsActive"
-                                   type="checkbox"
-                                   value="true"
-                                   checked
-                                   class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
-                            <span class="ml-2 text-sm text-gray-700">Aktif</span>
-                        </label>
-                        <button type="button"
-                                onclick="removeModule(this)"
-                                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <input name="Modules[${moduleIndex}].Name"
+                               class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                               placeholder="Modül adını girin"
+                               required />
                     </div>
                 </div>
-            `;
-            modulesList.appendChild(moduleDiv);
-            moduleIndex++;
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-comment text-gray-400"></i>
+                        </div>
+                        <input name="Modules[${moduleIndex}].Description"
+                               class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                               placeholder="Açıklama (opsiyonel)" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sıra</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-sort text-gray-400"></i>
+                        </div>
+                        <input name="Modules[${moduleIndex}].DisplayOrder"
+                               type="number"
+                               value="0"
+                               min="0"
+                               max="999"
+                               class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" />
+                    </div>
+                </div>
+                <div class="flex items-end justify-between">
+                    <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-100">
+                        <input name="Modules[${moduleIndex}].IsActive"
+                               type="checkbox"
+                               value="true"
+                               checked
+                               class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-700">Aktif</span>
+                    </label>
+                    <button type="button"
+                            onclick="removeModule(this)"
+                            class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modulesList.appendChild(moduleDiv);
+        moduleIndex++;
+
+        const newNameInput = moduleDiv.querySelector('input[name*=".Name"]');
+        if (newNameInput) {
+            newNameInput.focus();
         }
 
-        function updatePreview() {
-            const name = document.getElementById('Name').value || '@Model.Name';
-            const description = document.getElementById('Description').value || '@(Model.Description ?? "Kategori açıklaması")';
-            const icon = document.querySelector('input[name="Icon"]:checked')?.value || '@Model.Icon';
-            const color = colorInput.value || '@Model.Color';
+        console.log('Module added, new moduleIndex:', moduleIndex);
+    }
 
-            document.getElementById('previewName').textContent = name;
-            document.getElementById('previewDescription').textContent = description;
-            document.getElementById('previewIcon').className = `fas fa-${icon} text-xl`;
-            document.getElementById('previewIcon').style.color = color;
-
-            const preview = document.getElementById('categoryPreview');
-            preview.style.borderLeftColor = color;
-            preview.querySelector('.w-10').style.backgroundColor = color + '1a';
+    function removeModule(button) {
+        const moduleItem = button.closest('.module-item');
+        if (moduleItem) {
+            moduleItem.remove();
         }
 
-        // Make removeModule function global
-        window.removeModule = function(button) {
-            button.closest('.module-item').remove();
-        };
+        const modulesList = document.getElementById('modulesList');
+        const emptyMessage = document.getElementById('emptyModulesMessage');
 
-        // Initialize selection states
-        iconRadios.forEach(radio => {
-            if (radio.checked) {
-                const option = radio.nextElementSibling;
-                option.classList.remove('border-gray-200');
-                option.classList.add('border-purple-500', 'bg-purple-50');
+        if (modulesList && modulesList.children.length === 0 && emptyMessage) {
+            emptyMessage.style.display = 'block';
+        }
+
+        reindexModules();
+        console.log('Module removed, reindexed to:', moduleIndex);
+    }
+
+    function reindexModules() {
+        const moduleItems = document.querySelectorAll('.module-item');
+        moduleItems.forEach((item, index) => {
+            const hiddenId = item.querySelector('input[name*=".Id"]');
+            const hiddenIsActive = item.querySelector('input[type="hidden"][name*=".IsActive"]');
+            const nameInput = item.querySelector('input[name*=".Name"]');
+            const descInput = item.querySelector('input[name*=".Description"]');
+            const orderInput = item.querySelector('input[name*=".DisplayOrder"]');
+            const activeCheckbox = item.querySelector('input[type="checkbox"][name*=".IsActive"]');
+
+            if (hiddenId) hiddenId.name = `Modules[${index}].Id`;
+            if (hiddenIsActive) hiddenIsActive.name = `Modules[${index}].IsActive`;
+            if (nameInput) nameInput.name = `Modules[${index}].Name`;
+            if (descInput) descInput.name = `Modules[${index}].Description`;
+            if (orderInput) orderInput.name = `Modules[${index}].DisplayOrder`;
+            if (activeCheckbox) activeCheckbox.name = `Modules[${index}].IsActive`;
+        });
+
+        moduleIndex = moduleItems.length;
+    }
+
+    function updatePreview() {
+        const name = document.getElementById('Name')?.value || '@Model.Name';
+        const description = document.getElementById('Description')?.value || '@(Model.Description ?? "Kategori açıklaması")';
+        const color = document.getElementById('Color')?.value || '@Model.Color';
+        const selectedIcon = document.querySelector('input[name="Icon"]:checked')?.value || '@Model.Icon';
+
+        const previewName = document.getElementById('previewName');
+        const previewDescription = document.getElementById('previewDescription');
+        const previewIcon = document.getElementById('previewIcon');
+        const categoryPreview = document.getElementById('categoryPreview');
+
+        if (previewName) previewName.textContent = name || 'Kategori Adı';
+        if (previewDescription) previewDescription.textContent = description || 'Kategori açıklaması';
+        if (previewIcon) {
+            previewIcon.className = `fas fa-${selectedIcon} text-2xl`;
+            previewIcon.style.color = color;
+        }
+        if (categoryPreview) {
+            categoryPreview.style.borderLeftColor = color;
+            const iconWrapper = categoryPreview.querySelector('.w-14.h-14');
+            if (iconWrapper) {
+                iconWrapper.style.backgroundColor = color + '1a';
+            }
+        }
+    }
+
+    function validateForm() {
+        let isValid = true;
+        const errors = [];
+
+        const nameInput = document.getElementById('Name');
+        if (!nameInput.value.trim()) {
+            errors.push('Kategori adı gereklidir.');
+            isValid = false;
+        }
+
+        const selectedIcon = document.querySelector('input[name="Icon"]:checked');
+        if (!selectedIcon) {
+            errors.push('Bir simge seçmelisiniz.');
+            isValid = false;
+        }
+
+        const colorInput = document.getElementById('Color');
+        if (!colorInput.value || !/^#[0-9A-F]{6}$/i.test(colorInput.value)) {
+            errors.push('Geçerli bir renk kodu seçmelisiniz.');
+            isValid = false;
+        }
+
+        const moduleNameInputs = document.querySelectorAll('input[name*=".Name"]');
+        moduleNameInputs.forEach((input, index) => {
+            const moduleItem = input.closest('.module-item');
+            const hasAnyValue = Array.from(moduleItem.querySelectorAll('input')).some(inp =>
+                inp.type !== 'hidden' && inp.type !== 'checkbox' && inp.value.trim()
+            );
+
+            if (hasAnyValue && !input.value.trim()) {
+                errors.push(`Modül ${index + 1}: Modül adı gereklidir.`);
+                isValid = false;
             }
         });
 
-        updatePreview();
-    });
+        if (!isValid) {
+            alert('Lütfen aşağıdaki hataları düzeltin:\n\n' + errors.join('\n'));
+        }
+
+        return isValid;
+    }
 </script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

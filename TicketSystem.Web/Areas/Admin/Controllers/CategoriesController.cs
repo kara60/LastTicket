@@ -94,6 +94,26 @@ public class CategoriesController : Controller
             await _unitOfWork.TicketCategories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
 
+            // Modülleri kaydet
+            if (model.Modules != null && model.Modules.Any())
+            {
+                foreach (var moduleModel in model.Modules.Where(m => !string.IsNullOrWhiteSpace(m.Name)))
+                {
+                    var module = new TicketCategoryModule
+                    {
+                        TicketCategoryId = category.Id,
+                        Name = moduleModel.Name.Trim(),
+                        Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim(),
+                        SortOrder = moduleModel.DisplayOrder,
+                        IsActive = moduleModel.IsActive,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = _currentUserService.UserName ?? "System"
+                    };
+                    await _unitOfWork.TicketCategoryModules.AddAsync(module);
+                }
+                await _unitOfWork.SaveChangesAsync();
+            }
+
             TempData["Success"] = "Kategori başarıyla oluşturuldu.";
             return RedirectToAction("Index");
         }
