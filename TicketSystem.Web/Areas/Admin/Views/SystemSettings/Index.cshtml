@@ -1,0 +1,453 @@
+﻿@model TicketSystem.Web.Areas.Admin.Models.SystemSettingsViewModel
+
+@{
+    ViewData["Title"] = "Sistem Ayarları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-cog text-blue-600 mr-3"></i>
+                        Sistem Ayarları
+                    </h1>
+                    <p class="text-sm text-gray-600 mt-1">Şirket bilgilerinizi ve sistem parametrelerinizi yönetin</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                        ID: @Model.CompanyId
+                    </span>
+                    <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        Güvenli
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <form method="post" action="/Admin/SystemSettings/Update" id="settingsForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Validation Summary -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="p-6 pb-0">
+                    <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
+                        <h3 class="font-medium mb-2">Lütfen aşağıdaki hataları düzeltin:</h3>
+                        <ul class="text-sm list-disc list-inside space-y-1">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+
+            <!-- Company Information Section -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                    <i class="fas fa-building mr-2 text-blue-500"></i>
+                    Şirket Bilgileri
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Şirketinizin temel bilgilerini güncelleyin</p>
+            </div>
+
+            <div class="p-6 border-b border-gray-200">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Sol Kolon -->
+                    <div class="space-y-6">
+                        <!-- Company Name -->
+                        <div>
+                            <label for="CompanyName" class="block text-sm font-medium text-gray-700 mb-2">
+                                Şirket Adı *
+                            </label>
+                            <input name="CompanyName" id="CompanyName" value="@Model.CompanyName" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
+                                   placeholder="Şirket adını giriniz" />
+                            <p class="mt-1 text-xs text-gray-500">Bu ad sistem genelinde görünecektir</p>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="Email" class="block text-sm font-medium text-gray-700 mb-2">
+                                E-posta Adresi *
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-envelope text-gray-400"></i>
+                                </div>
+                                <input name="Email" id="Email" type="email" value="@Model.Email" required
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="ornek@sirket.com" />
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Sistem bildirimleri bu adrese gönderilir</p>
+                        </div>
+
+                        <!-- Phone -->
+                        <div>
+                            <label for="Phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                Telefon Numarası
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-phone text-gray-400"></i>
+                                </div>
+                                <input name="Phone" id="Phone" type="tel" value="@Model.Phone"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="+90 212 123 45 67" />
+                            </div>
+                        </div>
+
+                        <!-- Website -->
+                        <div>
+                            <label for="Website" class="block text-sm font-medium text-gray-700 mb-2">
+                                Web Sitesi
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-globe text-gray-400"></i>
+                                </div>
+                                <input name="Website" id="Website" type="url" value="@Model.Website"
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="https://www.sirket.com" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sağ Kolon -->
+                    <div class="space-y-6">
+                        <!-- Description -->
+                        <div>
+                            <label for="Description" class="block text-sm font-medium text-gray-700 mb-2">
+                                Açıklama
+                            </label>
+                            <textarea name="Description" id="Description" rows="4"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                      placeholder="Şirket hakkında kısa bilgi...">@Model.Description</textarea>
+                        </div>
+
+                        <!-- Address -->
+                        <div>
+                            <label for="Address" class="block text-sm font-medium text-gray-700 mb-2">
+                                Adres
+                            </label>
+                            <textarea name="Address" id="Address" rows="3"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                      placeholder="Tam adres bilgisi...">@Model.Address</textarea>
+                        </div>
+
+                        <!-- City, Country, PostalCode -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="City" class="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
+                                <input name="City" id="City" value="@Model.City"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="İstanbul" />
+                            </div>
+                            <div>
+                                <label for="Country" class="block text-sm font-medium text-gray-700 mb-2">Ülke</label>
+                                <input name="Country" id="Country" value="@Model.Country"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="Türkiye" />
+                            </div>
+                            <div>
+                                <label for="PostalCode" class="block text-sm font-medium text-gray-700 mb-2">Posta Kodu</label>
+                                <input name="PostalCode" id="PostalCode" value="@Model.PostalCode"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="34000" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings Section -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                    <i class="fas fa-cogs mr-2 text-purple-500"></i>
+                    Sistem Parametreleri
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Ticket sisteminizin çalışma parametrelerini ayarlayın</p>
+            </div>
+
+            <div class="p-6 border-b border-gray-200">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Sol Kolon -->
+                    <div class="space-y-6">
+                        <!-- General Settings -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h4 class="text-md font-semibold text-gray-900 mb-4">Genel Ayarlar</h4>
+
+                            <!-- Auto Approve Tickets -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-medium text-gray-900">Otomatik Onay</h5>
+                                    <p class="text-xs text-gray-600 mt-1">Ticket'lar otomatik olarak onaylanır</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="AutoApproveTickets" value="true" @(Model.AutoApproveTickets ? "checked" : "") class="sr-only peer" id="AutoApproveTickets" />
+                                    <input type="hidden" name="AutoApproveTickets" value="false" />
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Send Email Notifications -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-medium text-gray-900">E-posta Bildirimleri</h5>
+                                    <p class="text-xs text-gray-600 mt-1">Ticket durumu değişikliklerinde e-posta gönderilir</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="SendEmailNotifications" value="true" @(Model.SendEmailNotifications ? "checked" : "") class="sr-only peer" id="SendEmailNotifications" />
+                                    <input type="hidden" name="SendEmailNotifications" value="false" />
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- File Settings -->
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h4 class="text-md font-semibold text-gray-900 mb-4">Dosya Ayarları</h4>
+
+                            <!-- Allow File Attachments -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-medium text-gray-900">Dosya Ekleme</h5>
+                                    <p class="text-xs text-gray-600 mt-1">Ticket'lara dosya eklenmesine izin verilir</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="AllowFileAttachments" value="true" @(Model.AllowFileAttachments ? "checked" : "") class="sr-only peer" id="AllowFileAttachments" />
+                                    <input type="hidden" name="AllowFileAttachments" value="false" />
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Max File Size -->
+                            <div class="space-y-2">
+                                <label for="MaxFileSize" class="block text-sm font-medium text-gray-700">
+                                    Maksimum Dosya Boyutu (MB)
+                                </label>
+                                <div class="flex items-center space-x-4">
+                                    <input name="MaxFileSize" id="MaxFileSize" type="range" min="1" max="100" value="@Model.MaxFileSize"
+                                           class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                           oninput="updateFileSizeDisplay(this.value)" />
+                                    <span id="fileSizeDisplay" class="text-sm font-medium text-gray-900 min-w-[60px]">@Model.MaxFileSize MB</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>1 MB</span>
+                                    <span>100 MB</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Ticket'lara eklenebilecek maksimum dosya boyutu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sağ Kolon -->
+                    <div class="space-y-6">
+                        <!-- PMO Integration Settings -->
+                        <div class="border-l-4 border-orange-500 pl-4">
+                            <h4 class="text-md font-semibold text-gray-900 mb-4">PMO Entegrasyonu</h4>
+
+                            <!-- Requires PMO Integration -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-medium text-gray-900">PMO Entegrasyonu</h5>
+                                    <p class="text-xs text-gray-600 mt-1">Onaylanan ticket'lar PMO sistemine gönderilir</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="RequiresPMOIntegration" value="true" @(Model.RequiresPMOIntegration ? "checked" : "") class="sr-only peer" id="RequiresPMOIntegration" onchange="togglePMOFields(this.checked)" />
+                                    <input type="hidden" name="RequiresPMOIntegration" value="false" />
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- PMO API Fields -->
+                            <div id="pmoFields" class="space-y-4" style="display: @(Model.RequiresPMOIntegration ? "block" : "none");">
+                                <!-- PMO API Endpoint -->
+                                <div>
+                                    <label for="PMOApiEndpoint" class="block text-sm font-medium text-gray-700 mb-2">
+                                        PMO API Endpoint *
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-link text-gray-400"></i>
+                                        </div>
+                                        <input name="PMOApiEndpoint" id="PMOApiEndpoint" type="url" value="@Model.PMOApiEndpoint"
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                                               placeholder="https://api.pmo.company.com/v1/tickets" />
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">PMO sistemine ticket gönderilecek API adresi</p>
+                                </div>
+
+                                <!-- PMO API Key -->
+                                <div>
+                                    <label for="PMOApiKey" class="block text-sm font-medium text-gray-700 mb-2">
+                                        PMO API Key
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-key text-gray-400"></i>
+                                        </div>
+                                        <input name="PMOApiKey" id="PMOApiKey" type="password" value="@Model.PMOApiKey"
+                                               class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
+                                               placeholder="API anahtarını giriniz" />
+                                        <button type="button" onclick="togglePasswordVisibility('PMOApiKey')"
+                                                class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                            <i class="fas fa-eye text-gray-400 hover:text-gray-600" id="PMOApiKey-eye"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">API kimlik doğrulama anahtarı (opsiyonel)</p>
+                                </div>
+
+                                <!-- Test Connection Button -->
+                                <div class="flex justify-end">
+                                    <button type="button" onclick="testPMOConnection()" id="testConnectionBtn"
+                                            class="px-4 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors flex items-center">
+                                        <i class="fas fa-plug mr-2"></i>
+                                        Bağlantıyı Test Et
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mr-2 mt-0.5"></i>
+                                <div class="text-sm text-blue-700">
+                                    <p class="font-medium mb-1">Sistem Ayarları Hakkında</p>
+                                    <ul class="text-xs space-y-1">
+                                        <li>• Bu ayarlar tüm sistem genelinde geçerli olur</li>
+                                        <li>• PMO entegrasyonu aktifken API endpoint gereklidir</li>
+                                        <li>• Dosya boyutu limiti tüm kullanıcılar için geçerlidir</li>
+                                        <li>• E-posta bildirimleri sistem e-postasından gönderilir</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="px-6 py-4 bg-gray-50 rounded-b-lg">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        Tüm veriler güvenli şekilde saklanır
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button type="button" onclick="resetForm()"
+                                class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                            <i class="fas fa-undo mr-2"></i>
+                            Sıfırla
+                        </button>
+                        <button type="submit" id="saveBtn"
+                                class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center font-medium">
+                            <i class="fas fa-save mr-2"></i>
+                            Kaydet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateFileSizeDisplay(value) {
+        document.getElementById('fileSizeDisplay').textContent = value + ' MB';
+    }
+
+    function togglePMOFields(isChecked) {
+        var pmoFields = document.getElementById('pmoFields');
+        if (pmoFields) {
+            pmoFields.style.display = isChecked ? 'block' : 'none';
+
+            var endpointInput = document.getElementById('PMOApiEndpoint');
+            if (endpointInput) {
+                if (isChecked) {
+                    endpointInput.setAttribute('required', 'required');
+                } else {
+                    endpointInput.removeAttribute('required');
+                }
+            }
+        }
+    }
+
+    function togglePasswordVisibility(inputId) {
+        var input = document.getElementById(inputId);
+        var eye = document.getElementById(inputId + '-eye');
+
+        if (input && eye) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.className = 'fas fa-eye-slash text-gray-400 hover:text-gray-600';
+            } else {
+                input.type = 'password';
+                eye.className = 'fas fa-eye text-gray-400 hover:text-gray-600';
+            }
+        }
+    }
+
+    function testPMOConnection() {
+        var btn = document.getElementById('testConnectionBtn');
+        var endpoint = document.getElementById('PMOApiEndpoint').value;
+
+        if (!endpoint) {
+            alert('PMO API Endpoint giriniz.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Test Ediliyor...';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/Admin/SystemSettings/TestPMOConnection', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plug mr-2"></i>Bağlantıyı Test Et';
+
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        alert('Başarılı: ' + data.message);
+                    } else {
+                        alert('Hata: ' + data.message);
+                    }
+                } else {
+                    alert('Bağlantı hatası oluştu.');
+                }
+            }
+        };
+
+        xhr.send();
+    }
+
+    function resetForm() {
+        if (confirm('Tüm değişiklikler sıfırlanacak. Emin misiniz?')) {
+            location.reload();
+        }
+    }
+
+    // Page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateFileSizeDisplay(document.getElementById('MaxFileSize').value);
+
+        var pmoCheckbox = document.getElementById('RequiresPMOIntegration');
+        if (pmoCheckbox) {
+            togglePMOFields(pmoCheckbox.checked);
+        }
+    });
+</script>

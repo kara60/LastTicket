@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketSystem.Application.Common.Interfaces;
-using TicketSystem.Infrastructure.Repositories;
 using TicketSystem.Domain.Entities;
 using TicketSystem.Web.Areas.Admin.Models;
 using System.Text.Json;
@@ -33,7 +32,7 @@ public class TicketTypesController : Controller
         {
             var ticketTypes = await _unitOfWork.TicketTypes.FindAsync(
                 x => x.CompanyId == _currentUserService.CompanyId);
-            return View(ticketTypes.OrderBy(x => x.SortOrder));
+            return View(ticketTypes.OrderBy(x => x.SortOrder).ThenBy(x => x.Name));
         }
         catch (Exception ex)
         {
@@ -51,79 +50,16 @@ public class TicketTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateTicketTypeViewModel model, string FormFieldsJson)
+    public async Task<IActionResult> Create(CreateTicketTypeViewModel model)
     {
-        _logger.LogInformation("=== CREATE TICKET TYPE POST DEBUG ===");
-
-        // DEBUG: Raw request form data
-        _logger.LogInformation("=== RAW FORM DATA ===");
-        foreach (var key in Request.Form.Keys)
-        {
-            _logger.LogInformation("Form Key: {Key} = {Value}", key, Request.Form[key]);
-        }
-
-        _logger.LogInformation("=== MODEL VALUES ===");
-        _logger.LogInformation("Name: '{Name}'", model?.Name ?? "NULL");
-        _logger.LogInformation("Description: '{Description}'", model?.Description ?? "NULL");
-        _logger.LogInformation("Icon: '{Icon}'", model?.Icon ?? "NULL");
-        _logger.LogInformation("Color: '{Color}'", model?.Color ?? "NULL");
-        _logger.LogInformation("DisplayOrder: {DisplayOrder}", model?.DisplayOrder ?? 0);
-
-        _logger.LogInformation("=== FORM FIELDS JSON ===");
-        _logger.LogInformation("FormFieldsJson: '{Json}'", FormFieldsJson ?? "NULL");
-
-        // Parse FormFields from JSON
-        if (!string.IsNullOrEmpty(FormFieldsJson))
-        {
-            try
-            {
-                var formFields = JsonSerializer.Deserialize<List<FormFieldViewModel>>(FormFieldsJson);
-                if (model != null)
-                {
-                    model.FormFields = formFields ?? new List<FormFieldViewModel>();
-                    _logger.LogInformation("Parsed FormFields. Count: {Count}", model.FormFields.Count);
-                }
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "Error parsing FormFields JSON");
-                if (model != null)
-                {
-                    model.FormFields = new List<FormFieldViewModel>();
-                }
-            }
-        }
-        else
-        {
-            if (model != null)
-            {
-                model.FormFields = new List<FormFieldViewModel>();
-            }
-        }
-
-        // Check if model is null
-        if (model == null)
-        {
-            _logger.LogError("Model is NULL!");
-            return View(new CreateTicketTypeViewModel());
-        }
-
         if (!ModelState.IsValid)
         {
-            _logger.LogWarning("ModelState is invalid");
-            foreach (var state in ModelState)
-            {
-                foreach (var error in state.Value.Errors)
-                {
-                    _logger.LogWarning("Model Error - {Key}: {ErrorMessage}", state.Key, error.ErrorMessage);
-                }
-            }
+            _logger.LogWarning("Create ticket type form validation failed");
             return View(model);
         }
 
         try
         {
-            // CompanyId kontrolü
             if (!_currentUserService.CompanyId.HasValue)
             {
                 _logger.LogError("CompanyId is null for current user");
@@ -131,7 +67,7 @@ public class TicketTypesController : Controller
                 return View(model);
             }
 
-            // Aynı isimde ticket type var mı kontrol et
+            // Name uniqueness check
             var existingTicketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.CompanyId == _currentUserService.CompanyId &&
                      x.Name.ToLower() == model.Name.ToLower().Trim());
@@ -142,10 +78,10 @@ public class TicketTypesController : Controller
                 return View(model);
             }
 
-            // Form definition oluştur
+            // Create form definition
             var formDefinition = new
             {
-                fields = model.FormFields?.Where(f => !string.IsNullOrEmpty(f.Name) && !string.IsNullOrEmpty(f.Label))
+                fields = model.FormFields?.Where(f => !string.IsNullOrWhiteSpace(f.Name) && !string.IsNullOrWhiteSpace(f.Label))
                     .Select(f => new
                     {
                         name = f.Name.Trim(),
@@ -153,9 +89,12 @@ public class TicketTypesController : Controller
                         type = f.Type ?? "text",
                         required = f.Required,
                         options = f.Type == "select" && !string.IsNullOrEmpty(f.Options)
-                            ? f.Options.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToArray()
+                            ? f.Options.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(o => o.Trim())
+                                      .Where(o => !string.IsNullOrEmpty(o))
+                                      .ToArray()
                             : null,
-                        placeholder = !string.IsNullOrEmpty(f.Placeholder) ? f.Placeholder.Trim() : null,
+                        placeholder = string.IsNullOrWhiteSpace(f.Placeholder) ? null : f.Placeholder.Trim(),
                         validation = new
                         {
                             minLength = f.MinLength > 0 ? f.MinLength : (int?)null,
@@ -170,25 +109,24 @@ public class TicketTypesController : Controller
             {
                 CompanyId = _currentUserService.CompanyId.Value,
                 Name = model.Name.Trim(),
-                Description = !string.IsNullOrEmpty(model.Description) ? model.Description.Trim() : null,
+                Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim(),
                 Icon = model.Icon,
                 Color = model.Color,
                 FormDefinition = JsonSerializer.Serialize(formDefinition, new JsonSerializerOptions
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = false
                 }),
                 IsActive = true,
                 SortOrder = model.DisplayOrder,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString()
+                CreatedBy = _currentUserService.UserName ?? "System"
             };
 
-            _logger.LogInformation("TicketType object created successfully");
-
             await _unitOfWork.TicketTypes.AddAsync(ticketType);
-            var saveResult = await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("TicketType saved to database. SaveChanges result: {SaveResult}", saveResult);
+            _logger.LogInformation("Ticket type created successfully: {Name} (ID: {Id})", ticketType.Name, ticketType.Id);
 
             TempData["Success"] = "Ticket türü başarıyla oluşturuldu.";
             return RedirectToAction("Index");
@@ -205,8 +143,6 @@ public class TicketTypesController : Controller
     {
         try
         {
-            _logger.LogInformation("=== EDIT TICKET TYPE GET === ID: {Id}", id);
-
             var ticketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
 
@@ -229,16 +165,12 @@ public class TicketTypesController : Controller
                 FormFields = new List<FormFieldViewModel>()
             };
 
-            // FormDefinition'ı parse et
+            // Parse form definition
             if (!string.IsNullOrEmpty(ticketType.FormDefinition))
             {
                 try
                 {
-                    var jsonOptions = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-
+                    var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var formDef = JsonSerializer.Deserialize<JsonElement>(ticketType.FormDefinition, jsonOptions);
 
                     if (formDef.TryGetProperty("fields", out var fieldsElement) && fieldsElement.ValueKind == JsonValueKind.Array)
@@ -250,15 +182,15 @@ public class TicketTypesController : Controller
                                 Name = field.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? "" : "",
                                 Label = field.TryGetProperty("label", out var labelEl) ? labelEl.GetString() ?? "" : "",
                                 Type = field.TryGetProperty("type", out var typeEl) ? typeEl.GetString() ?? "text" : "text",
-                                Required = field.TryGetProperty("required", out var req) && req.ValueKind == JsonValueKind.True,
-                                Placeholder = field.TryGetProperty("placeholder", out var ph) ? ph.GetString() : ""
+                                Required = field.TryGetProperty("required", out var reqEl) && reqEl.ValueKind == JsonValueKind.True,
+                                Placeholder = field.TryGetProperty("placeholder", out var phEl) ? phEl.GetString() : ""
                             };
 
-                            // Options array'ini handle et
-                            if (field.TryGetProperty("options", out var opts) && opts.ValueKind == JsonValueKind.Array)
+                            // Handle options array
+                            if (field.TryGetProperty("options", out var optsEl) && optsEl.ValueKind == JsonValueKind.Array)
                             {
                                 var optionsList = new List<string>();
-                                foreach (var option in opts.EnumerateArray())
+                                foreach (var option in optsEl.EnumerateArray())
                                 {
                                     var optStr = option.GetString();
                                     if (!string.IsNullOrEmpty(optStr))
@@ -269,25 +201,17 @@ public class TicketTypesController : Controller
                                 formField.Options = string.Join(", ", optionsList);
                             }
 
-                            // Validation object'ini handle et
-                            if (field.TryGetProperty("validation", out var validation) && validation.ValueKind == JsonValueKind.Object)
+                            // Handle validation object
+                            if (field.TryGetProperty("validation", out var valEl) && valEl.ValueKind == JsonValueKind.Object)
                             {
-                                if (validation.TryGetProperty("minLength", out var minLen) && minLen.ValueKind == JsonValueKind.Number)
-                                {
-                                    formField.MinLength = minLen.GetInt32();
-                                }
-                                if (validation.TryGetProperty("maxLength", out var maxLen) && maxLen.ValueKind == JsonValueKind.Number)
-                                {
-                                    formField.MaxLength = maxLen.GetInt32();
-                                }
-                                if (validation.TryGetProperty("min", out var min) && min.ValueKind == JsonValueKind.Number)
-                                {
-                                    formField.Min = min.GetInt32();
-                                }
-                                if (validation.TryGetProperty("max", out var max) && max.ValueKind == JsonValueKind.Number)
-                                {
-                                    formField.Max = max.GetInt32();
-                                }
+                                if (valEl.TryGetProperty("minLength", out var minLenEl) && minLenEl.ValueKind == JsonValueKind.Number)
+                                    formField.MinLength = minLenEl.GetInt32();
+                                if (valEl.TryGetProperty("maxLength", out var maxLenEl) && maxLenEl.ValueKind == JsonValueKind.Number)
+                                    formField.MaxLength = maxLenEl.GetInt32();
+                                if (valEl.TryGetProperty("min", out var minEl) && minEl.ValueKind == JsonValueKind.Number)
+                                    formField.Min = minEl.GetInt32();
+                                if (valEl.TryGetProperty("max", out var maxEl) && maxEl.ValueKind == JsonValueKind.Number)
+                                    formField.Max = maxEl.GetInt32();
                             }
 
                             model.FormFields.Add(formField);
@@ -301,12 +225,11 @@ public class TicketTypesController : Controller
                 }
             }
 
-            _logger.LogInformation("Edit model created for ticket type: {Name}", ticketType.Name);
             return View(model);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting ticket type for edit with ID: {Id}", id);
+            _logger.LogError(ex, "Error loading ticket type for edit: {Id}", id);
             TempData["Error"] = "Ticket türü yüklenirken bir hata oluştu.";
             return RedirectToAction("Index");
         }
@@ -316,18 +239,9 @@ public class TicketTypesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditTicketTypeViewModel model)
     {
-        _logger.LogInformation("=== EDIT TICKET TYPE POST === ID: {Id}", model?.Id);
-
         if (!ModelState.IsValid)
         {
-            _logger.LogWarning("ModelState is invalid for ticket type edit");
-            foreach (var state in ModelState)
-            {
-                foreach (var error in state.Value.Errors)
-                {
-                    _logger.LogWarning("Model Error - {Key}: {ErrorMessage}", state.Key, error.ErrorMessage);
-                }
-            }
+            _logger.LogWarning("Edit ticket type form validation failed");
             return View(model);
         }
 
@@ -338,12 +252,12 @@ public class TicketTypesController : Controller
 
             if (ticketType == null)
             {
-                _logger.LogWarning("TicketType not found for edit with ID: {Id}", model.Id);
+                _logger.LogWarning("TicketType not found for edit: {Id}", model.Id);
                 TempData["Error"] = "Ticket türü bulunamadı.";
                 return RedirectToAction("Index");
             }
 
-            // Aynı isimde başka ticket type var mı kontrol et (mevcut hariç)
+            // Name uniqueness check (exclude current)
             var existingTicketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.CompanyId == _currentUserService.CompanyId &&
                      x.Name.ToLower() == model.Name.ToLower().Trim() &&
@@ -351,14 +265,14 @@ public class TicketTypesController : Controller
 
             if (existingTicketType != null)
             {
-                ModelState.AddModelError("Name", "Bu isimde bir ticket türü zaten mevcut.");
+                ModelState.AddModelError("Name", "Bu isimde başka bir ticket türü var.");
                 return View(model);
             }
 
-            // Form definition güncelle
+            // Update form definition
             var formDefinition = new
             {
-                fields = model.FormFields?.Where(f => !string.IsNullOrEmpty(f.Name) && !string.IsNullOrEmpty(f.Label))
+                fields = model.FormFields?.Where(f => !string.IsNullOrWhiteSpace(f.Name) && !string.IsNullOrWhiteSpace(f.Label))
                     .Select(f => new
                     {
                         name = f.Name.Trim(),
@@ -366,9 +280,12 @@ public class TicketTypesController : Controller
                         type = f.Type ?? "text",
                         required = f.Required,
                         options = f.Type == "select" && !string.IsNullOrEmpty(f.Options)
-                            ? f.Options.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToArray()
+                            ? f.Options.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(o => o.Trim())
+                                      .Where(o => !string.IsNullOrEmpty(o))
+                                      .ToArray()
                             : null,
-                        placeholder = !string.IsNullOrEmpty(f.Placeholder) ? f.Placeholder.Trim() : null,
+                        placeholder = string.IsNullOrWhiteSpace(f.Placeholder) ? null : f.Placeholder.Trim(),
                         validation = new
                         {
                             minLength = f.MinLength > 0 ? f.MinLength : (int?)null,
@@ -379,31 +296,32 @@ public class TicketTypesController : Controller
                     }).ToArray() ?? Array.Empty<object>()
             };
 
-            // TicketType bilgilerini güncelle
+            // Update ticket type
             ticketType.Name = model.Name.Trim();
-            ticketType.Description = !string.IsNullOrEmpty(model.Description) ? model.Description.Trim() : null;
+            ticketType.Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim();
             ticketType.Icon = model.Icon;
             ticketType.Color = model.Color;
             ticketType.SortOrder = model.DisplayOrder;
             ticketType.IsActive = model.IsActive;
             ticketType.FormDefinition = JsonSerializer.Serialize(formDefinition, new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
             });
             ticketType.UpdatedAt = DateTime.UtcNow;
-            ticketType.UpdatedBy = _currentUserService.UserId?.ToString();
+            ticketType.UpdatedBy = _currentUserService.UserName ?? "System";
 
             _unitOfWork.TicketTypes.Update(ticketType);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("TicketType updated successfully: {Name}", ticketType.Name);
+            _logger.LogInformation("Ticket type updated successfully: {Name} (ID: {Id})", ticketType.Name, ticketType.Id);
 
             TempData["Success"] = "Ticket türü başarıyla güncellendi.";
             return RedirectToAction("Index");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating ticket type with ID: {Id}", model.Id);
+            _logger.LogError(ex, "Error updating ticket type: {Id}", model.Id);
             ModelState.AddModelError("", "Ticket türü güncellenirken bir hata oluştu: " + ex.Message);
             return View(model);
         }
@@ -415,37 +333,36 @@ public class TicketTypesController : Controller
     {
         try
         {
-            _logger.LogInformation("=== DELETE TICKET TYPE === ID: {Id}", id);
-
             var ticketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
 
             if (ticketType == null)
             {
-                _logger.LogWarning("TicketType not found for delete with ID: {Id}", id);
+                _logger.LogWarning("TicketType not found for delete: {Id}", id);
                 TempData["Error"] = "Ticket türü bulunamadı.";
                 return RedirectToAction("Index");
             }
 
-            // Bu türde ticket var mı kontrol et
+            // Check if any tickets use this type
             var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.TypeId == id);
             if (hasTickets)
             {
-                TempData["Error"] = "Bu ticket türünü kullanan ticket'lar bulunduğu için silinemez. Önce ticket'ları başka türe taşıyın veya silin.";
+                _logger.LogWarning("Cannot delete ticket type {Id} - has associated tickets", id);
+                TempData["Error"] = "Bu ticket türünü kullanan ticket'lar bulunduğu için silinemez. Önce ilgili ticket'ları başka türe taşıyın veya silin.";
                 return RedirectToAction("Index");
             }
 
-            //_unitOfWork.TicketTypes.Delete(ticketType);
+            _unitOfWork.TicketTypes.Remove(ticketType);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("TicketType deleted successfully: {Name}", ticketType.Name);
+            _logger.LogInformation("Ticket type deleted successfully: {Name} (ID: {Id})", ticketType.Name, ticketType.Id);
 
             TempData["Success"] = "Ticket türü başarıyla silindi.";
             return RedirectToAction("Index");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting ticket type with ID: {Id}", id);
+            _logger.LogError(ex, "Error deleting ticket type: {Id}", id);
             TempData["Error"] = "Ticket türü silinirken bir hata oluştu: " + ex.Message;
             return RedirectToAction("Index");
         }
@@ -457,35 +374,34 @@ public class TicketTypesController : Controller
     {
         try
         {
-            _logger.LogInformation("=== TOGGLE TICKET TYPE STATUS === ID: {Id}", id);
-
             var ticketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.Id == id && x.CompanyId == _currentUserService.CompanyId);
 
             if (ticketType == null)
             {
-                _logger.LogWarning("TicketType not found for toggle status with ID: {Id}", id);
+                _logger.LogWarning("TicketType not found for toggle status: {Id}", id);
                 TempData["Error"] = "Ticket türü bulunamadı.";
                 return RedirectToAction("Index");
             }
 
             ticketType.IsActive = !ticketType.IsActive;
             ticketType.UpdatedAt = DateTime.UtcNow;
-            ticketType.UpdatedBy = _currentUserService.UserId?.ToString();
+            ticketType.UpdatedBy = _currentUserService.UserName ?? "System";
 
             _unitOfWork.TicketTypes.Update(ticketType);
             await _unitOfWork.SaveChangesAsync();
 
             var statusText = ticketType.IsActive ? "aktif" : "pasif";
-            _logger.LogInformation("TicketType status toggled: {Name} is now {Status}", ticketType.Name, statusText);
+            _logger.LogInformation("Ticket type status toggled: {Name} (ID: {Id}) is now {Status}",
+                ticketType.Name, ticketType.Id, statusText);
 
-            TempData["Success"] = $"Ticket türü durumu '{statusText}' olarak güncellendi.";
+            TempData["Success"] = $"Ticket türü '{statusText}' hale getirildi.";
             return RedirectToAction("Index");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error toggling ticket type status with ID: {Id}", id);
-            TempData["Error"] = "Ticket türü durumu değiştirilirken bir hata oluştu.";
+            _logger.LogError(ex, "Error toggling ticket type status: {Id}", id);
+            TempData["Error"] = "Ticket türü durumu değiştirilirken bir hata oluştu: " + ex.Message;
             return RedirectToAction("Index");
         }
     }

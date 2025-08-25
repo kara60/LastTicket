@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<TicketSystem.Domain.Entities.TicketType>
 @{
     ViewData["Title"] = "Ticket Türleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="h-screen overflow-hidden bg-gray-50 p-4">
@@ -9,11 +10,26 @@
         <!-- Header Section - Fixed -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Ticket Türleri</h1>
-                <p class="text-gray-600">Farklı ticket türlerini yönetin ve form alanlarını özelleştirin.</p>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-layer-group text-blue-600 mr-3"></i>
+                    Ticket Türleri
+                </h1>
+                <p class="text-gray-600 mt-1">Farklı ticket türlerini yönetin ve form alanlarını özelleştirin</p>
             </div>
-            <div class="mt-4 sm:mt-0">
-                <a href="@Url.Action("Create")"
+            <div class="mt-4 sm:mt-0 flex items-center space-x-3">
+                <!-- Search Box -->
+                <div class="relative">
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Tür ara..."
+                           class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                           autocomplete="off">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+
+                <a href="/Admin/TicketTypes/Create"
                    class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg transition-colors">
                     <i class="fas fa-plus mr-2"></i>
                     Yeni Tür Ekle
@@ -22,77 +38,80 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-blue-100 rounded-lg">
-                        <i class="fas fa-layer-group text-blue-600"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-600">Toplam Tür</p>
-                        <p class="text-lg font-semibold text-gray-900">@Model.Count()</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-green-100 rounded-lg">
-                        <i class="fas fa-check-circle text-green-600"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-600">Aktif</p>
-                        <p class="text-lg font-semibold text-gray-900">@Model.Count(x => x.IsActive)</p>
+        @if (Model.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 mr-3">
+                            <i class="fas fa-layer-group text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Toplam Tür</p>
+                            <p class="text-2xl font-bold text-gray-900">@Model.Count()</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-red-100 rounded-lg">
-                        <i class="fas fa-pause-circle text-red-600"></i>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-600">Pasif</p>
-                        <p class="text-lg font-semibold text-gray-900">@Model.Count(x => !x.IsActive)</p>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 mr-3">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Aktif</p>
+                            <p class="text-2xl font-bold text-gray-900">@Model.Count(x => x.IsActive)</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-purple-100 rounded-lg">
-                        <i class="fas fa-list-alt text-purple-600"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 mr-3">
+                            <i class="fas fa-pause-circle text-red-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Pasif</p>
+                            <p class="text-2xl font-bold text-gray-900">@Model.Count(x => !x.IsActive)</p>
+                        </div>
                     </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-600">Form Alanları</p>
-                        @{
-                            var totalFields = 0;
-                            foreach (var type in Model)
-                            {
-                                if (!string.IsNullOrEmpty(type.FormDefinition))
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 mr-3">
+                            <i class="fas fa-list-alt text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Form Alanları</p>
+                            @{
+                                var totalFields = 0;
+                                foreach (var type in Model)
                                 {
-                                    try
+                                    if (!string.IsNullOrEmpty(type.FormDefinition))
                                     {
-                                        var formDef = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(type.FormDefinition);
-                                        if (formDef.TryGetProperty("fields", out var fieldsElement))
+                                        try
                                         {
-                                            totalFields += fieldsElement.GetArrayLength();
+                                            var formDef = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(type.FormDefinition);
+                                            if (formDef.TryGetProperty("fields", out var fieldsElement))
+                                            {
+                                                totalFields += fieldsElement.GetArrayLength();
+                                            }
                                         }
+                                        catch { }
                                     }
-                                    catch { }
                                 }
                             }
-                        }
-                        <p class="text-lg font-semibold text-gray-900">@totalFields</p>
+                            <p class="text-2xl font-bold text-gray-900">@totalFields</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
 
         <!-- Content Area - Scrollable -->
         <div class="flex-1 overflow-y-auto">
             @if (Model.Any())
             {
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach (var ticketType in Model)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6" id="ticketTypesGrid">
+                    @foreach (var ticketType in Model.OrderBy(x => x.SortOrder).ThenBy(x => x.Name))
                     {
                         var fieldCount = 0;
                         if (!string.IsNullOrEmpty(ticketType.FormDefinition))
@@ -108,105 +127,132 @@
                             catch { }
                         }
 
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden">
-                            <!-- Card Header -->
-                            <div class="p-6 border-l-4" style="border-left-color: @ticketType.Color;">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex items-center flex-1">
-                                        <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-sm"
-                                             style="background-color: @(ticketType.Color)20">
-                                            @switch (ticketType.Icon)
-                                            {
-                                                case "bug":
-                                                    <span class="text-2xl">🐛</span>
-                                                    break;
-                                                case "lightbulb":
-                                                    <span class="text-2xl">💡</span>
-                                                    break;
-                                                case "graduation-cap":
-                                                    <span class="text-2xl">🎓</span>
-                                                    break;
-                                                case "cog":
-                                                    <span class="text-2xl">⚙️</span>
-                                                    break;
-                                                case "question-circle":
-                                                    <span class="text-2xl">❓</span>
-                                                    break;
-                                                case "exclamation-triangle":
-                                                    <span class="text-2xl">⚠️</span>
-                                                    break;
-                                                case "tools":
-                                                    <span class="text-2xl">🔧</span>
-                                                    break;
-                                                case "chart-line":
-                                                    <span class="text-2xl">📈</span>
-                                                    break;
-                                                case "headset":
-                                                    <span class="text-2xl">🎧</span>
-                                                    break;
-                                                case "rocket":
-                                                    <span class="text-2xl">🚀</span>
-                                                    break;
-                                                default:
-                                                    <i class="fas fa-@ticketType.Icon text-xl" style="color: @ticketType.Color;"></i>
-                                                    break;
-                                            }
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h3 class="text-lg font-semibold text-gray-900 truncate">@ticketType.Name</h3>
-                                            <div class="flex items-center mt-1">
-                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full @(ticketType.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
-                                                    @(ticketType.IsActive ? "Aktif" : "Pasif")
-                                                </span>
-                                                <span class="mx-2 text-gray-300">•</span>
-                                                <span class="text-xs text-gray-500">Sıra: @ticketType.SortOrder</span>
-                                            </div>
-                                        </div>
+                        <div class="ticket-type-card bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                            <!-- Header -->
+                            <div class="relative">
+                                <div class="h-20 bg-gradient-to-r from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+                                    <div class="absolute inset-0 opacity-10" style="background-color: @ticketType.Color;"></div>
+                                    <div class="w-16 h-16 rounded-full flex items-center justify-center z-10" style="background-color: @(ticketType.Color)20;">
+                                        @switch (ticketType.Icon)
+                                        {
+                                            case "bug":
+                                                <span class="text-3xl">🐛</span>
+                                                ; break;
+                                            case "lightbulb":
+
+                                                <span class="text-3xl">💡</span>
+                                                ; break;
+                                            case "graduation-cap":
+
+                                                <span class="text-3xl">🎓</span>
+                                                ; break;
+                                            case "cog":
+
+                                                <span class="text-3xl">⚙️</span>
+                                                ; break;
+                                            case "question-circle":
+
+                                                <span class="text-3xl">❓</span>
+                                                ; break;
+                                            case "exclamation-triangle":
+
+                                                <span class="text-3xl">⚠️</span>
+                                                ; break;
+                                            case "tools":
+
+                                                <span class="text-3xl">🔧</span>
+                                                ; break;
+                                            case "chart-line":
+
+                                                <span class="text-3xl">📈</span>
+                                                ; break;
+                                            case "headset":
+
+                                                <span class="text-3xl">🎧</span>
+                                                ; break;
+                                            case "rocket":
+
+                                                <span class="text-3xl">🚀</span>
+                                                ; break;
+                                            default:
+
+                                                <i class="fas fa-@ticketType.Icon text-3xl" style="color: @ticketType.Color;"></i>
+                                                ; break;
+                                        }
                                     </div>
                                 </div>
 
-                                <!-- Description -->
-                                @if (!string.IsNullOrEmpty(ticketType.Description))
-                                {
-                                    <p class="text-gray-600 text-sm mt-3 line-clamp-2">@ticketType.Description</p>
-                                }
+                                <!-- Status Badge -->
+                                <div class="absolute top-3 right-3">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full @(ticketType.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                                        @(ticketType.IsActive ? "Aktif" : "Pasif")
+                                    </span>
+                                </div>
+
+                                <!-- Sort Order -->
+                                <div class="absolute top-3 left-3">
+                                    <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+                                        #@ticketType.SortOrder
+                                    </span>
+                                </div>
                             </div>
 
-                            <!-- Form Fields Info -->
-                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                                <div class="flex items-center justify-between text-sm">
-                                    <div class="flex items-center text-gray-600">
-                                        <i class="fas fa-list-alt mr-2"></i>
-                                        <span>@fieldCount form alanı</span>
+                            <!-- Content -->
+                            <div class="p-6">
+                                <!-- Title -->
+                                <div class="mb-4">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-1 ticket-type-name">@ticketType.Name</h3>
+                                    @if (!string.IsNullOrEmpty(ticketType.Description))
+                                    {
+                                        <p class="text-sm text-gray-600 line-clamp-2">@ticketType.Description</p>
+                                    }
+                                </div>
+
+                                <!-- Form Fields Info -->
+                                <div class="mb-6 p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-700 flex items-center">
+                                            <i class="fas fa-list-alt mr-2 text-blue-500"></i>
+                                            Form Alanları
+                                        </span>
+                                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                                            @fieldCount adet
+                                        </span>
                                     </div>
+
                                     @if (fieldCount > 0)
                                     {
-                                        <span class="text-blue-600 font-medium">Tanımlı ✓</span>
+                                        <div class="text-center">
+                                            <span class="text-blue-600 font-medium text-sm">✓ Tanımlı</span>
+                                            <p class="text-xs text-gray-500 mt-1">Özel form alanları mevcut</p>
+                                        </div>
                                     }
                                     else
                                     {
-                                        <span class="text-amber-600 font-medium">Boş</span>
+                                        <div class="text-center">
+                                            <span class="text-amber-600 font-medium text-sm">Boş</span>
+                                            <p class="text-xs text-gray-500 mt-1">Form alanı tanımlanmamış</p>
+                                        </div>
                                     }
                                 </div>
-                            </div>
 
-                            <!-- Actions -->
-                            <div class="px-6 py-4 bg-white border-t border-gray-100">
+                                <!-- Actions -->
                                 <div class="flex space-x-2">
-                                    <a href="@Url.Action("Edit", new { id = ticketType.Id })"
-                                       class="flex-1 bg-blue-600 text-white text-center py-2 px-3 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-                                        <i class="fas fa-edit mr-1"></i>Düzenle
+                                    <a href="/Admin/TicketTypes/Edit/@ticketType.Id"
+                                       class="flex-1 bg-blue-600 text-white text-center py-2 px-3 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center justify-center">
+                                        <i class="fas fa-edit mr-2"></i>Düzenle
                                     </a>
 
-                                    @* <form method="post" asp-action="ToggleStatus" asp-route-id="@ticketType.Id" class="flex-1">
+                                    <form method="post" action="/Admin/TicketTypes/ToggleStatus/@ticketType.Id" class="flex-1">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="w-full @(ticketType.IsActive ? "bg-amber-500 hover:bg-amber-600" : "bg-green-600 hover:bg-green-700") text-white py-2 px-3 rounded-lg text-sm transition-colors">
-                                            <i class="fas fa-@(ticketType.IsActive ? "pause" : "play") mr-1"></i>
-                                            @(ticketType.IsActive ? "Pasifleştir" : "Aktifleştir")
+                                        <button type="submit"
+                                                class="w-full @(ticketType.IsActive ? "bg-yellow-600 hover:bg-yellow-700" : "bg-green-600 hover:bg-green-700") text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center">
+                                            <i class="fas fa-@(ticketType.IsActive ? "pause" : "play") mr-2"></i>
+                                            @(ticketType.IsActive ? "Pasif Et" : "Aktif Et")
                                         </button>
-                                    </form> *@
+                                    </form>
 
-                                    <form method="post" asp-action="Delete" asp-route-id="@ticketType.Id"
+                                    <form method="post" action="/Admin/TicketTypes/Delete/@ticketType.Id"
                                           onsubmit="return confirm('Bu ticket türünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="bg-red-600 text-white py-2 px-3 rounded-lg text-sm hover:bg-red-700 transition-colors">
@@ -222,24 +268,23 @@
             else
             {
                 <!-- Empty State -->
-                <div class="text-center py-12">
-                    <div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-cog text-gray-400 text-3xl"></i>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Henüz ticket türü yok</h3>
-                    <p class="text-gray-500 mb-6 max-w-sm mx-auto">
-                        İlk ticket türünüzü oluşturun ve sistem kullanıcılarının farklı türde ticket'lar açabilmesini sağlayın.
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                        <a href="@Url.Action("Create")"
-                           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-plus mr-2"></i>İlk Ticket Türünü Oluştur
-                        </a>
-                        <a href="#"
-                           class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                           onclick="showExamples()">
-                            <i class="fas fa-lightbulb mr-2"></i>Örnek Türleri Gör
-                        </a>
+                <div class="text-center py-20">
+                    <div class="max-w-md mx-auto">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-layer-group text-blue-600 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-medium text-gray-900 mb-2">Henüz ticket türü eklenmemiş</h3>
+                        <p class="text-gray-500 mb-8">İlk ticket türünüzü oluşturun ve sistem kullanıcılarının farklı türde ticket'lar açabilmesini sağlayın.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a href="/Admin/TicketTypes/Create"
+                               class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>İlk Ticket Türünü Oluştur
+                            </a>
+                            <button onclick="showExamples()"
+                                    class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-lightbulb mr-2"></i>Örnek Türleri Gör
+                            </button>
+                        </div>
                     </div>
                 </div>
             }
@@ -318,6 +363,59 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeSearch();
+        initializeFormHandlers();
+    });
+
+    function initializeSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const ticketTypeCards = document.querySelectorAll('.ticket-type-card');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+
+                ticketTypeCards.forEach(card => {
+                    const typeName = card.querySelector('.ticket-type-name');
+                    if (typeName) {
+                        const shouldShow = typeName.textContent.toLowerCase().includes(searchTerm);
+                        card.style.display = shouldShow ? 'block' : 'none';
+                    }
+                });
+            });
+        }
+    }
+
+    function initializeFormHandlers() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function() {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn && !submitBtn.disabled) {
+                    const originalContent = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+
+                    if (submitBtn.textContent.includes('Düzenle')) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Düzenleniyor...';
+                    } else if (submitBtn.textContent.includes('Pasif') || submitBtn.textContent.includes('Aktif')) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Güncelleniyor...';
+                    } else if (submitBtn.textContent.includes('Sil')) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Siliniyor...';
+                    } else {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>İşleniyor...';
+                    }
+
+                    // Reset after 10 seconds if no response
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalContent;
+                    }, 10000);
+                }
+            });
+        });
+    }
+
     function showExamples() {
         const modal = document.getElementById('examplesModal');
         if (modal) {
@@ -332,49 +430,20 @@
         }
     }
 
-    // Auto-hide alerts
-    document.addEventListener('DOMContentLoaded', function() {
-        // Loading states for forms
-        const forms = document.querySelectorAll('form');
-        forms.forEach(form => {
-            form.addEventListener('submit', function() {
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn && !submitBtn.disabled) {
-                    const originalContent = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideExamples();
+        }
+    });
 
-                    if (submitBtn.textContent.includes('Düzenle')) {
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Düzenleniyor...';
-                    } else if (submitBtn.textContent.includes('Pasif') || submitBtn.textContent.includes('Aktif')) {
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Güncelleniyor...';
-                    } else {
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>İşleniyor...';
-                    }
-
-                    // Reset after 10 seconds if no response
-                    setTimeout(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalContent;
-                    }, 10000);
-                }
-            });
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
+    // Close modal when clicking outside
+    const examplesModal = document.getElementById('examplesModal');
+    if (examplesModal) {
+        examplesModal.addEventListener('click', function(e) {
+            if (e.target === this) {
                 hideExamples();
             }
         });
-
-        // Close modal when clicking outside
-        const examplesModal = document.getElementById('examplesModal');
-        if (examplesModal) {
-            examplesModal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    hideExamples();
-                }
-            });
-        }
-    });
+    }
 </script>

@@ -5,8 +5,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<p>Generated name: Name</p>
-
 <div class="max-w-6xl mx-auto">
     <!-- Header -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -19,11 +17,34 @@
                     </h1>
                     <p class="text-sm text-gray-600 mt-1">Ticket kategorisi oluşturun ve özelliklerini belirleyin</p>
                 </div>
-                <a href="@Url.Action("Index")"
+                <a href="/Admin/Categories"
                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Geri Dön
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-eye mr-2 text-blue-500"></i>
+                Canlı Önizleme
+            </h3>
+        </div>
+        <div class="p-6">
+            <div id="categoryPreview" class="bg-white rounded-lg shadow border-l-4 p-6" style="border-left-color: #6366f1;">
+                <div class="flex items-center">
+                    <div class="w-14 h-14 rounded-xl flex items-center justify-center mr-4" id="previewIconWrapper" style="background-color: #6366f11a;">
+                        <i id="previewIcon" class="fas fa-folder text-2xl" style="color: #6366f1;"></i>
+                    </div>
+                    <div>
+                        <h3 id="previewName" class="text-xl font-medium text-gray-900">Kategori Adı</h3>
+                        <p id="previewDescription" class="text-sm text-gray-600 mt-1">Kategori açıklaması</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -41,6 +62,20 @@
             <form method="post" action="/Admin/Categories/Create" id="categoryForm">
                 @Html.AntiForgeryToken()
 
+                <!-- Validation Summary -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">
+                        <h3 class="font-medium mb-2">Lütfen aşağıdaki hataları düzeltin:</h3>
+                        <ul class="text-sm list-disc list-inside space-y-1">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
                 <!-- Basic Category Info -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                     <!-- Sol Kolon -->
@@ -51,8 +86,10 @@
                             <input name="Name"
                                    id="Name"
                                    value="@Model?.Name"
+                                   required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-lg"
-                                   placeholder="Kategori adını girin" />
+                                   placeholder="Örn: Hata Bildirimi" />
+                            <p class="mt-1 text-xs text-gray-500">Bu kategori adı ticket oluşturma sırasında görünecektir</p>
                         </div>
 
                         <!-- Description -->
@@ -62,7 +99,8 @@
                                       id="Description"
                                       rows="4"
                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
-                                      placeholder="Kategori açıklamasını girin">@Model?.Description</textarea>
+                                      placeholder="Bu kategori hakkında detaylı açıklama yazın">@Model?.Description</textarea>
+                            <p class="mt-1 text-xs text-gray-500">Kategorinin ne için kullanıldığını açıklayın (opsiyonel)</p>
                         </div>
 
                         <!-- Display Order -->
@@ -71,10 +109,11 @@
                             <input name="DisplayOrder"
                                    id="DisplayOrder"
                                    type="number"
-                                   value="@Model?.DisplayOrder"
+                                   value="@(Model?.DisplayOrder ?? 0)"
                                    min="0"
                                    max="999"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" />
+                            <p class="mt-1 text-xs text-gray-500">Düşük sayılar üstte görünür (0-999 arası)</p>
                         </div>
                     </div>
 
@@ -83,9 +122,13 @@
                         <!-- Icon Selection -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-3">Simge Seçin *</label>
-                            <div class="grid grid-cols-4 gap-3" id="iconGrid">
+                            <div class="grid grid-cols-6 gap-3" id="iconGrid">
                                 @{
-                                    var icons = new[] { "folder", "bug", "lightbulb", "graduation-cap", "wrench", "question-circle", "exclamation-triangle", "chart-bar", "users", "desktop", "mobile-alt", "database", "shield-alt", "cog", "server", "code" };
+                                    var icons = new[] {
+                                                                "folder", "bug", "lightbulb", "graduation-cap", "wrench", "question-circle",
+                                                                "exclamation-triangle", "chart-bar", "users", "desktop", "mobile-alt", "database",
+                                                                "shield-alt", "cog", "server", "code", "heart", "star"
+                                                                };
                                 }
                                 @for (int i = 0; i < icons.Length; i++)
                                 {
@@ -95,12 +138,13 @@
                                                value="@icons[i]"
                                                class="sr-only icon-radio"
                                                @(Model?.Icon == icons[i] || (Model?.Icon == null && icons[i] == "folder") ? "checked" : "") />
-                                        <div class="icon-option w-14 h-14 border-2 @(Model?.Icon == icons[i] || (Model?.Icon == null && icons[i] == "folder") ? "border-purple-500 bg-purple-50" : "border-gray-200") rounded-lg flex items-center justify-center hover:border-purple-300 transition-colors">
-                                            <i class="fas fa-@icons[i] text-xl text-gray-600"></i>
+                                        <div class="icon-option w-12 h-12 border-2 @(Model?.Icon == icons[i] || (Model?.Icon == null && icons[i] == "folder") ? "border-purple-500 bg-purple-50" : "border-gray-200") rounded-lg flex items-center justify-center hover:border-purple-300 transition-all duration-200 hover:bg-purple-25">
+                                            <i class="fas fa-@icons[i] text-lg text-gray-600"></i>
                                         </div>
                                     </label>
                                 }
                             </div>
+                            <p class="mt-2 text-xs text-gray-500">Kategorinizi temsil eden bir simge seçin</p>
                         </div>
 
                         <!-- Color Selection -->
@@ -109,9 +153,12 @@
                                 <label for="Color" class="block text-sm font-medium text-gray-700 mb-2">Renk Kodu</label>
                                 <input name="Color"
                                        id="Color"
-                                       value="@Model?.Color"
+                                       value="@(Model?.Color ?? "#6366f1")"
+                                       required
+                                       pattern="^#[0-9A-Fa-f]{6}$"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-mono"
                                        placeholder="#6366f1" />
+                                <p class="mt-1 text-xs text-gray-500">Hex renk kodu (#RRGGBB)</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Renk Seçici</label>
@@ -119,14 +166,123 @@
                                        id="ColorPicker"
                                        value="@(Model?.Color ?? "#6366f1")"
                                        class="w-full h-12 border border-gray-300 rounded-lg cursor-pointer" />
+                                <p class="mt-1 text-xs text-gray-500">Renk paletinden seçin</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Color Presets -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Hızlı Renkler</label>
+                            <div class="flex flex-wrap gap-2" id="colorPresets">
+                                @{
+                                    var presetColors = new[] { "#6366f1", "#059669", "#dc2626", "#d97706", "#7c3aed", "#0891b2", "#be185d", "#374151" };
+                                }
+                                @foreach (var color in presetColors)
+                                {
+                                    <button type="button"
+                                            class="color-preset w-8 h-8 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                                            style="background-color: @color;"
+                                            data-color="@color"
+                                            title="@color">
+                                    </button>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Modules Section -->
+                <div class="border-t border-gray-200 pt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                                <i class="fas fa-puzzle-piece mr-3 text-green-500"></i>
+                                Modül Yönetimi
+                            </h2>
+                            <p class="text-sm text-gray-600 mt-1">Bu kategoriye ait modülleri tanımlayın (opsiyonel)</p>
+                        </div>
+                        <button type="button"
+                                id="addModuleBtn"
+                                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center font-medium">
+                            <i class="fas fa-plus mr-2"></i>Modül Ekle
+                        </button>
+                    </div>
+
+                    <div id="modulesList" class="space-y-4">
+                        @for (int i = 0; i < (Model?.Modules?.Count ?? 0); i++)
+                        {
+                            <div class="module-item bg-gray-50 border border-gray-200 rounded-lg p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Modül Adı *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-cube text-gray-400"></i>
+                                            </div>
+                                            <input name="Modules[@i].Name"
+                                                   value="@Model.Modules[i].Name"
+                                                   required
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                   placeholder="Modül adını girin" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-comment text-gray-400"></i>
+                                            </div>
+                                            <input name="Modules[@i].Description"
+                                                   value="@Model.Modules[i].Description"
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                                   placeholder="Açıklama (opsiyonel)" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Sıra</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-sort text-gray-400"></i>
+                                            </div>
+                                            <input name="Modules[@i].DisplayOrder"
+                                                   type="number"
+                                                   value="@Model.Modules[i].DisplayOrder"
+                                                   min="0"
+                                                   max="999"
+                                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" />
+                                        </div>
+                                    </div>
+                                    <div class="flex items-end justify-between">
+                                        <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-100">
+                                            <input name="Modules[@i].IsActive" type="hidden" value="false" />
+                                            <input name="Modules[@i].IsActive"
+                                                   type="checkbox"
+                                                   value="true"
+                                                   @(Model.Modules[i].IsActive ? "checked" : "")
+                                                   class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                                            <span class="ml-2 text-sm text-gray-700">Aktif</span>
+                                        </label>
+                                        <button type="button"
+                                                onclick="removeModule(this)"
+                                                class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div id="emptyModulesMessage" class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" @((Model?.Modules?.Any() ?? false) ? "style=display:none;" : "")>
+                        <i class="fas fa-puzzle-piece text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-gray-500 text-lg">Henüz modül eklenmemiş</p>
+                        <p class="text-sm text-gray-400 mt-2">Modül eklemek için yukarıdaki butonu kullanın</p>
+                    </div>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-end space-x-4 pt-8 mt-8 border-t border-gray-200">
-                    <a href="@Url.Action("Index")"
+                    <a href="/Admin/Categories"
                        class="px-8 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
                         İptal
                     </a>
@@ -142,6 +298,305 @@
     </div>
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+<script>
+    (function() {
+        'use strict';
+
+        let moduleIndex = @((Model?.Modules?.Count ?? 0));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Create sayfası yüklendi, mevcut modül sayısı:', moduleIndex);
+            initializeAll();
+        });
+
+        function initializeAll() {
+            initializeFormHandlers();
+            initializePreview();
+            initializeModuleHandlers();
+            initializeIconSelection();
+            initializeColorPicker();
+            initializeColorPresets();
+            updatePreview();
+            console.log('Create sayfası başlatıldı');
+        }
+
+        function initializeFormHandlers() {
+            const form = document.getElementById('categoryForm');
+            if (!form) {
+                console.error('Form bulunamadı');
+                return;
+            }
+
+            form.addEventListener('submit', function(e) {
+                console.log('Form gönderiliyor...');
+
+                const nameInput = document.getElementById('Name');
+                if (!nameInput.value.trim()) {
+                    alert('Kategori adı gereklidir!');
+                    e.preventDefault();
+                    nameInput.focus();
+                    return false;
+                }
+
+                const selectedIcon = document.querySelector('input[name="Icon"]:checked');
+                if (!selectedIcon) {
+                    alert('Lütfen bir simge seçin!');
+                    e.preventDefault();
+                    return false;
+                }
+
+                const colorInput = document.getElementById('Color');
+                if (!colorInput.value || !/^#[0-9A-Fa-f]{6}$/i.test(colorInput.value)) {
+                    alert('Lütfen geçerli bir renk kodu girin! (#RRGGBB formatında)');
+                    e.preventDefault();
+                    colorInput.focus();
+                    return false;
+                }
+
+                // Module validation
+                const moduleNames = document.querySelectorAll('input[name*=".Name"]');
+                for (let nameInput of moduleNames) {
+                    if (!nameInput.value.trim()) {
+                        alert('Tüm modül isimleri doldurulmalıdır veya modülü silin!');
+                        e.preventDefault();
+                        nameInput.focus();
+                        return false;
+                    }
+                }
+
+                console.log('Form geçerli, gönderiliyor...');
+                return true;
+            });
+        }
+
+        function initializePreview() {
+            const nameInput = document.getElementById('Name');
+            const descriptionInput = document.getElementById('Description');
+
+            if (nameInput) {
+                nameInput.addEventListener('input', updatePreview);
+            }
+            if (descriptionInput) {
+                descriptionInput.addEventListener('input', updatePreview);
+            }
+        }
+
+        function initializeIconSelection() {
+            const iconRadios = document.querySelectorAll('.icon-radio');
+
+            iconRadios.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    console.log('Icon değişti:', this.value);
+
+                    document.querySelectorAll('.icon-option').forEach(function(option) {
+                        option.classList.remove('border-purple-500', 'bg-purple-50');
+                        option.classList.add('border-gray-200');
+                    });
+
+                    if (this.checked) {
+                        const option = this.nextElementSibling;
+                        option.classList.remove('border-gray-200');
+                        option.classList.add('border-purple-500', 'bg-purple-50');
+                    }
+
+                    updatePreview();
+                });
+            });
+
+            // Click event for better UX
+            document.querySelectorAll('.icon-option').forEach(function(option) {
+                option.addEventListener('click', function() {
+                    const radio = this.previousElementSibling;
+                    if (radio && radio.type === 'radio') {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+        }
+
+        function initializeColorPicker() {
+            const colorPicker = document.getElementById('ColorPicker');
+            const colorInput = document.getElementById('Color');
+
+            if (colorPicker && colorInput) {
+                colorPicker.addEventListener('input', function() {
+                    console.log('Renk seçici değişti:', this.value);
+                    colorInput.value = this.value.toUpperCase();
+                    updatePreview();
+                });
+
+                colorInput.addEventListener('input', function() {
+                    console.log('Renk input değişti:', this.value);
+                    if (/^#[0-9A-Fa-f]{6}$/i.test(this.value)) {
+                        colorPicker.value = this.value;
+                        updatePreview();
+                    }
+                });
+            }
+        }
+
+        function initializeColorPresets() {
+            const colorPresets = document.querySelectorAll('.color-preset');
+            const colorInput = document.getElementById('Color');
+            const colorPicker = document.getElementById('ColorPicker');
+
+            colorPresets.forEach(function(preset) {
+                preset.addEventListener('click', function() {
+                    const color = this.getAttribute('data-color');
+                    if (colorInput) colorInput.value = color;
+                    if (colorPicker) colorPicker.value = color;
+                    updatePreview();
+                });
+            });
+        }
+
+        function initializeModuleHandlers() {
+            const addModuleBtn = document.getElementById('addModuleBtn');
+            if (addModuleBtn) {
+                addModuleBtn.addEventListener('click', function() {
+                    console.log('Modül ekleniyor...');
+                    addModule();
+                });
+            }
+        }
+
+        function addModule() {
+            const modulesList = document.getElementById('modulesList');
+            const emptyMessage = document.getElementById('emptyModulesMessage');
+
+            if (emptyMessage) {
+                emptyMessage.style.display = 'none';
+            }
+
+            const moduleDiv = document.createElement('div');
+            moduleDiv.className = 'module-item bg-gray-50 border border-gray-200 rounded-lg p-6';
+            moduleDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Modül Adı *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-cube text-gray-400"></i>
+                            </div>
+                            <input name="Modules[${moduleIndex}].Name" required
+                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                   placeholder="Modül adını girin" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-comment text-gray-400"></i>
+                            </div>
+                            <input name="Modules[${moduleIndex}].Description"
+                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                   placeholder="Açıklama (opsiyonel)" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sıra</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-sort text-gray-400"></i>
+                            </div>
+                            <input name="Modules[${moduleIndex}].DisplayOrder" type="number" value="0" min="0" max="999"
+                                   class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors" />
+                        </div>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-100">
+                            <input name="Modules[${moduleIndex}].IsActive" type="hidden" value="false" />
+                            <input name="Modules[${moduleIndex}].IsActive" type="checkbox" value="true" checked
+                                   class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                            <span class="ml-2 text-sm text-gray-700">Aktif</span>
+                        </label>
+                        <button type="button" onclick="removeModule(this)"
+                                class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            modulesList.appendChild(moduleDiv);
+            moduleIndex++;
+
+            const newNameInput = moduleDiv.querySelector('input[name*=".Name"]');
+            if (newNameInput) {
+                newNameInput.focus();
+            }
+
+            console.log('Modül eklendi, yeni index:', moduleIndex);
+        }
+
+        window.removeModule = function(button) {
+            const moduleItem = button.closest('.module-item');
+            if (moduleItem) {
+                moduleItem.remove();
+            }
+
+            const modulesList = document.getElementById('modulesList');
+            const emptyMessage = document.getElementById('emptyModulesMessage');
+
+            if (modulesList && modulesList.children.length === 0 && emptyMessage) {
+                emptyMessage.style.display = 'block';
+            }
+
+            reindexModules();
+            console.log('Modül silindi, yeni index:', moduleIndex);
+        };
+
+        function reindexModules() {
+            const moduleItems = document.querySelectorAll('.module-item');
+            moduleItems.forEach(function(item, index) {
+                const nameInput = item.querySelector('input[name*=".Name"]');
+                const descInput = item.querySelector('input[name*=".Description"]');
+                const orderInput = item.querySelector('input[name*=".DisplayOrder"]');
+                const activeCheckbox = item.querySelector('input[name*=".IsActive"]');
+
+                if (nameInput) nameInput.name = `Modules[${index}].Name`;
+                if (descInput) descInput.name = `Modules[${index}].Description`;
+                if (orderInput) orderInput.name = `Modules[${index}].DisplayOrder`;
+                if (activeCheckbox) activeCheckbox.name = `Modules[${index}].IsActive`;
+            });
+
+            moduleIndex = moduleItems.length;
+        }
+
+        function updatePreview() {
+            const nameInput = document.getElementById('Name');
+            const descriptionInput = document.getElementById('Description');
+            const colorInput = document.getElementById('Color');
+            const selectedIconEl = document.querySelector('.icon-radio:checked');
+
+            const name = nameInput ? nameInput.value || 'Kategori Adı' : 'Kategori Adı';
+            const description = descriptionInput ? descriptionInput.value || 'Kategori açıklaması' : 'Kategori açıklaması';
+            const color = colorInput ? colorInput.value || '#6366f1' : '#6366f1';
+            const selectedIcon = selectedIconEl ? selectedIconEl.value : 'folder';
+
+            const previewName = document.getElementById('previewName');
+            const previewDescription = document.getElementById('previewDescription');
+            const previewIcon = document.getElementById('previewIcon');
+            const previewIconWrapper = document.getElementById('previewIconWrapper');
+            const categoryPreview = document.getElementById('categoryPreview');
+
+            if (previewName) previewName.textContent = name;
+            if (previewDescription) previewDescription.textContent = description;
+            if (previewIcon) {
+                previewIcon.className = `fas fa-${selectedIcon} text-2xl`;
+                previewIcon.style.color = color;
+            }
+            if (previewIconWrapper) {
+                previewIconWrapper.style.backgroundColor = color + '1a';
+            }
+            if (categoryPreview) {
+                categoryPreview.style.borderLeftColor = color;
+            }
+
+            console.log('Önizleme güncellendi:', { name, color, icon: selectedIcon });
+        }
+
+    })();
+</script>
