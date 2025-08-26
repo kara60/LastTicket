@@ -32,7 +32,66 @@
     </div>
 </div>
 
-<form method="post" asp-action="PreviewTicket">
+<!-- Selected Type & Category Info -->
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Selected Type -->
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @(Model.SelectedType?.Color)20;">
+                @{
+                    var typeEmoji = Model.SelectedType?.Icon switch
+                    {
+                        "bug" => "🐛",
+                        "lightbulb" => "💡",
+                        "graduation-cap" => "🎓",
+                        "cog" => "⚙️",
+                        "question-circle" => "❓",
+                        "exclamation-triangle" => "⚠️",
+                        "tools" => "🔧",
+                        "chart-line" => "📈",
+                        "headset" => "🎧",
+                        "rocket" => "🚀",
+                        _ => "🎫"
+                    };
+                }
+                <span class="text-xl">@typeEmoji</span>
+            </div>
+            <div>
+                <h3 class="font-medium text-gray-900">@Model.SelectedType?.Name</h3>
+                <p class="text-sm text-gray-600">Seçilen Tür</p>
+            </div>
+        </div>
+
+        <!-- Selected Category -->
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @(Model.SelectedCategory?.Color)20;">
+                @{
+                    var categoryEmoji = Model.SelectedCategory?.Icon switch
+                    {
+                        "bug" => "🐛",
+                        "lightbulb" => "💡",
+                        "graduation-cap" => "🎓",
+                        "cog" => "⚙️",
+                        "question-circle" => "❓",
+                        "exclamation-triangle" => "⚠️",
+                        "tools" => "🔧",
+                        "chart-line" => "📈",
+                        "headset" => "🎧",
+                        "rocket" => "🚀",
+                        _ => "📁"
+                    };
+                }
+                <span class="text-xl">@categoryEmoji</span>
+            </div>
+            <div>
+                <h3 class="font-medium text-gray-900">@Model.SelectedCategory?.Name</h3>
+                <p class="text-sm text-gray-600">Seçilen Kategori</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="/Customer/Tickets/PreviewTicket" id="ticketForm">
     <input type="hidden" asp-for="SelectedTypeId" />
     <input type="hidden" asp-for="SelectedCategoryId" />
 
@@ -43,67 +102,226 @@
         </div>
 
         <div class="p-6 space-y-6">
+            <!-- Validation Summary -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Lütfen aşağıdaki hataları düzeltin:</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <!-- Basic Info -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-2">Başlık *</label>
-                    <input asp-for="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                    <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-2">
+                        Başlık *
+                    </label>
+                    <input asp-for="Title"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Ticket başlığını girin" />
                     <span asp-validation-for="Title" class="text-red-500 text-sm"></span>
                 </div>
 
-                @if (Model.SelectedCategory?.Modules.Any() == true)
+                @if (Model.SelectedCategory?.Modules?.Any() == true)
                 {
                     <div>
-                        <label asp-for="SelectedModule" class="block text-sm font-medium text-gray-700 mb-2">Modül</label>
-                        <select asp-for="SelectedModule" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label asp-for="SelectedModule" class="block text-sm font-medium text-gray-700 mb-2">
+                            Modül
+                        </label>
+                        <select asp-for="SelectedModule"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Modül seçiniz</option>
                             @foreach (var module in Model.SelectedCategory.Modules)
                             {
                                 <option value="@module.Name">@module.Name</option>
                             }
                         </select>
+                        <span asp-validation-for="SelectedModule" class="text-red-500 text-sm"></span>
                     </div>
                 }
             </div>
 
             <div>
-                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
-                <textarea asp-for="Description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Açıklama
+                </label>
+                <textarea asp-for="Description"
+                          rows="4"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Ticket ile ilgili detaylı açıklama yazın"></textarea>
+                <span asp-validation-for="Description" class="text-red-500 text-sm"></span>
             </div>
 
             <!-- Dynamic Form Fields -->
-            @if (Model.SelectedType?.FormDefinition?.ContainsKey("fields") == true)
+            @if (!string.IsNullOrEmpty(Model.SelectedType?.FormDefinition))
             {
                 <div class="border-t border-gray-200 pt-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">@Model.SelectedType.Name Detayları</h3>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Basit form field rendering - gerçek projede JSON parse edilecek -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Öncelik</label>
-                            <select name="FormData[oncelik]" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                <option value="Düşük">Düşük</option>
-                                <option value="Orta">Orta</option>
-                                <option value="Yüksek">Yüksek</option>
-                                <option value="Kritik">Kritik</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Hedef Tarih</label>
-                            <input type="date" name="FormData[hedefTarih]" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
-                        </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                        <span class="text-xl mr-2">@typeEmoji</span>
+                        @Model.SelectedType.Name Detayları
+                    </h3>
+                    <div id="dynamicFormFields" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Dynamic fields will be rendered here -->
                     </div>
                 </div>
             }
         </div>
 
         <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
-            <a href="@Url.Action("Create")" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            <a href="javascript:history.back()"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>Geri
             </a>
-            <button type="submit" class="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button type="submit"
+                    id="submitBtn"
+                    class="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
                 Önizleme <i class="fas fa-arrow-right ml-2"></i>
             </button>
         </div>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // FormDefinition now comes as a string from the DTO
+            const formDefinitionString = '@Html.Raw(Model.SelectedType?.FormDefinition?.Replace("\"", "\\\"") ?? "")';
+            let formDefinition = null;
+
+            if (formDefinitionString && formDefinitionString !== '') {
+                try {
+                    formDefinition = JSON.parse(formDefinitionString);
+                } catch (e) {
+                    console.error('Error parsing FormDefinition:', e);
+                }
+            }
+
+            if (formDefinition && formDefinition.fields && formDefinition.fields.length > 0) {
+                renderDynamicFields(formDefinition.fields);
+            }
+
+            // Form submission handler
+            const ticketForm = document.getElementById('ticketForm');
+            if (ticketForm) {
+                ticketForm.addEventListener('submit', function() {
+                    const submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>İşleniyor...';
+                    }
+                });
+            }
+        });
+
+        function renderDynamicFields(fields) {
+            const container = document.getElementById('dynamicFormFields');
+            if (!container) return;
+
+            let fieldsHtml = '';
+
+            fields.forEach(function(field, index) {
+                if (!field.name || !field.label) return;
+
+                const fieldName = `FormData[${field.name}]`;
+                const isRequired = field.required || false;
+                const placeholder = field.placeholder || '';
+
+                fieldsHtml += '<div>';
+                fieldsHtml += `<label class="block text-sm font-medium text-gray-700 mb-2">`;
+                fieldsHtml += field.label;
+                if (isRequired) {
+                    fieldsHtml += ' <span class="text-red-500">*</span>';
+                }
+                fieldsHtml += '</label>';
+
+                switch (field.type) {
+                    case 'textarea':
+                        fieldsHtml += `<textarea name="${fieldName}" rows="3" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>';
+                        break;
+
+                    case 'select':
+                        fieldsHtml += `<select name="${fieldName}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += '<option value="">Seçiniz...</option>';
+
+                        if (field.options && Array.isArray(field.options)) {
+                            field.options.forEach(function(option) {
+                                fieldsHtml += `<option value="${option}">${option}</option>`;
+                            });
+                        }
+                        fieldsHtml += '</select>';
+                        break;
+
+                    case 'checkbox':
+                        fieldsHtml += '<div class="flex items-center">';
+                        fieldsHtml += `<input type="checkbox" name="${fieldName}" value="true" id="field_${index}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">';
+                        fieldsHtml += `<label for="field_${index}" class="ml-2 text-sm text-gray-700">${placeholder || field.label}</label>`;
+                        fieldsHtml += '</div>';
+                        break;
+
+                    case 'number':
+                        fieldsHtml += `<input type="number" name="${fieldName}" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        if (field.validation) {
+                            if (field.validation.min !== null) fieldsHtml += ` min="${field.validation.min}"`;
+                            if (field.validation.max !== null) fieldsHtml += ` max="${field.validation.max}"`;
+                        }
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        break;
+
+                    case 'email':
+                        fieldsHtml += `<input type="email" name="${fieldName}" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        break;
+
+                    case 'tel':
+                        fieldsHtml += `<input type="tel" name="${fieldName}" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        break;
+
+                    case 'date':
+                        fieldsHtml += `<input type="date" name="${fieldName}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        break;
+
+                    default: // text
+                        fieldsHtml += `<input type="text" name="${fieldName}" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        if (field.validation) {
+                            if (field.validation.minLength) fieldsHtml += ` minlength="${field.validation.minLength}"`;
+                            if (field.validation.maxLength) fieldsHtml += ` maxlength="${field.validation.maxLength}"`;
+                        }
+                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        break;
+                }
+
+                fieldsHtml += '</div>';
+            });
+
+            container.innerHTML = fieldsHtml;
+        }
+    </script>
+}

@@ -28,19 +28,19 @@ public class GetTicketTypesQueryHandler : IQueryHandler<GetTicketTypesQuery, Lis
             (!request.OnlyActive || x.IsActive));
 
         var list = types
-            .OrderBy(x => x.SortOrder)
-            .Select(x => new TicketTypeDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description ?? "",
-                Icon = x.Icon ?? "",
-                Color = x.Color,
-                FormDefinition = string.IsNullOrWhiteSpace(x.FormDefinition)
-                    ? new Dictionary<string, object>()
-                    : (JsonSerializer.Deserialize<Dictionary<string, object>>(x.FormDefinition!) ?? new())
-            })
-            .ToList();
+    .OrderBy(x => x.SortOrder)
+    .Select(x => new TicketTypeDto
+    {
+        Id = x.Id,
+        Name = x.Name,
+        Description = x.Description ?? "",
+        Icon = x.Icon ?? "",
+        Color = x.Color,
+        IsActive = x.IsActive,           // Ekle
+        SortOrder = x.SortOrder,         // Ekle
+        FormDefinition = x.FormDefinition // Direkt string olarak assign et, Dictionary'ye çevirme
+    })
+    .ToList();
 
         return Result<List<TicketTypeDto>>.Success(list);
     }

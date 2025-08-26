@@ -2,7 +2,6 @@
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
 using TicketSystem.Application.Features.Common.DTOs;
-using TicketSystem.Domain.Entities;
 
 namespace TicketSystem.Application.Features.TicketCategories.Queries.GetTicketCategories;
 
@@ -22,37 +21,29 @@ public class GetTicketCategoriesQueryHandler : IQueryHandler<GetTicketCategories
         if (!_current.IsAuthenticated || !_current.CompanyId.HasValue)
             return Result<List<TicketCategoryDto>>.Failure("Kullanıcı doğrulanamadı.");
 
-        IEnumerable<TicketCategory> cats;
-        if (request.IncludeModules)
-        {
-            cats = await _uow.TicketCategories.FindAsync(
-                x => x.CompanyId == _current.CompanyId && (!request.OnlyActive || x.IsActive),
-                x => x.Modules);
-        }
-        else
-        {
-            cats = await _uow.TicketCategories.FindAsync(
-                x => x.CompanyId == _current.CompanyId && (!request.OnlyActive || x.IsActive));
-        }
+        var categories = await _uow.TicketCategories.FindAsync(x =>
+            x.CompanyId == _current.CompanyId &&
+            (!request.OnlyActive || x.IsActive));
 
-        var list = cats
+        var list = categories
             .OrderBy(x => x.SortOrder)
-            .Select(c => new TicketCategoryDto
+            .Select(x => new TicketCategoryDto
             {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description ?? "",
-                Icon = c.Icon ?? "",
-                Color = c.Color,
-                Modules = request.IncludeModules
-                    ? c.Modules.Where(m => m.IsActive).OrderBy(m => m.SortOrder).Select(m => new TicketCategoryModuleDto
-                    {
-                        Id = m.Id,
-                        Name = m.Name,
-                        Description = m.Description
-                    }).ToList()
-                    : new List<TicketCategoryModuleDto>()
-            }).ToList();
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description ?? "",
+                Icon = x.Icon ?? "",
+                Color = x.Color,
+                IsActive = x.IsActive,
+                SortOrder = x.SortOrder,
+                Modules = x.Modules.Select(m => new TicketCategoryModuleDto
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description ?? ""
+                }).ToList()
+            })
+            .ToList();
 
         return Result<List<TicketCategoryDto>>.Success(list);
     }

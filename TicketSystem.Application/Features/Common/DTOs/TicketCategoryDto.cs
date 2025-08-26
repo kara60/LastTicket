@@ -13,6 +13,8 @@ namespace TicketSystem.Application.Features.Common.DTOs
         public string Description { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true; // Ekle
+        public int SortOrder { get; set; } = 0; // Ekle
         public List<TicketCategoryModuleDto> Modules { get; set; } = new();
     }
 }

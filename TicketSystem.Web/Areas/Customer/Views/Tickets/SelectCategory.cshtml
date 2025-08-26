@@ -33,8 +33,24 @@
 <!-- Selected Type -->
 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
     <div class="flex items-center">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @Model.SelectedType?.Color; opacity: 0.2;">
-            <i class="fas fa-@Model.SelectedType?.Icon text-lg" style="color: @Model.SelectedType?.Color;"></i>
+        @{
+            var typeEmoji = Model.SelectedType?.Icon switch
+            {
+                "bug" => "🐛",
+                "lightbulb" => "💡",
+                "graduation-cap" => "🎓",
+                "cog" => "⚙️",
+                "question-circle" => "❓",
+                "exclamation-triangle" => "⚠️",
+                "tools" => "🔧",
+                "chart-line" => "📈",
+                "headset" => "🎧",
+                "rocket" => "🚀",
+                _ => "🎫"
+            };
+        }
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4" style="background-color: @(Model.SelectedType?.Color)15;">
+            <span class="text-2xl">@typeEmoji</span>
         </div>
         <div>
             <h3 class="font-medium text-gray-900">Seçilen Tür: @Model.SelectedType?.Name</h3>
@@ -45,36 +61,166 @@
 
 <div class="bg-white rounded-lg shadow">
     <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Kategori Seçin</h2>
+        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+            <i class="fas fa-folder-open text-blue-600 mr-3"></i>
+            Kategori Seçin
+        </h2>
         <p class="text-gray-600 mt-1">Bu ticket hangi kategoriye ait?</p>
     </div>
 
     <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var category in Model.Categories)
-            {
-                <form method="post" asp-action="SelectCategory">
-                    <input type="hidden" name="typeId" value="@Model.SelectedTypeId" />
-                    <input type="hidden" name="categoryId" value="@category.Id" />
-                    <button type="submit" class="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition duration-200 text-left">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4" style="background-color: @category.Color; opacity: 0.1;">
-                                <i class="fas fa-@category.Icon text-2xl" style="color: @category.Color;"></i>
+        @if (Model.Categories.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var category in Model.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+                {
+                    var categoryEmoji = category.Icon switch
+                    {
+                        "bug" => "🐛",
+                        "lightbulb" => "💡",
+                        "graduation-cap" => "🎓",
+                        "cog" => "⚙️",
+                        "question-circle" => "❓",
+                        "exclamation-triangle" => "⚠️",
+                        "tools" => "🔧",
+                        "chart-line" => "📈",
+                        "headset" => "🎧",
+                        "rocket" => "🚀",
+                        _ => "📁"
+                    };
+
+                    <form method="post" action="/Customer/Tickets/SelectCategory">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="typeId" value="@Model.SelectedTypeId" />
+                        <input type="hidden" name="categoryId" value="@category.Id" />
+                        <button type="submit"
+                                class="w-full p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all duration-200 text-left group">
+                            <!-- Header -->
+                            <div class="flex items-center mb-4">
+                                <div class="w-14 h-14 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform duration-200"
+                                     style="background-color: @(category.Color)15;">
+                                    <span class="text-3xl">@categoryEmoji</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                        @category.Name
+                                    </h3>
+                                    <div class="flex items-center mt-1">
+                                        <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                            Aktif
+                                        </span>
+                                        @if (category.SortOrder > 0)
+                                        {
+                                            <span class="ml-2 text-xs text-gray-500">#@category.SortOrder</span>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900">@category.Name</h3>
-                            </div>
-                        </div>
-                        <p class="text-gray-600 text-sm">@category.Description</p>
-                        @if (category.Modules.Any())
-                        {
-                            <div class="mt-3 pt-3 border-t border-gray-100">
-                                <p class="text-xs text-gray-500">Modüller: @string.Join(", ", category.Modules.Take(3).Select(m => m.Name))</p>
-                            </div>
-                        }
-                    </button>
-                </form>
-            }
-        </div>
+
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(category.Description))
+                            {
+                                <p class="text-gray-600 text-sm leading-relaxed mb-3">@category.Description</p>
+                            }
+
+                            <!-- Modules Info -->
+                            @if (category.Modules?.Any() == true)
+                            {
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center text-sm text-gray-500">
+                                            <i class="fas fa-puzzle-piece mr-2"></i>
+                                            <span>@category.Modules.Count modül mevcut</span>
+                                        </div>
+                                        <div class="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        @string.Join(", ", category.Modules.Take(3).Select(m => m.Name))@(category.Modules.Count > 3 ? "..." : "")
+                                    </p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <i class="fas fa-check-circle mr-2"></i>
+                                        <span>Genel kategori</span>
+                                    </div>
+                                    <div class="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </div>
+                                </div>
+                            }
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">Kategori bulunamadı</h3>
+                <p class="text-gray-500 mb-6">Bu ticket türü için aktif kategori bulunmuyor.</p>
+                <a href="@Url.Action("Create")"
+                   class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Tür Seçimine Dön
+                </a>
+            </div>
+        }
     </div>
 </div>
+
+@if (Model.Categories.Any())
+{
+    <!-- Navigation -->
+    <div class="mt-6 flex justify-between items-center">
+        <a href="@Url.Action("Create")"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Tür Seçimine Dön
+        </a>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-sm text-blue-700">
+                <i class="fas fa-info-circle mr-2"></i>
+                Kategori seçimi, ticket'ınızın doğru departmana yönlendirilmesini sağlar.
+            </p>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form submission loading states
+            const forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    const button = form.querySelector('button[type="submit"]');
+                    if (button) {
+                        button.disabled = true;
+                        const originalContent = button.innerHTML;
+                        button.innerHTML = '<div class="flex items-center justify-center"><i class="fas fa-spinner fa-spin mr-2"></i>Yükleniyor...</div>';
+
+                        // Reset after 10 seconds if no navigation happens
+                        setTimeout(() => {
+                            button.disabled = false;
+                            button.innerHTML = originalContent;
+                        }, 10000);
+                    }
+                });
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.location.href = '@Url.Action("Create")';
+                }
+            });
+        });
+    </script>
+}

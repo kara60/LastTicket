@@ -3,8 +3,8 @@
     ViewData["Title"] = "Ticket Türü Düzenle";
 }
 
-<div class="h-screen overflow-hidden bg-gray-50 p-4">
-    <div class="max-w-6xl mx-auto h-full flex flex-col">
+<div class="bg-gray-50 p-4 min-h-screen">
+    <div class="max-w-6xl mx-auto">
         <!-- Header - Fixed -->
         <div class="flex items-center justify-between mb-6">
             <div>
@@ -25,8 +25,8 @@
             </div>
         </div>
 
-        <!-- Content - Scrollable -->
-        <div class="flex-1 overflow-y-auto">
+        <!-- Content -->
+        <div class="space-y-8">
             <form method="post" asp-action="Edit" class="space-y-8" id="editTicketTypeForm">
                 <input type="hidden" asp-for="Id" />
                 @Html.AntiForgeryToken()
@@ -72,7 +72,7 @@
                                     Ticket Türü Adı
                                     <span class="text-red-500">*</span>
                                 </label>
-                                <input asp-for="Name"
+                                <input asp-for="Name" id="Name"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                        placeholder="Örn: Hata Bildirimi, Yeni Özellik İsteği" />
                                 <span asp-validation-for="Name" class="text-red-500 text-sm mt-1 block"></span>
@@ -83,7 +83,7 @@
                                 <label asp-for="DisplayOrder" class="block text-sm font-medium text-gray-700 mb-2">
                                     Görüntüleme Sırası
                                 </label>
-                                <input asp-for="DisplayOrder" type="number" min="0" max="999"
+                                <input asp-for="DisplayOrder" id="DisplayOrder" type="number" min="0" max="999"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                        placeholder="0" />
                                 <span asp-validation-for="DisplayOrder" class="text-red-500 text-sm mt-1 block"></span>
@@ -95,7 +95,7 @@
                                 <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">
                                     Açıklama
                                 </label>
-                                <textarea asp-for="Description" rows="3"
+                                <textarea asp-for="Description" id="Description" rows="3"
                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                           placeholder="Bu ticket türünün amacını ve kullanım alanını açıklayın..."></textarea>
                                 <span asp-validation-for="Description" class="text-red-500 text-sm mt-1 block"></span>
@@ -105,7 +105,7 @@
                             <div class="lg:col-span-2">
                                 <div class="flex items-center p-4 @(Model.IsActive ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200") rounded-lg">
                                     <label class="flex items-center cursor-pointer">
-                                        <input asp-for="IsActive" type="checkbox"
+                                        <input asp-for="IsActive" type="checkbox" id="IsActive"
                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                         <span class="ml-3 text-sm font-medium @(Model.IsActive ? "text-green-700" : "text-red-700")">
                                             @(Model.IsActive ? "Bu ticket türü aktif" : "Bu ticket türü pasif")
@@ -141,7 +141,7 @@
                                     <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <select asp-for="Icon" id="iconSelect"
+                                    <select asp-for="Icon" id="Icon"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none">
                                         <option value="bug" data-emoji="🐛">Bug (Hata)</option>
                                         <option value="lightbulb" data-emoji="💡">Light Bulb (Yeni Özellik)</option>
@@ -170,12 +170,12 @@
                                 <div class="flex space-x-3">
                                     <!-- Color Input -->
                                     <div class="relative">
-                                        <input asp-for="Color" type="color" id="colorPicker"
+                                        <input type="color" id="ColorPicker" value="@Model.Color"
                                                class="w-16 h-12 border border-gray-300 rounded-lg cursor-pointer" />
                                     </div>
                                     <!-- Text Input -->
                                     <div class="flex-1">
-                                        <input asp-for="Color" type="text" id="colorText"
+                                        <input asp-for="Color" type="text" id="Color"
                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                                placeholder="#3b82f6" />
                                     </div>
@@ -206,12 +206,12 @@
                                 <div id="livePreview" class="bg-white rounded-lg shadow border-l-4" style="border-left-color: @Model.Color">
                                     <div class="p-4">
                                         <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" id="previewIconContainer">
+                                            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" id="previewIconContainer" style="background-color: @(Model.Color)20;">
                                                 <span id="previewIcon" class="text-lg"></span>
                                             </div>
                                             <div>
                                                 <h3 id="previewName" class="font-medium text-gray-900">@Model.Name</h3>
-                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full @(Model.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                                                <span id="previewStatus" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full @(Model.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
                                                     @(Model.IsActive ? "Aktif" : "Pasif")
                                                 </span>
                                             </div>
@@ -247,14 +247,21 @@
                             <!-- Existing form fields will be loaded here -->
                         </div>
 
+                        <!-- Empty State -->
+                        <div id="emptyFieldsMessage" class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" style="display: none;">
+                            <i class="fas fa-list-alt text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500 text-lg">Henüz form alanı eklenmemiş</p>
+                            <p class="text-sm text-gray-400 mt-2">Bu ticket türü için özel form alanları eklemek için yukarıdaki butonu kullanın</p>
+                        </div>
+
                         <!-- Form Preview -->
-                        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg" id="formPreviewContainer">
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="font-medium text-blue-800">Form Önizleme</h4>
-                                <span class="text-xs text-blue-600 bg-white px-2 py-1 rounded">Dinamik</span>
+                                <span class="text-xs text-blue-600 bg-white px-2 py-1 rounded">Canlı</span>
                             </div>
                             <div id="formPreview" class="bg-white p-4 rounded-lg border">
-                                <p class="text-gray-500 text-sm">Form alanları burada önizlenecek...</p>
+                                <p class="text-gray-500 text-sm text-center py-4">Form alanları burada önizlenecek...</p>
                             </div>
                         </div>
                     </div>
@@ -294,76 +301,159 @@
     <script>
         let fieldIndex = 0;
 
-        // Load existing form fields
-        const existingFields = @Html.Raw(Json.Serialize(Model.FormFields ?? new List<TicketSystem.Web.Areas.Admin.Models.FormFieldViewModel>()));
+        // Model verilerini JavaScript için hazırla
+        const modelFormFields = @Html.Raw(Json.Serialize(Model.FormFields ?? new List<TicketSystem.Web.Areas.Admin.Models.FormFieldViewModel>()));
 
-        // Color picker sync
-        const colorPicker = document.getElementById('colorPicker');
-        const colorText = document.getElementById('colorText');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Loading edit form...');
 
-        if (colorPicker && colorText) {
-            colorPicker.addEventListener('change', function() {
-                colorText.value = this.value;
-                updatePreview();
-            });
+            // İlk olarak icon select'i doğru değere ayarla
+            const iconSelect = document.getElementById('Icon');
+            if (iconSelect) {
+                iconSelect.value = '@Model.Icon';
+            }
 
-            colorText.addEventListener('input', function() {
-                if (/^#[0-9A-F]{6}$/i.test(this.value)) {
-                    colorPicker.value = this.value;
+            initializeAll();
+            loadExistingFields();
+            updatePreview();
+        });
+
+        function initializeAll() {
+            initializePreview();
+            initializeColorPicker();
+            initializeColorPresets();
+            initializeFormFields();
+            initializeFormSubmission();
+        }
+
+        function initializePreview() {
+            const nameInput = document.getElementById('Name');
+            const descInput = document.getElementById('Description');
+            const iconSelect = document.getElementById('Icon');
+            const isActiveInput = document.getElementById('IsActive');
+
+            if (nameInput) nameInput.addEventListener('input', updatePreview);
+            if (descInput) descInput.addEventListener('input', updatePreview);
+            if (iconSelect) iconSelect.addEventListener('change', updatePreview);
+            if (isActiveInput) isActiveInput.addEventListener('change', updatePreview);
+        }
+
+        function initializeColorPicker() {
+            const colorPicker = document.getElementById('ColorPicker');
+            const colorInput = document.getElementById('Color');
+
+            if (colorPicker && colorInput) {
+                colorPicker.addEventListener('input', function() {
+                    colorInput.value = this.value.toUpperCase();
                     updatePreview();
-                }
+                });
+
+                colorInput.addEventListener('input', function() {
+                    if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                        colorPicker.value = this.value;
+                        updatePreview();
+                    }
+                });
+            }
+        }
+
+        function initializeColorPresets() {
+            const colorPresets = document.querySelectorAll('.color-preset');
+            const colorPicker = document.getElementById('ColorPicker');
+            const colorInput = document.getElementById('Color');
+
+            colorPresets.forEach(function(preset) {
+                preset.addEventListener('click', function() {
+                    const color = this.getAttribute('data-color');
+                    if (colorPicker) colorPicker.value = color;
+                    if (colorInput) colorInput.value = color;
+                    updatePreview();
+                });
             });
         }
 
-        // Color presets
-        document.querySelectorAll('.color-preset').forEach(button => {
-            button.addEventListener('click', function() {
-                const color = this.dataset.color;
-                if (colorPicker && colorText) {
-                    colorPicker.value = color;
-                    colorText.value = color;
-                    updatePreview();
+        function initializeFormFields() {
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            if (addFieldBtn) {
+                addFieldBtn.addEventListener('click', function() {
+                    addFormField();
+                });
+            }
+        }
+
+        function initializeFormSubmission() {
+            const form = document.getElementById('editTicketTypeForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Güncelleniyor...';
+                    }
+                });
+            }
+        }
+
+        function loadExistingFields() {
+            console.log('Loading existing fields:', modelFormFields);
+
+            if (modelFormFields && modelFormFields.length > 0) {
+                modelFormFields.forEach(function(field, index) {
+                    console.log('Adding field:', field);
+                    addFormField(field);
+                });
+
+                const emptyMessage = document.getElementById('emptyFieldsMessage');
+                if (emptyMessage) {
+                    emptyMessage.style.display = 'none';
                 }
-            });
-        });
-
-        // Live preview updates
-        const nameInput = document.getElementById('Name');
-        const descInput = document.getElementById('Description');
-        const iconSelect = document.getElementById('iconSelect');
-
-        if (nameInput) nameInput.addEventListener('input', updatePreview);
-        if (descInput) descInput.addEventListener('input', updatePreview);
-        if (iconSelect) iconSelect.addEventListener('change', updatePreview);
+            } else {
+                const emptyMessage = document.getElementById('emptyFieldsMessage');
+                if (emptyMessage) {
+                    emptyMessage.style.display = 'block';
+                }
+            }
+        }
 
         function updatePreview() {
-            const nameEl = document.getElementById('Name');
-            const descEl = document.getElementById('Description');
-            const colorTextEl = document.getElementById('colorText');
-            const iconSelectEl = document.getElementById('iconSelect');
-            const previewNameEl = document.getElementById('previewName');
-            const previewDescEl = document.getElementById('previewDesc');
-            const previewIconEl = document.getElementById('previewIcon');
-            const previewEl = document.getElementById('livePreview');
-            const previewIconContainer = document.getElementById('previewIconContainer');
+            const nameInput = document.getElementById('Name');
+            const descInput = document.getElementById('Description');
+            const colorInput = document.getElementById('Color');
+            const iconSelect = document.getElementById('Icon');
+            const isActiveInput = document.getElementById('IsActive');
 
-            if (!nameEl || !descEl || !colorTextEl || !iconSelectEl || !previewNameEl || !previewDescEl || !previewIconEl || !previewEl) {
-                return;
+            // Input değerlerini oku, boşsa model değerlerini kullan ama inputları temizleme
+            const name = nameInput ? nameInput.value : '@Html.Raw(Html.Encode(Model.Name))';
+            const desc = descInput ? descInput.value : '@Html.Raw(Html.Encode(Model.Description ?? ""))';
+            const color = colorInput ? colorInput.value : '@Model.Color';
+            const isActive = isActiveInput ? isActiveInput.checked : @Html.Raw(Model.IsActive.ToString().ToLower());
+
+            let emoji = '🐛';
+            if (iconSelect && iconSelect.value) {
+                const selectedOption = iconSelect.options[iconSelect.selectedIndex];
+                emoji = selectedOption ? selectedOption.getAttribute('data-emoji') : getEmojiForIcon(iconSelect.value);
+            } else {
+                emoji = getEmojiForIcon('@Model.Icon');
             }
 
-            const name = nameEl.value || '@Html.Raw(Model.Name)';
-            const desc = descEl.value || '@Html.Raw(Model.Description)';
-            const color = colorTextEl.value || '@Model.Color';
-            const selectedOption = iconSelectEl.options[iconSelectEl.selectedIndex];
-            const emoji = selectedOption ? selectedOption.dataset.emoji : getEmojiForIcon('@Model.Icon');
+            // Preview elementlerini güncelle
+            const previewName = document.getElementById('previewName');
+            const previewDesc = document.getElementById('previewDesc');
+            const previewIcon = document.getElementById('previewIcon');
+            const previewWrapper = document.getElementById('previewIconContainer');
+            const previewStatus = document.getElementById('previewStatus');
+            const preview = document.getElementById('livePreview');
 
-            previewNameEl.textContent = name;
-            previewDescEl.textContent = desc;
-            previewIconEl.textContent = emoji;
+            if (previewName) previewName.textContent = name || 'Ticket Türü';
+            if (previewDesc) previewDesc.textContent = desc || 'Açıklama yok';
+            if (previewIcon) previewIcon.textContent = emoji;
+            if (previewWrapper) previewWrapper.style.backgroundColor = color + '20';
+            if (preview) preview.style.borderLeftColor = color;
 
-            previewEl.style.borderLeftColor = color;
-            if (previewIconContainer) {
-                previewIconContainer.style.backgroundColor = color + '20';
+            if (previewStatus) {
+                previewStatus.textContent = isActive ? 'Aktif' : 'Pasif';
+                previewStatus.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full ' +
+                    (isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
             }
         }
 
@@ -383,20 +473,26 @@
             return iconMap[icon] || '🐛';
         }
 
-        // Form fields management
-        const addFieldBtn = document.getElementById('addFieldBtn');
-        if (addFieldBtn) {
-            addFieldBtn.addEventListener('click', function() {
-                addFormField();
-            });
-        }
-
-        function addFormField(field = null) {
+        function addFormField(existingField) {
             const formFields = document.getElementById('formFields');
-            if (!formFields) return;
+            const emptyMessage = document.getElementById('emptyFieldsMessage');
+
+            if (emptyMessage && emptyMessage.style.display !== 'none') {
+                emptyMessage.style.display = 'none';
+            }
 
             const fieldDiv = document.createElement('div');
-            fieldDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
+            fieldDiv.className = 'form-field border border-gray-200 rounded-lg p-6 bg-gray-50';
+
+            const fieldData = existingField || {
+                name: '',
+                label: '',
+                type: 'text',
+                required: false,
+                placeholder: '',
+                options: ''
+            };
+
             fieldDiv.innerHTML = `
                 <div class="flex items-center justify-between mb-4">
                     <h4 class="font-medium text-gray-900 flex items-center">
@@ -405,95 +501,122 @@
                         </span>
                         Form Alanı
                     </h4>
-                    <button type="button" onclick="removeField(this)"
+                    <button type="button" onclick="removeFormField(this)"
                             class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alan Adı <span class="text-red-500">*</span></label>
-                        <input type="text" name="FormFields[${fieldIndex}].Name" value="${field?.name || ''}"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alan Adı *</label>
+                        <input type="text" name="FormFields[${fieldIndex}].Name" value="${fieldData.name || ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="örn: hata_aciklamasi"
-                               onchange="updateFormPreview()" />
+                               placeholder="örn: hata_aciklamasi" onchange="updateFormPreview()" required />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Etiket <span class="text-red-500">*</span></label>
-                        <input type="text" name="FormFields[${fieldIndex}].Label" value="${field?.label || ''}"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Etiket *</label>
+                        <input type="text" name="FormFields[${fieldIndex}].Label" value="${fieldData.label || ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="örn: Hata Açıklaması"
-                               onchange="updateFormPreview()" />
+                               placeholder="örn: Hata Açıklaması" onchange="updateFormPreview()" required />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tip</label>
                         <select name="FormFields[${fieldIndex}].Type"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 onchange="updateFormPreview(); toggleOptions(this)">
-                            <option value="text" ${field?.type === 'text' ? 'selected' : ''}>📝 Metin</option>
-                            <option value="textarea" ${field?.type === 'textarea' ? 'selected' : ''}>📄 Uzun Metin</option>
-                            <option value="number" ${field?.type === 'number' ? 'selected' : ''}>🔢 Sayı</option>
-                            <option value="email" ${field?.type === 'email' ? 'selected' : ''}>📧 E-posta</option>
-                            <option value="tel" ${field?.type === 'tel' ? 'selected' : ''}>📞 Telefon</option>
-                            <option value="date" ${field?.type === 'date' ? 'selected' : ''}>📅 Tarih</option>
-                            <option value="select" ${field?.type === 'select' ? 'selected' : ''}>📋 Seçim Listesi</option>
-                            <option value="checkbox" ${field?.type === 'checkbox' ? 'selected' : ''}>☑️ Onay Kutusu</option>
+                            <option value="text" ${fieldData.type === 'text' ? 'selected' : ''}>📝 Metin</option>
+                            <option value="textarea" ${fieldData.type === 'textarea' ? 'selected' : ''}>📄 Uzun Metin</option>
+                            <option value="number" ${fieldData.type === 'number' ? 'selected' : ''}>🔢 Sayı</option>
+                            <option value="email" ${fieldData.type === 'email' ? 'selected' : ''}>📧 E-posta</option>
+                            <option value="tel" ${fieldData.type === 'tel' ? 'selected' : ''}>📞 Telefon</option>
+                            <option value="date" ${fieldData.type === 'date' ? 'selected' : ''}>📅 Tarih</option>
+                            <option value="select" ${fieldData.type === 'select' ? 'selected' : ''}>📋 Seçim Listesi</option>
+                            <option value="checkbox" ${fieldData.type === 'checkbox' ? 'selected' : ''}>☑️ Onay Kutusu</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Placeholder" value="${field?.placeholder || ''}"
+                        <input type="text" name="FormFields[${fieldIndex}].Placeholder" value="${fieldData.placeholder || ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="Kullanıcıya ipucu..."
-                               onchange="updateFormPreview()" />
+                               placeholder="Kullanıcıya ipucu..." onchange="updateFormPreview()" />
                     </div>
-                    <div class="options-field" style="display: ${field?.type === 'select' ? 'block' : 'none'}">
+                    <div class="options-field" style="display: ${fieldData.type === 'select' ? 'block' : 'none'};">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Seçenekler</label>
-                        <input type="text" name="FormFields[${fieldIndex}].Options" value="${field?.options || ''}"
+                        <input type="text" name="FormFields[${fieldIndex}].Options" value="${fieldData.options || ''}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="Seçenek1, Seçenek2, Seçenek3"
-                               onchange="updateFormPreview()" />
+                               placeholder="Seçenek1, Seçenek2, Seçenek3" onchange="updateFormPreview()" />
                         <p class="text-xs text-gray-500 mt-1">Virgülle ayırın</p>
                     </div>
                     <div class="flex items-center">
                         <label class="flex items-center">
-                            <input type="checkbox" name="FormFields[${fieldIndex}].Required" value="true" ${field?.required ? 'checked' : ''}
+                            <input type="checkbox" name="FormFields[${fieldIndex}].Required" value="true" ${fieldData.required ? 'checked' : ''}
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                    onchange="updateFormPreview()">
                             <span class="ml-2 text-sm text-gray-700">Zorunlu Alan</span>
                         </label>
                     </div>
+                    <!-- Hidden inputs for validation properties -->
+                    <input type="hidden" name="FormFields[${fieldIndex}].MinLength" value="${fieldData.minLength || ''}" />
+                    <input type="hidden" name="FormFields[${fieldIndex}].MaxLength" value="${fieldData.maxLength || ''}" />
+                    <input type="hidden" name="FormFields[${fieldIndex}].Min" value="${fieldData.min || ''}" />
+                    <input type="hidden" name="FormFields[${fieldIndex}].Max" value="${fieldData.max || ''}" />
                 </div>
             `;
+
             formFields.appendChild(fieldDiv);
             fieldIndex++;
             updateFormPreview();
         }
 
-        function removeField(button) {
-            if (button && button.closest) {
-                const fieldDiv = button.closest('.border');
-                if (fieldDiv && fieldDiv.remove) {
-                    fieldDiv.remove();
-                    updateFormPreview();
-                }
+        function removeFormField(button) {
+            const fieldDiv = button.closest('.form-field');
+            if (fieldDiv) fieldDiv.remove();
+
+            const formFields = document.getElementById('formFields');
+            const emptyMessage = document.getElementById('emptyFieldsMessage');
+
+            if (formFields && formFields.children.length === 0 && emptyMessage) {
+                emptyMessage.style.display = 'block';
             }
+
+            reindexFormFields();
+            updateFormPreview();
+        }
+
+        function reindexFormFields() {
+            const fields = document.querySelectorAll('.form-field');
+            fields.forEach(function(field, index) {
+                // Update field numbering
+                const numberSpan = field.querySelector('.w-6 span');
+                if (numberSpan) numberSpan.textContent = index + 1;
+
+                // Update input names
+                const inputs = field.querySelectorAll('input, select');
+                inputs.forEach(function(input) {
+                    if (input.name && input.name.includes('FormFields[')) {
+                        const fieldName = input.name.replace(/FormFields\[\d+\]/, `FormFields[${index}]`);
+                        input.name = fieldName;
+                    }
+                });
+            });
+            fieldIndex = fields.length;
         }
 
         function toggleOptions(selectElement) {
-            if (!selectElement || !selectElement.closest) return;
+            const fieldContainer = selectElement.closest('.grid');
+            const optionsField = fieldContainer ? fieldContainer.querySelector('.options-field') : null;
 
-            const optionsField = selectElement.closest('.grid').querySelector('.options-field');
             if (optionsField) {
                 optionsField.style.display = selectElement.value === 'select' ? 'block' : 'none';
             }
         }
 
         function updateFormPreview() {
+            const fields = document.querySelectorAll('.form-field');
+            const previewContainer = document.getElementById('formPreviewContainer');
             const preview = document.getElementById('formPreview');
-            if (!preview) return;
 
-            const fields = document.querySelectorAll('#formFields .border');
+            if (!preview || !previewContainer) return;
 
             if (fields.length === 0) {
                 preview.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Form alanları burada önizlenecek...</p>';
@@ -502,13 +625,13 @@
 
             let previewHtml = '<div class="space-y-4">';
 
-            fields.forEach(field => {
-                const nameInput = field.querySelector('input[name$=".Name"]');
-                const labelInput = field.querySelector('input[name$=".Label"]');
-                const typeSelect = field.querySelector('select[name$=".Type"]');
-                const placeholderInput = field.querySelector('input[name$=".Placeholder"]');
-                const requiredInput = field.querySelector('input[name$=".Required"]');
-                const optionsInput = field.querySelector('input[name$=".Options"]');
+            fields.forEach(function(field) {
+                const nameInput = field.querySelector('input[name*="].Name"]');
+                const labelInput = field.querySelector('input[name*="].Label"]');
+                const typeSelect = field.querySelector('select[name*="].Type"]');
+                const placeholderInput = field.querySelector('input[name*="].Placeholder"]');
+                const requiredInput = field.querySelector('input[name*="].Required"]');
+                const optionsInput = field.querySelector('input[name*="].Options"]');
 
                 if (!nameInput || !labelInput || !typeSelect) return;
 
@@ -520,7 +643,7 @@
                 const options = optionsInput ? optionsInput.value : '';
 
                 if (name && label) {
-                    previewHtml += `<div>`;
+                    previewHtml += '<div>';
                     previewHtml += `<label class="block text-sm font-medium text-gray-700 mb-1">${label}${required ? ' <span class="text-red-500">*</span>' : ''}</label>`;
 
                     switch (type) {
@@ -528,14 +651,14 @@
                             previewHtml += `<textarea placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" rows="3" disabled></textarea>`;
                             break;
                         case 'select':
-                            previewHtml += `<select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" disabled>`;
-                            previewHtml += `<option>Seçiniz...</option>`;
+                            previewHtml += '<select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" disabled>';
+                            previewHtml += '<option>Seçiniz...</option>';
                             if (options) {
-                                options.split(',').forEach(opt => {
+                                options.split(',').forEach(function(opt) {
                                     previewHtml += `<option>${opt.trim()}</option>`;
                                 });
                             }
-                            previewHtml += `</select>`;
+                            previewHtml += '</select>';
                             break;
                         case 'checkbox':
                             previewHtml += `<label class="flex items-center"><input type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" disabled><span class="ml-2 text-sm text-gray-700">${placeholder || label}</span></label>`;
@@ -543,41 +666,12 @@
                         default:
                             previewHtml += `<input type="${type}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" disabled />`;
                     }
-                    previewHtml += `</div>`;
+                    previewHtml += '</div>';
                 }
             });
 
             previewHtml += '</div>';
             preview.innerHTML = previewHtml;
         }
-
-        // Form submission
-        const editTicketTypeForm = document.getElementById('editTicketTypeForm');
-        if (editTicketTypeForm) {
-            editTicketTypeForm.addEventListener('submit', function() {
-                const submitBtn = document.getElementById('submitBtn');
-                if (submitBtn) {
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Güncelleniyor...';
-                    submitBtn.disabled = true;
-                }
-            });
-        }
-
-        // Load existing fields on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (existingFields && existingFields.length > 0) {
-                existingFields.forEach(field => {
-                    addFormField(field);
-                });
-            }
-            updatePreview();
-
-            // Set initial icon
-            const iconSelect = document.getElementById('iconSelect');
-            if (iconSelect) {
-                iconSelect.value = '@Model.Icon';
-                updatePreview();
-            }
-        });
     </script>
 }

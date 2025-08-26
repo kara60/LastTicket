@@ -1,12 +1,13 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TicketSystem.Application.Features.Tickets.Commands.CreateTicket;
+using TicketSystem.Application.Features.Common.DTOs;
+using TicketSystem.Application.Features.TicketCategories.Queries.GetTicketCategories;
 using TicketSystem.Application.Features.Tickets.Commands.AddComment;
+using TicketSystem.Application.Features.Tickets.Commands.CreateTicket;
 using TicketSystem.Application.Features.Tickets.Queries.GetMyTickets;
 using TicketSystem.Application.Features.Tickets.Queries.GetTicketById;
 using TicketSystem.Application.Features.TicketTypes.Queries.GetTicketTypes;
-using TicketSystem.Application.Features.TicketCategories.Queries.GetTicketCategories;
 using TicketSystem.Web.Areas.Customer.Models;
 
 namespace TicketSystem.Web.Areas.Customer.Controllers;
@@ -52,22 +53,52 @@ public class TicketsController : Controller
     [HttpPost]
     public async Task<IActionResult> SelectType(int typeId)
     {
-        var categories = await _mediator.Send(new GetTicketCategoriesQuery());
-        var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+        Console.WriteLine($"SelectType called with typeId: {typeId}");
 
-        var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == typeId);
-        if (selectedType == null)
+        try
         {
-            TempData["Error"] = "Geçersiz ticket türü.";
+            var categories = await _mediator.Send(new GetTicketCategoriesQuery());
+            Console.WriteLine($"Categories result isSuccess: {categories.IsSuccess}");
+            Console.WriteLine($"Categories count: {categories.Data?.Count ?? 0}");
+
+            if (!categories.IsSuccess)
+            {
+                Console.WriteLine($"Categories error: {string.Join(", ", categories.Errors)}");
+                TempData["Error"] = "Kategoriler yüklenirken hata: " + categories.Errors.FirstOrDefault();
+                return RedirectToAction("Create");
+            }
+
+            var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+            Console.WriteLine($"TicketTypes count: {ticketTypes.Data?.Count ?? 0}");
+
+            var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == typeId);
+            if (selectedType == null)
+            {
+                Console.WriteLine($"SelectedType is null for typeId: {typeId}");
+                TempData["Error"] = "Geçersiz ticket türü.";
+                return RedirectToAction("Create");
+            }
+
+            Console.WriteLine($"Returning SelectCategory view for type: {selectedType.Name}");
+
+            var model = new CreateTicketStep2ViewModel
+            {
+                SelectedTypeId = typeId,
+                SelectedType = selectedType,
+                Categories = categories.Data ?? new List<TicketCategoryDto>()
+            };
+
+            Console.WriteLine($"Model categories count: {model.Categories.Count}");
+
+            return View("SelectCategory", model);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in SelectType: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            TempData["Error"] = "Bir hata oluştu: " + ex.Message;
             return RedirectToAction("Create");
         }
-
-        return View("SelectCategory", new CreateTicketStep2ViewModel
-        {
-            SelectedTypeId = typeId,
-            SelectedType = selectedType,
-            Categories = categories.Data ?? new List<TicketSystem.Application.Features.Common.DTOs.TicketCategoryDto>()
-        });
     }
 
     [HttpPost]

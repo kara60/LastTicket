@@ -19,9 +19,13 @@ public class MappingProfile : Profile
 
         // Deserialize işlemini handler’da yapacağız
         CreateMap<TicketType, TicketTypeDto>()
-            .ForMember(dest => dest.FormDefinition, opt => opt.Ignore());
+            .ForMember(dest => dest.FormDefinition, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.SortOrder, opt => opt.MapFrom(src => src.SortOrder));
 
-        CreateMap<TicketCategory, TicketCategoryDto>();
+        CreateMap<TicketCategory, TicketCategoryDto>()
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.SortOrder, opt => opt.MapFrom(src => src.SortOrder));
         CreateMap<TicketCategoryModule, TicketCategoryModuleDto>();
 
         // Deserialize işlemini handler’da yapacağız
