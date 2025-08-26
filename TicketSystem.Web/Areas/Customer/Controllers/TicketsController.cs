@@ -53,33 +53,25 @@ public class TicketsController : Controller
     [HttpPost]
     public async Task<IActionResult> SelectType(int typeId)
     {
-        Console.WriteLine($"SelectType called with typeId: {typeId}");
-
         try
         {
             var categories = await _mediator.Send(new GetTicketCategoriesQuery());
-            Console.WriteLine($"Categories result isSuccess: {categories.IsSuccess}");
-            Console.WriteLine($"Categories count: {categories.Data?.Count ?? 0}");
 
             if (!categories.IsSuccess)
             {
-                Console.WriteLine($"Categories error: {string.Join(", ", categories.Errors)}");
                 TempData["Error"] = "Kategoriler yüklenirken hata: " + categories.Errors.FirstOrDefault();
                 return RedirectToAction("Create");
             }
 
             var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
-            Console.WriteLine($"TicketTypes count: {ticketTypes.Data?.Count ?? 0}");
 
             var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == typeId);
             if (selectedType == null)
             {
-                Console.WriteLine($"SelectedType is null for typeId: {typeId}");
                 TempData["Error"] = "Geçersiz ticket türü.";
                 return RedirectToAction("Create");
             }
 
-            Console.WriteLine($"Returning SelectCategory view for type: {selectedType.Name}");
 
             var model = new CreateTicketStep2ViewModel
             {
@@ -88,14 +80,10 @@ public class TicketsController : Controller
                 Categories = categories.Data ?? new List<TicketCategoryDto>()
             };
 
-            Console.WriteLine($"Model categories count: {model.Categories.Count}");
-
             return View("SelectCategory", model);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Exception in SelectType: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             TempData["Error"] = "Bir hata oluştu: " + ex.Message;
             return RedirectToAction("Create");
         }

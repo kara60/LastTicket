@@ -1,43 +1,63 @@
 ﻿@model TicketSystem.Web.Areas.Customer.Models.CreateTicketStep3ViewModel
 @{
-    ViewData["Title"] = "Yeni Ticket Oluştur - Form Doldurma";
+    ViewData["Title"] = "Form Doldurma";
 }
 
-<!-- Progress Bar -->
+<!-- Modern Progress Steps -->
 <div class="mb-8">
-    <div class="flex items-center">
-        <div class="flex items-center text-green-600">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
-                <i class="fas fa-check text-xs"></i>
-            </span>
-            <span class="ml-2 text-sm font-medium">Tür Seçimi</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
-        <div class="flex items-center text-green-600">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
-                <i class="fas fa-check text-xs"></i>
-            </span>
-            <span class="ml-2 text-sm font-medium">Kategori</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
-        <div class="flex items-center text-blue-600">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium">3</span>
-            <span class="ml-2 text-sm font-medium">Form</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
-        <div class="flex items-center text-gray-400">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">4</span>
-            <span class="ml-2 text-sm font-medium">Önizleme</span>
+    <div class="flex items-center justify-center">
+        <div class="flex items-center space-x-8">
+            <!-- Step 1: Completed -->
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-500 text-white shadow-lg">
+                    <i class="fas fa-check text-sm"></i>
+                </div>
+                <span class="ml-3 text-sm font-semibold text-green-600">Tür Seçimi</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-green-500"></div>
+
+            <!-- Step 2: Completed -->
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-500 text-white shadow-lg">
+                    <i class="fas fa-check text-sm"></i>
+                </div>
+                <span class="ml-3 text-sm font-semibold text-green-600">Kategori</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-green-500"></div>
+
+            <!-- Step 3: Active -->
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg">
+                    <span class="text-sm font-bold">3</span>
+                </div>
+                <span class="ml-3 text-sm font-semibold text-blue-600">Form</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-gray-200"></div>
+
+            <!-- Step 4: Inactive -->
+            <div class="flex items-center opacity-50">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 bg-white text-gray-400">
+                    <span class="text-sm font-medium">4</span>
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-400">Önizleme</span>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Selected Type & Category Info -->
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Selection Summary -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Selected Type -->
-        <div class="flex items-center">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @(Model.SelectedType?.Color)20;">
+        <div class="flex items-center bg-white rounded-xl p-4 shadow-sm">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4"
+                 style="background: linear-gradient(135deg, @(Model.SelectedType?.Color)20, @(Model.SelectedType?.Color)10);">
                 @{
                     var typeEmoji = Model.SelectedType?.Icon switch
                     {
@@ -54,17 +74,18 @@
                         _ => "🎫"
                     };
                 }
-                <span class="text-xl">@typeEmoji</span>
+                <span class="text-2xl">@typeEmoji</span>
             </div>
             <div>
-                <h3 class="font-medium text-gray-900">@Model.SelectedType?.Name</h3>
+                <h3 class="text-lg font-bold text-gray-900">@Model.SelectedType?.Name</h3>
                 <p class="text-sm text-gray-600">Seçilen Tür</p>
             </div>
         </div>
 
         <!-- Selected Category -->
-        <div class="flex items-center">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3" style="background-color: @(Model.SelectedCategory?.Color)20;">
+        <div class="flex items-center bg-white rounded-xl p-4 shadow-sm">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4"
+                 style="background: linear-gradient(135deg, @(Model.SelectedCategory?.Color)20, @(Model.SelectedCategory?.Color)10);">
                 @{
                     var categoryEmoji = Model.SelectedCategory?.Icon switch
                     {
@@ -81,75 +102,98 @@
                         _ => "📁"
                     };
                 }
-                <span class="text-xl">@categoryEmoji</span>
+                <span class="text-2xl">@categoryEmoji</span>
             </div>
             <div>
-                <h3 class="font-medium text-gray-900">@Model.SelectedCategory?.Name</h3>
+                <h3 class="text-lg font-bold text-gray-900">@Model.SelectedCategory?.Name</h3>
                 <p class="text-sm text-gray-600">Seçilen Kategori</p>
             </div>
         </div>
     </div>
 </div>
 
-<form method="post" action="/Customer/Tickets/PreviewTicket" id="ticketForm">
+<!-- Header -->
+<div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">@Model.SelectedType?.Name Detay Formu</h1>
+    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Talebinizle ilgili detayları eksiksiz olarak doldurun. Bu bilgiler size daha hızlı ve doğru destek sağlamamızı sağlar.
+    </p>
+</div>
+
+<form method="post" action="/Customer/Tickets/PreviewTicket" id="ticketForm" class="max-w-5xl mx-auto space-y-6">
     @Html.AntiForgeryToken()
     <input type="hidden" name="SelectedTypeId" value="@Model.SelectedTypeId" />
     <input type="hidden" name="SelectedCategoryId" value="@Model.SelectedCategoryId" />
 
-    <div style="background: red; color: white; padding: 5px; margin: 5px;">
-        DEBUG FillForm:
-        SelectedTypeId = @Model.SelectedTypeId,
-        SelectedCategoryId = @Model.SelectedCategoryId
-    </div>
-
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                <span class="text-xl mr-2">@typeEmoji</span>
-                @Model.SelectedType?.Name Formu
+    <!-- Main Form Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Form Header -->
+        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                <span class="text-2xl mr-3">@typeEmoji</span>
+                Detay Bilgileri
             </h2>
-            <p class="text-gray-600 mt-1">Lütfen gerekli bilgileri doldurun.</p>
+            <p class="text-gray-600 mt-1 text-sm">Lütfen tüm gerekli alanları eksiksiz doldurunuz</p>
         </div>
 
         <div class="p-6">
             <!-- Validation Summary -->
             @if (!ViewData.ModelState.IsValid)
             {
-                <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-400"></i>
+                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
+                            </div>
                         </div>
                         <div class="ml-3">
-                            <h3 class="text-sm font-medium text-red-800">Lütfen aşağıdaki hataları düzeltin:</h3>
-                            <div class="mt-2 text-sm text-red-700">
-                                <ul class="list-disc pl-5 space-y-1">
-                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                    {
-                                        <li>@error.ErrorMessage</li>
-                                    }
-                                </ul>
-                            </div>
+                            <h3 class="text-sm font-semibold text-red-800">Lütfen aşağıdaki hataları düzeltin:</h3>
+                            <ul class="mt-2 text-sm text-red-700 list-disc pl-5 space-y-1">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
                         </div>
                     </div>
                 </div>
             }
 
-            <!-- Kategori Modülleri -->
+            <!-- Module Selection -->
             @if (Model.SelectedCategory?.Modules?.Any() == true)
             {
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Modül Seçimi *
-                    </label>
-                    <select name="SelectedModule" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Bir modül seçiniz</option>
-                        @foreach (var module in Model.SelectedCategory.Modules)
-                        {
-                            <option value="@module.Name" @(Model.SelectedModule == module.Name ? "selected" : "")>@module.Name</option>
-                        }
-                    </select>
+                <div class="mb-8">
+                    <div class="bg-blue-50 rounded-xl border border-blue-200 p-6">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                                <i class="fas fa-puzzle-piece text-white text-lg"></i>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-lg font-semibold text-blue-900 mb-2">
+                                    Modül Seçimi *
+                                </label>
+                                <select name="SelectedModule" required
+                                        class="w-full px-4 py-3 border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm text-gray-900 transition-all duration-200">
+                                    <option value="">Lütfen bir modül seçiniz</option>
+                                    @foreach (var module in Model.SelectedCategory.Modules)
+                                    {
+                                        <option value="@module.Name" @(Model.SelectedModule == module.Name ? "selected" : "")>
+                                            @module.Name
+                                            @if (!string.IsNullOrEmpty(module.Description))
+                                            {
+                                                <text> - @module.Description</text>
+                                            }
+                                        </option>
+                                    }
+                                </select>
+                                <p class="text-sm text-blue-700 mt-2 flex items-center">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Bu seçim talebinizin ilgili modül sorumlusuna yönlendirilmesini sağlar
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
 
@@ -159,36 +203,54 @@
                 <div id="dynamicFormFields" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Dynamic fields will be rendered here by JavaScript -->
                 </div>
+
+                <!-- Loading State -->
+                <div id="formLoadingState" class="text-center py-16">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-2xl mb-4">
+                        <div class="animate-spin rounded-full h-10 w-10 border-3 border-blue-600 border-t-transparent"></div>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Form Yükleniyor</h3>
+                    <p class="text-gray-600">Dinamik form alanları hazırlanıyor...</p>
+                </div>
             }
             else
             {
-                <!-- Fallback eğer form definition yoksa -->
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <i class="fas fa-exclamation-triangle text-gray-400 text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Form Şablonu Bulunamadı</h3>
-                    <p class="text-gray-500">Bu ticket türü için form şablonu tanımlanmamış.</p>
+                <!-- No Form Definition -->
+                <div class="text-center py-16 bg-yellow-50 rounded-xl border border-yellow-200">
+                    <div class="w-24 h-24 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Form Şablonu Bulunamadı</h3>
+                    <p class="text-gray-600 mb-4 max-w-md mx-auto">Bu ticket türü için özel form alanları tanımlanmamış.</p>
+                    <div class="inline-flex items-center px-4 py-3 bg-yellow-100 text-yellow-800 rounded-xl">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span class="text-sm font-medium">Sistem yöneticisi ile iletişime geçerek form alanlarının eklenmesini talep edebilirsiniz</span>
+                    </div>
                 </div>
             }
         </div>
+    </div>
 
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-between">
-            <a href="javascript:history.back()"
-               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Geri
-            </a>
-            <button type="submit"
-                    id="submitBtn"
-                    class="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                Önizleme <i class="fas fa-arrow-right ml-2"></i>
-            </button>
-        </div>
+    <!-- Navigation -->
+    <div class="flex justify-between items-center pt-6">
+        <a href="javascript:history.back()"
+           class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md">
+            <i class="fas fa-arrow-left mr-2"></i>
+            <span class="font-medium">Geri</span>
+        </a>
+
+        <button type="submit" id="submitBtn"
+                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed group">
+            <span class="font-semibold">Önizleme</span>
+            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+        </button>
     </div>
 </form>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // FormDefinition parse etme
+            // Parse FormDefinition
             const formDefinitionString = '@Html.Raw(Model.SelectedType?.FormDefinition?.Replace("\"", "\\\"") ?? "")';
             let formDefinition = null;
 
@@ -197,92 +259,105 @@
                     formDefinition = JSON.parse(formDefinitionString);
                 } catch (e) {
                     console.error('Error parsing FormDefinition:', e);
-                    console.log('Raw FormDefinition:', formDefinitionString);
+                    showError('Form tanımı işlenirken hata oluştu');
                 }
             }
 
             if (formDefinition && formDefinition.fields && formDefinition.fields.length > 0) {
-                renderDynamicFields(formDefinition.fields);
+                setTimeout(() => {
+                    renderDynamicFields(formDefinition.fields);
+                }, 500); // Small delay for better UX
             } else {
-                console.log('No form definition found or empty fields');
+                document.getElementById('formLoadingState')?.remove();
             }
 
             // Form submission handler
             const ticketForm = document.getElementById('ticketForm');
             if (ticketForm) {
                 ticketForm.addEventListener('submit', function(e) {
-                    // Form verilerini debug için logla
-                    console.log('Form submission - checking data:');
-                    const formData = new FormData(ticketForm);
-                    let hasFormData = false;
-
-                    for (let [key, value] of formData.entries()) {
-                        console.log(`${key}: ${value}`);
-                        if (key.startsWith('FormData[') && value.trim() !== '') {
-                            hasFormData = true;
-                        }
-                    }
-
-                    // Eğer hiç form verisi yoksa uyar
-                    if (!hasFormData) {
-                        e.preventDefault();
-                        alert('Lütfen form alanlarını doldurunuz.');
-                        return false;
-                    }
-
                     const submitBtn = document.getElementById('submitBtn');
-                    if (submitBtn) {
+                    if (submitBtn && !submitBtn.disabled) {
+                        // Validate form
+                        if (!validateForm()) {
+                            e.preventDefault();
+                            return false;
+                        }
+
+                        // Show loading state
                         submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>İşleniyor...';
+                        submitBtn.innerHTML = '<div class="flex items-center"><div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div><span>İşleniyor...</span></div>';
+
+                        // Timeout protection
+                        setTimeout(() => {
+                            if (submitBtn.disabled) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<span class="font-semibold">Önizleme</span><i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>';
+                            }
+                        }, 15000);
                     }
                 });
             }
+
+            // Auto-save functionality (optional)
+            const formInputs = document.querySelectorAll('input, select, textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    // Save to localStorage for recovery
+                    const formData = new FormData(ticketForm);
+                    const data = {};
+                    for (let [key, value] of formData.entries()) {
+                        data[key] = value;
+                    }
+                    try {
+                        localStorage.setItem('ticket_form_draft', JSON.stringify(data));
+                    } catch (e) {
+                        // localStorage not available
+                    }
+                });
+            });
         });
 
         function renderDynamicFields(fields) {
             const container = document.getElementById('dynamicFormFields');
-            if (!container) {
-                console.error('dynamicFormFields container not found');
-                return;
-            }
+            const loadingState = document.getElementById('formLoadingState');
+
+            if (!container) return;
 
             let fieldsHtml = '';
             let hasRequiredFields = false;
 
             fields.forEach(function(field, index) {
-                if (!field.name || !field.label) {
-                    console.log('Skipping field due to missing name or label:', field);
-                    return;
-                }
+                if (!field.name || !field.label) return;
 
-                // Dictionary binding için doğru format: FormData[key]
                 const fieldName = `FormData[${field.name}]`;
                 const isRequired = field.required || false;
                 const placeholder = field.placeholder || '';
+                const fieldId = `field_${index}`;
 
                 if (isRequired) hasRequiredFields = true;
 
-                fieldsHtml += '<div>';
-                fieldsHtml += `<label class="block text-sm font-medium text-gray-700 mb-2">`;
+                fieldsHtml += '<div class="form-field-container bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors duration-200">';
+                fieldsHtml += `<label for="${fieldId}" class="block text-sm font-semibold text-gray-800 mb-3">`;
                 fieldsHtml += field.label;
                 if (isRequired) {
-                    fieldsHtml += ' <span class="text-red-500">*</span>';
+                    fieldsHtml += ' <span class="text-red-500 text-lg">*</span>';
                 }
                 fieldsHtml += '</label>';
 
+                const baseClasses = 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white';
+
                 switch (field.type) {
                     case 'textarea':
-                        fieldsHtml += `<textarea name="${fieldName}" rows="4" placeholder="${placeholder}"`;
+                        fieldsHtml += `<textarea id="${fieldId}" name="${fieldName}" rows="4" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>';
+                        fieldsHtml += ` class="${baseClasses} resize-vertical min-h-[100px]"></textarea>`;
                         break;
 
                     case 'select':
-                        fieldsHtml += `<select name="${fieldName}"`;
+                        fieldsHtml += `<select id="${fieldId}" name="${fieldName}"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
-                        fieldsHtml += '<option value="">Seçiniz...</option>';
-
+                        fieldsHtml += ` class="${baseClasses}">`;
+                        fieldsHtml += '<option value="">Lütfen seçiniz...</option>';
                         if (field.options && Array.isArray(field.options)) {
                             field.options.forEach(function(option) {
                                 fieldsHtml += `<option value="${option}">${option}</option>`;
@@ -292,53 +367,63 @@
                         break;
 
                     case 'checkbox':
-                        fieldsHtml += '<div class="flex items-center">';
-                        fieldsHtml += `<input type="checkbox" name="${fieldName}" value="true" id="field_${index}"`;
+                        fieldsHtml += '<div class="flex items-center space-x-3 p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors">';
+                        fieldsHtml += `<input type="checkbox" id="${fieldId}" name="${fieldName}" value="true"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">';
-                        // Checkbox için hidden field (ASP.NET Core için)
+                        fieldsHtml += ' class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors">';
                         fieldsHtml += `<input type="hidden" name="${fieldName}" value="false">`;
-                        fieldsHtml += `<label for="field_${index}" class="ml-2 text-sm text-gray-700">${placeholder || field.label}</label>`;
+                        fieldsHtml += `<label for="${fieldId}" class="text-sm text-gray-700 font-medium cursor-pointer">${placeholder || field.label}</label>`;
                         fieldsHtml += '</div>';
                         break;
 
                     case 'number':
-                        fieldsHtml += `<input type="number" name="${fieldName}" placeholder="${placeholder}"`;
+                        fieldsHtml += `<input type="number" id="${fieldId}" name="${fieldName}" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
                         if (field.validation) {
-                            if (field.validation.min !== null && field.validation.min !== undefined) fieldsHtml += ` min="${field.validation.min}"`;
-                            if (field.validation.max !== null && field.validation.max !== undefined) fieldsHtml += ` max="${field.validation.max}"`;
+                            if (field.validation.min !== null) fieldsHtml += ` min="${field.validation.min}"`;
+                            if (field.validation.max !== null) fieldsHtml += ` max="${field.validation.max}"`;
                         }
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += ` class="${baseClasses}">`;
                         break;
 
                     case 'email':
-                        fieldsHtml += `<input type="email" name="${fieldName}" placeholder="${placeholder}"`;
+                        fieldsHtml += `<input type="email" id="${fieldId}" name="${fieldName}" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += ` class="${baseClasses}">`;
                         break;
 
                     case 'tel':
-                        fieldsHtml += `<input type="tel" name="${fieldName}" placeholder="${placeholder}"`;
+                        fieldsHtml += `<input type="tel" id="${fieldId}" name="${fieldName}" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += ` class="${baseClasses}">`;
                         break;
 
                     case 'date':
-                        fieldsHtml += `<input type="date" name="${fieldName}"`;
+                        fieldsHtml += `<input type="date" id="${fieldId}" name="${fieldName}"`;
                         if (isRequired) fieldsHtml += ' required';
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += ` class="${baseClasses}">`;
+                        break;
+
+                    case 'url':
+                        fieldsHtml += `<input type="url" id="${fieldId}" name="${fieldName}" placeholder="${placeholder}"`;
+                        if (isRequired) fieldsHtml += ' required';
+                        fieldsHtml += ` class="${baseClasses}">`;
                         break;
 
                     default: // text
-                        fieldsHtml += `<input type="text" name="${fieldName}" placeholder="${placeholder}"`;
+                        fieldsHtml += `<input type="text" id="${fieldId}" name="${fieldName}" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
                         if (field.validation) {
                             if (field.validation.minLength) fieldsHtml += ` minlength="${field.validation.minLength}"`;
                             if (field.validation.maxLength) fieldsHtml += ` maxlength="${field.validation.maxLength}"`;
                         }
-                        fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
+                        fieldsHtml += ` class="${baseClasses}">`;
                         break;
+                }
+
+                // Add help text if available
+                if (field.helpText) {
+                    fieldsHtml += `<p class="mt-2 text-xs text-gray-600 flex items-center"><i class="fas fa-info-circle mr-1"></i>${field.helpText}</p>`;
                 }
 
                 fieldsHtml += '</div>';
@@ -346,15 +431,196 @@
 
             container.innerHTML = fieldsHtml;
 
-            // Eğer required field varsa bilgi göster
+            // Add required fields info
             if (hasRequiredFields) {
                 const infoDiv = document.createElement('div');
-                infoDiv.className = 'col-span-full bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700';
-                infoDiv.innerHTML = '<i class="fas fa-info-circle mr-2"></i>(*) işaretli alanlar zorunludur.';
+                infoDiv.className = 'col-span-full bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mt-4';
+                infoDiv.innerHTML = '<div class="flex items-center"><div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3"><i class="fas fa-info text-white text-sm"></i></div><p class="text-sm text-blue-800 font-medium"><span class="text-red-500 text-lg">*</span> işaretli alanlar zorunludur.</p></div>';
                 container.appendChild(infoDiv);
             }
 
-            console.log(`Rendered ${fields.length} dynamic fields`);
+            // Remove loading state with animation
+            if (loadingState) {
+                loadingState.style.opacity = '0';
+                loadingState.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    loadingState.remove();
+                }, 300);
+            }
+
+            // Add field animations
+            const fieldContainers = container.querySelectorAll('.form-field-container');
+            fieldContainers.forEach((field, index) => {
+                field.style.opacity = '0';
+                field.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    field.style.transition = 'all 0.4s ease-out';
+                    field.style.opacity = '1';
+                    field.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Load saved draft if exists
+            try {
+                const savedData = localStorage.getItem('ticket_form_draft');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    Object.keys(data).forEach(key => {
+                        const field = document.querySelector(`[name="${key}"]`);
+                        if (field) {
+                            if (field.type === 'checkbox') {
+                                field.checked = data[key] === 'true';
+                            } else {
+                                field.value = data[key];
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                // Ignore draft loading errors
+            }
         }
+
+        function validateForm() {
+            const requiredFields = document.querySelectorAll('[required]');
+            let isValid = true;
+            let firstInvalidField = null;
+
+            requiredFields.forEach(field => {
+                const value = field.type === 'checkbox' ? field.checked : field.value.trim();
+
+                if (!value) {
+                    field.classList.add('border-red-500', 'bg-red-50');
+                    field.classList.remove('border-gray-200');
+
+                    // Add shake animation
+                    field.style.animation = 'shake 0.5s ease-in-out';
+                    setTimeout(() => {
+                        field.style.animation = '';
+                    }, 500);
+
+                    isValid = false;
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                    }
+                } else {
+                    field.classList.remove('border-red-500', 'bg-red-50');
+                    field.classList.add('border-gray-200');
+                }
+            });
+
+            if (!isValid) {
+                showError('Lütfen zorunlu alanları doldurunuz');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                // Clear draft on successful submission
+                try {
+                    localStorage.removeItem('ticket_form_draft');
+                } catch (e) {
+                    // Ignore
+                }
+            }
+
+            return isValid;
+        }
+
+        function showError(message) {
+            // Remove existing error messages
+            const existingErrors = document.querySelectorAll('.temp-error-message');
+            existingErrors.forEach(error => error.remove());
+
+            // Create error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'temp-error-message fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 transition-all duration-300 max-w-sm';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-3 text-lg"></i>
+                    <div>
+                        <p class="font-semibold">Hata</p>
+                        <p class="text-sm opacity-90">${message}</p>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(errorDiv);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.style.opacity = '0';
+                    errorDiv.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        errorDiv.remove();
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                history.back();
+            }
+            if (e.key === 'Enter' && e.ctrlKey) {
+                document.getElementById('submitBtn')?.click();
+            }
+        });
     </script>
+
+    <style>
+        /* Enhanced form field styling */
+        input:focus, select:focus, textarea:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        @@keyframes shake {
+            0%, 100%
+
+        {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+
+        }
+
+        /* Loading animation enhancement */
+        @@keyframes spin {
+            to
+
+        {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* Custom scrollbar for textarea */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+            textarea::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+    </style>
 }

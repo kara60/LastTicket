@@ -1,37 +1,58 @@
 ﻿@model TicketSystem.Web.Areas.Customer.Models.CreateTicketStep2ViewModel
 @{
-    ViewData["Title"] = "Yeni Ticket Oluştur - Kategori Seçimi";
+    ViewData["Title"] = "Kategori Seçimi";
 }
 
-<!-- Progress Bar -->
+<!-- Modern Progress Steps -->
 <div class="mb-8">
-    <div class="flex items-center">
-        <div class="flex items-center text-green-600">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-green-600 rounded-full bg-green-600 text-white text-sm font-medium">
-                <i class="fas fa-check text-xs"></i>
-            </span>
-            <span class="ml-2 text-sm font-medium">Tür Seçimi</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-green-600"></div>
-        <div class="flex items-center text-blue-600">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium">2</span>
-            <span class="ml-2 text-sm font-medium">Kategori</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
-        <div class="flex items-center text-gray-400">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">3</span>
-            <span class="ml-2 text-sm font-medium">Form</span>
-        </div>
-        <div class="flex-1 h-1 mx-4 bg-gray-200"></div>
-        <div class="flex items-center text-gray-400">
-            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full text-sm font-medium">4</span>
-            <span class="ml-2 text-sm font-medium">Önizleme</span>
+    <div class="flex items-center justify-center">
+        <div class="flex items-center space-x-8">
+            <!-- Step 1: Completed -->
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-500 text-white shadow-lg">
+                    <i class="fas fa-check text-sm"></i>
+                </div>
+                <span class="ml-3 text-sm font-semibold text-green-600">Tür Seçimi</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-green-500"></div>
+
+            <!-- Step 2: Active -->
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg">
+                    <span class="text-sm font-bold">2</span>
+                </div>
+                <span class="ml-3 text-sm font-semibold text-blue-600">Kategori</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-gray-200"></div>
+
+            <!-- Step 3: Inactive -->
+            <div class="flex items-center opacity-50">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 bg-white text-gray-400">
+                    <span class="text-sm font-medium">3</span>
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-400">Form</span>
+            </div>
+
+            <!-- Connector -->
+            <div class="h-0.5 w-16 bg-gray-200"></div>
+
+            <!-- Step 4: Inactive -->
+            <div class="flex items-center opacity-50">
+                <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 bg-white text-gray-400">
+                    <span class="text-sm font-medium">4</span>
+                </div>
+                <span class="ml-3 text-sm font-medium text-gray-400">Önizleme</span>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Selected Type -->
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+<!-- Selected Type Summary -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6 mb-8">
     <div class="flex items-center">
         @{
             var typeEmoji = Model.SelectedType?.Icon switch
@@ -49,69 +70,94 @@
                 _ => "🎫"
             };
         }
-        <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4" style="background-color: @(Model.SelectedType?.Color)15;">
-            <span class="text-2xl">@typeEmoji</span>
+
+        <div class="flex items-center bg-white rounded-xl p-4 shadow-sm">
+            <div class="w-12 h-12 rounded-lg flex items-center justify-center mr-4"
+                 style="background: linear-gradient(135deg, @(Model.SelectedType?.Color)20, @(Model.SelectedType?.Color)10);">
+                <span class="text-2xl">@typeEmoji</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-900">@Model.SelectedType?.Name</h3>
+                <p class="text-sm text-gray-600">Seçilen Ticket Türü</p>
+            </div>
         </div>
-        <div>
-            <h3 class="font-medium text-gray-900">Seçilen Tür: @Model.SelectedType?.Name</h3>
-            <p class="text-sm text-gray-600">@Model.SelectedType?.Description</p>
+
+        <div class="ml-6 text-left">
+            <p class="text-blue-800 font-medium">✓ Tür seçimi tamamlandı</p>
+            <p class="text-sm text-blue-600 mt-1">Şimdi ticket'ınızın hangi kategoriye ait olduğunu belirleyin</p>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(Model.SelectedType?.Description))
+    {
+        <div class="mt-4 p-4 bg-white/50 rounded-xl">
+            <p class="text-sm text-gray-700">@Model.SelectedType.Description</p>
+        </div>
+    }
 </div>
 
-<div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-            <i class="fas fa-folder-open text-blue-600 mr-3"></i>
-            Kategori Seçin
-        </h2>
-        <p class="text-gray-600 mt-1">Bu ticket hangi kategoriye ait?</p>
+<!-- Main Container -->
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Kategori Seçimi</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            Ticket'ınızın hangi departman veya konuya ait olduğunu belirleyin.
+            Bu seçim talebinizin doğru ekibe yönlendirilmesini sağlar.
+        </p>
     </div>
 
-    <div class="p-6">
-        @if (Model.Categories.Any())
-        {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach (var category in Model.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+    @if (Model.Categories.Any())
+    {
+        <!-- Categories Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            @foreach (var category in Model.Categories.Where(c => c.IsActive).OrderBy(c => c.SortOrder))
+            {
+                var categoryEmoji = category.Icon switch
                 {
-                    var categoryEmoji = category.Icon switch
-                    {
-                        "bug" => "🐛",
-                        "lightbulb" => "💡",
-                        "graduation-cap" => "🎓",
-                        "cog" => "⚙️",
-                        "question-circle" => "❓",
-                        "exclamation-triangle" => "⚠️",
-                        "tools" => "🔧",
-                        "chart-line" => "📈",
-                        "headset" => "🎧",
-                        "rocket" => "🚀",
-                        _ => "📁"
-                    };
+                    "bug" => "🐛",
+                    "lightbulb" => "💡",
+                    "graduation-cap" => "🎓",
+                    "cog" => "⚙️",
+                    "question-circle" => "❓",
+                    "exclamation-triangle" => "⚠️",
+                    "tools" => "🔧",
+                    "chart-line" => "📈",
+                    "headset" => "🎧",
+                    "rocket" => "🚀",
+                    _ => "📁"
+                };
 
-                    <form method="post" action="/Customer/Tickets/SelectCategory">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="typeId" value="@Model.SelectedTypeId" />
-                        <input type="hidden" name="categoryId" value="@category.Id" />
-                        <button type="submit"
-                                class="w-full p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 hover:shadow-md transition-all duration-200 text-left group">
+                <form method="post" action="/Customer/Tickets/SelectCategory" class="h-full">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="typeId" value="@Model.SelectedTypeId" />
+                    <input type="hidden" name="categoryId" value="@category.Id" />
+
+                    <button type="submit" class="category-card group h-full w-full">
+                        <div class="relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 h-full p-6 group-hover:border-blue-200">
+
+                            <!-- Animated Background -->
+                            <div class="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl"
+                                 style="background: linear-gradient(135deg, @category.Color 0%, darken(@category.Color, 20%) 100%);">
+                            </div>
+
                             <!-- Header -->
-                            <div class="flex items-center mb-4">
-                                <div class="w-14 h-14 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform duration-200"
-                                     style="background-color: @(category.Color)15;">
+                            <div class="relative flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-lg"
+                                     style="background: linear-gradient(135deg, @(category.Color)20, @(category.Color)10);">
                                     <span class="text-3xl">@categoryEmoji</span>
                                 </div>
-                                <div class="flex-1">
-                                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                <div class="flex-1 text-left">
+                                    <h3 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
                                         @category.Name
                                     </h3>
-                                    <div class="flex items-center mt-1">
-                                        <span class="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                            Aktif
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                                            <i class="fas fa-check mr-1 text-xs"></i>Aktif
                                         </span>
                                         @if (category.SortOrder > 0)
                                         {
-                                            <span class="ml-2 text-xs text-gray-500">#@category.SortOrder</span>
+                                            <span class="ml-2 text-xs text-gray-400">#@category.SortOrder</span>
                                         }
                                     </div>
                                 </div>
@@ -120,107 +166,195 @@
                             <!-- Description -->
                             @if (!string.IsNullOrEmpty(category.Description))
                             {
-                                <p class="text-gray-600 text-sm leading-relaxed mb-3">@category.Description</p>
+                                <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">@category.Description</p>
                             }
 
                             <!-- Modules Info -->
-                            @if (category.Modules?.Any() == true)
-                            {
-                                <div class="mt-3 pt-3 border-t border-gray-100">
+                            <div class="pt-4 border-t border-gray-100">
+                                @if (category.Modules?.Any() == true)
+                                {
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center text-sm text-gray-500">
-                                            <i class="fas fa-puzzle-piece mr-2"></i>
-                                            <span>@category.Modules.Count modül mevcut</span>
+                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-2">
+                                                <i class="fas fa-puzzle-piece text-blue-600 text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-700">@category.Modules.Count Modül</p>
+                                                <p class="text-xs text-gray-500">Seçim yapılacak</p>
+                                            </div>
                                         </div>
-                                        <div class="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <i class="fas fa-arrow-right"></i>
                                         </div>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">
-                                        @string.Join(", ", category.Modules.Take(3).Select(m => m.Name))@(category.Modules.Count > 3 ? "..." : "")
-                                    </p>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                                    <div class="flex items-center text-sm text-gray-500">
-                                        <i class="fas fa-check-circle mr-2"></i>
-                                        <span>Genel kategori</span>
+
+                                    <!-- Module Preview -->
+                                    <div class="mt-3">
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach (var module in category.Modules.Take(3))
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                                                    @module.Name
+                                                </span>
+                                            }
+                                            @if (category.Modules.Count > 3)
+                                            {
+                                                <span class="inline-flex items-center px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded-full">
+                                                    +@(category.Modules.Count - 3) daha
+                                                </span>
+                                            }
+                                        </div>
                                     </div>
-                                    <div class="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <i class="fas fa-arrow-right"></i>
+                                }
+                                else
+                                {
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center text-sm text-gray-500">
+                                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+                                                <i class="fas fa-check-circle text-green-600 text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-700">Genel Kategori</p>
+                                                <p class="text-xs text-gray-500">Modül seçimi yok</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
                                     </div>
-                                </div>
-                            }
-                        </button>
-                    </form>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-12">
-                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
+                                }
+                            </div>
+                        </div>
+                    </button>
+                </form>
+            }
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-8 flex justify-between items-center">
+            <a href="@Url.Action("Create")"
+               class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Tür Seçimine Dön
+            </a>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md">
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-blue-500 mt-0.5 mr-3"></i>
+                    <div>
+                        <p class="text-sm font-medium text-blue-800">İpucu</p>
+                        <p class="text-xs text-blue-600 mt-1">
+                            Kategori seçimi talebinizin doğru departmana yönlendirilmesini sağlar
+                        </p>
+                    </div>
                 </div>
-                <h3 class="text-xl font-medium text-gray-900 mb-2">Kategori bulunamadı</h3>
-                <p class="text-gray-500 mb-6">Bu ticket türü için aktif kategori bulunmuyor.</p>
-                <a href="@Url.Action("Create")"
-                   class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Tür Seçimine Dön
-                </a>
             </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-folder-open text-gray-400 text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-semibold text-gray-900 mb-3">Kategori Bulunamadı</h3>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">
+                Bu ticket türü için aktif kategori bulunmuyor.
+                Lütfen farklı bir tür seçiniz.
+            </p>
+            <a href="@Url.Action("Create")"
+               class="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors shadow-lg hover:shadow-xl">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Tür Seçimine Dön
+            </a>
+        </div>
+    }
 </div>
 
-@if (Model.Categories.Any())
-{
-    <!-- Navigation -->
-    <div class="mt-6 flex justify-between items-center">
-        <a href="@Url.Action("Create")"
-           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-            <i class="fas fa-arrow-left mr-2"></i>Tür Seçimine Dön
-        </a>
+<style>
+    .category-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p class="text-sm text-blue-700">
-                <i class="fas fa-info-circle mr-2"></i>
-                Kategori seçimi, ticket'ınızın doğru departmana yönlendirilmesini sağlar.
-            </p>
-        </div>
-    </div>
-}
+        .category-card:hover {
+            transform: translateY(-4px);
+        }
+
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Form submission loading states
+            // Enhanced form submission with loading states
             const forms = document.querySelectorAll('form');
             forms.forEach(function(form) {
-                form.addEventListener('submit', function() {
+                form.addEventListener('submit', function(e) {
                     const button = form.querySelector('button[type="submit"]');
-                    if (button) {
+                    if (button && !button.disabled) {
                         button.disabled = true;
-                        const originalContent = button.innerHTML;
-                        button.innerHTML = '<div class="flex items-center justify-center"><i class="fas fa-spinner fa-spin mr-2"></i>Yükleniyor...</div>';
 
-                        // Reset after 10 seconds if no navigation happens
+                        const originalContent = button.innerHTML;
+                        button.innerHTML = '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>Yükleniyor...</div>';
+
                         setTimeout(() => {
-                            button.disabled = false;
-                            button.innerHTML = originalContent;
+                            if (button.disabled) {
+                                button.disabled = false;
+                                button.innerHTML = originalContent;
+                            }
                         }, 10000);
                     }
                 });
             });
 
-            // Keyboard navigation
+            // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     window.location.href = '@Url.Action("Create")';
                 }
+
+                if (e.key >= '1' && e.key <= '9') {
+                    const index = parseInt(e.key) - 1;
+                    const forms = document.querySelectorAll('form');
+                    if (forms[index]) {
+                        forms[index].querySelector('button[type="submit"]').click();
+                    }
+                }
+            });
+
+            // Add animations
+            const cards = document.querySelectorAll('.category-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animate-fade-in-up');
             });
         });
     </script>
+
+    <style>
+        @@keyframes fadeInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
 }
