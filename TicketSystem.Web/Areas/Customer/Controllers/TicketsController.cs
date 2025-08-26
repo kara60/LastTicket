@@ -128,116 +128,94 @@ public class TicketsController : Controller
     [HttpPost]
     public async Task<IActionResult> PreviewTicket(CreateTicketStep3ViewModel model)
     {
-        // Model binding sorununu çözmek için Request.Form'dan manuel parsing
-        if (Request.Form != null)
+        Console.WriteLine("=== PreviewTicket START DEBUG ===");
+        Console.WriteLine($"RECEIVED - SelectedTypeId: {model.SelectedTypeId}");
+        Console.WriteLine($"RECEIVED - SelectedCategoryId: {model.SelectedCategoryId}");
+        Console.WriteLine($"RECEIVED - Title: '{model.Title}'");
+
+        // Request.Form debug - gerçekte ne geliyor?
+        foreach (var key in Request.Form.Keys)
         {
-            // FormData dictionary'yi manuel olarak doldur
-            model.FormData = new Dictionary<string, object>();
+            Console.WriteLine($"Form[{key}] = {Request.Form[key]}");
+        }
 
-            foreach (var key in Request.Form.Keys)
+        // CRITICAL: Eğer 0 geliyorsa Request.Form'dan manuel oku
+        if (model.SelectedTypeId == 0)
+        {
+            var typeIdStr = Request.Form["SelectedTypeId"].ToString();
+            if (int.TryParse(typeIdStr, out int typeId))
             {
-                if (key.StartsWith("FormData[") && key.EndsWith("]"))
-                {
-                    var fieldName = key.Substring(9, key.Length - 10); // "FormData[" ve "]" kısmını çıkar
-                    var value = Request.Form[key].ToString();
-
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        model.FormData[fieldName] = value;
-                    }
-                }
-            }
-
-            // SelectedModule'u da kontrol et
-            if (Request.Form.ContainsKey("SelectedModule"))
-            {
-                model.SelectedModule = Request.Form["SelectedModule"].ToString();
+                model.SelectedTypeId = typeId;
+                Console.WriteLine($"FIXED SelectedTypeId from Form: {typeId}");
             }
         }
 
-        // Artık Title required olmadığı için, dinamik formdan title üret
+        if (model.SelectedCategoryId == 0)
+        {
+            var categoryIdStr = Request.Form["SelectedCategoryId"].ToString();
+            if (int.TryParse(categoryIdStr, out int categoryId))
+            {
+                model.SelectedCategoryId = categoryId;
+                Console.WriteLine($"FIXED SelectedCategoryId from Form: {categoryId}");
+            }
+        }
+
+        Console.WriteLine($"AFTER FIX - SelectedTypeId: {model.SelectedTypeId}");
+        Console.WriteLine($"AFTER FIX - SelectedCategoryId: {model.SelectedCategoryId}");
+
+        // FormData parsing
+        model.FormData = new Dictionary<string, object>();
+        foreach (var key in Request.Form.Keys)
+        {
+            if (key.StartsWith("FormData[") && key.EndsWith("]"))
+            {
+                var fieldName = key.Substring(9, key.Length - 10);
+                var value = Request.Form[key].ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    model.FormData[fieldName] = value;
+                }
+            }
+        }
+
+        if (Request.Form.ContainsKey("SelectedModule"))
+        {
+            model.SelectedModule = Request.Form["SelectedModule"].ToString();
+        }
+
+        // Type ve Category yükle
+        var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+        var categories = await _mediator.Send(new GetTicketCategoriesQuery());
+
+        model.SelectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
+        model.SelectedCategory = categories.Data?.FirstOrDefault(x => x.Id == model.SelectedCategoryId);
+
+        Console.WriteLine($"LOADED - SelectedType: {model.SelectedType?.Name ?? "NULL"}");
+        Console.WriteLine($"LOADED - SelectedCategory: {model.SelectedCategory?.Name ?? "NULL"}");
+
+        // Title generate
         if (string.IsNullOrWhiteSpace(model.Title))
         {
             model.Title = model.GetDynamicTitle();
         }
 
-        // En az bir form alanının doldurulmuş olup olmadığını kontrol et
-        if (model.FormData == null || !model.FormData.Any())
-        {
-            // Type ve Category bilgilerini tekrar yükle
-            var ticketTypesForError = await _mediator.Send(new GetTicketTypesQuery());
-            var categoriesForError = await _mediator.Send(new GetTicketCategoriesQuery());
+        // Validation skip for now - focus on data flow
+        Console.WriteLine($"FormData count: {model.FormData.Count}");
 
-            model.SelectedType = ticketTypesForError.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
-            model.SelectedCategory = categoriesForError.Data?.FirstOrDefault(x => x.Id == model.SelectedCategoryId);
-
-            ModelState.AddModelError("", "Lütfen en az bir form alanını doldurunuz.");
-            return View("FillForm", model);
-        }
-
-        // Gerekli alanlar kontrolü (optional - form definition'da required olan alanlar varsa)
-        var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
-        var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
-
-        if (selectedType != null && !string.IsNullOrEmpty(selectedType.FormDefinition))
-        {
-            try
-            {
-                var formDef = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(selectedType.FormDefinition);
-                if (formDef.TryGetProperty("fields", out var fieldsElement) && fieldsElement.ValueKind == System.Text.Json.JsonValueKind.Array)
-                {
-                    foreach (var field in fieldsElement.EnumerateArray())
-                    {
-                        if (field.TryGetProperty("required", out var requiredProp) && requiredProp.GetBoolean() &&
-                            field.TryGetProperty("name", out var nameProp))
-                        {
-                            var fieldName = nameProp.GetString();
-                            if (string.IsNullOrEmpty(fieldName) ||
-                                !model.FormData.ContainsKey(fieldName) ||
-                                string.IsNullOrWhiteSpace(model.FormData[fieldName]?.ToString()))
-                            {
-                                var labelProp = field.TryGetProperty("label", out var label) ? label.GetString() : fieldName;
-                                ModelState.AddModelError("", $"{labelProp} alanı gereklidir.");
-                            }
-                        }
-                    }
-                }
-            }
-            catch (System.Text.Json.JsonException ex)
-            {
-                
-            }
-        }
-
-        // Eğer validation hatası varsa form'a geri dön
-        if (!ModelState.IsValid)
-        {
-            var ticketTypesForError = await _mediator.Send(new GetTicketTypesQuery());
-            var categoriesForError = await _mediator.Send(new GetTicketCategoriesQuery());
-
-            model.SelectedType = ticketTypesForError.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
-            model.SelectedCategory = categoriesForError.Data?.FirstOrDefault(x => x.Id == model.SelectedCategoryId);
-
-            return View("FillForm", model);
-        }
-
-        // Önizleme sayfasına yönlendir
         var previewModel = new CreateTicketStep4ViewModel
         {
             SelectedTypeId = model.SelectedTypeId,
             SelectedCategoryId = model.SelectedCategoryId,
-            Title = model.Title, // Artık dinamik olarak üretilen title
+            Title = model.Title,
             Description = model.Description,
             SelectedModule = model.SelectedModule,
-            FormData = model.FormData ?? new Dictionary<string, object>()
+            FormData = model.FormData,
+            SelectedType = model.SelectedType,
+            SelectedCategory = model.SelectedCategory
         };
 
-        // Type ve Category bilgilerini tekrar yükle
-        var typesQuery = await _mediator.Send(new GetTicketTypesQuery());
-        var categoriesQuery = await _mediator.Send(new GetTicketCategoriesQuery());
-
-        previewModel.SelectedType = typesQuery.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
-        previewModel.SelectedCategory = categoriesQuery.Data?.FirstOrDefault(x => x.Id == model.SelectedCategoryId);
+        Console.WriteLine($"PREVIEW MODEL - TypeId: {previewModel.SelectedTypeId}, CategoryId: {previewModel.SelectedCategoryId}");
+        Console.WriteLine($"PREVIEW MODEL - Type: {previewModel.SelectedType?.Name}, Category: {previewModel.SelectedCategory?.Name}");
 
         return View("Preview", previewModel);
     }
@@ -245,15 +223,54 @@ public class TicketsController : Controller
     [HttpPost]
     public async Task<IActionResult> SubmitTicket(CreateTicketStep4ViewModel model)
     {
+        Console.WriteLine("=== SubmitTicket Debug ===");
+        Console.WriteLine($"Title: '{model.Title}'");
+        Console.WriteLine($"TypeId: {model.SelectedTypeId}");
+        Console.WriteLine($"CategoryId: {model.SelectedCategoryId}");
+        Console.WriteLine($"FormData count: {model.FormData.Count}");
+
+        // Title boşsa dinamik oluştur
+        if (string.IsNullOrWhiteSpace(model.Title))
+        {
+            // Type ve Category bilgilerini yükle
+            var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+            var categories = await _mediator.Send(new GetTicketCategoriesQuery());
+
+            var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == model.SelectedTypeId);
+            var selectedCategory = categories.Data?.FirstOrDefault(x => x.Id == model.SelectedCategoryId);
+
+            // Title'ı dinamik oluştur
+            var titleKeys = new[] { "title", "baslik", "name", "ad", "konu" };
+
+            foreach (var key in titleKeys)
+            {
+                if (model.FormData.ContainsKey(key) && !string.IsNullOrWhiteSpace(model.FormData[key]?.ToString()))
+                {
+                    model.Title = model.FormData[key].ToString()!;
+                    break;
+                }
+            }
+
+            // Eğer hala boşsa otomatik oluştur
+            if (string.IsNullOrWhiteSpace(model.Title))
+            {
+                model.Title = $"{selectedType?.Name} - {selectedCategory?.Name} - {DateTime.Now:dd.MM.yyyy HH:mm}";
+            }
+
+            Console.WriteLine($"Generated title for submit: '{model.Title}'");
+        }
+
         var command = new CreateTicketCommand
         {
             TypeId = model.SelectedTypeId,
             CategoryId = model.SelectedCategoryId,
-            Title = model.Title,
+            Title = model.Title, // Artık boş olmayacak
             Description = model.Description,
             SelectedModule = model.SelectedModule,
             FormData = model.FormData
         };
+
+        Console.WriteLine($"Command Title: '{command.Title}'");
 
         var result = await _mediator.Send(command);
 

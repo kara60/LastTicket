@@ -21,9 +21,10 @@ public class GetTicketCategoriesQueryHandler : IQueryHandler<GetTicketCategories
         if (!_current.IsAuthenticated || !_current.CompanyId.HasValue)
             return Result<List<TicketCategoryDto>>.Failure("Kullanıcı doğrulanamadı.");
 
-        var categories = await _uow.TicketCategories.FindAsync(x =>
-            x.CompanyId == _current.CompanyId &&
-            (!request.OnlyActive || x.IsActive));
+        // Include navigation property ile birlikte çek
+        var categories = await _uow.TicketCategories.FindAsync(
+            x => x.CompanyId == _current.CompanyId && (!request.OnlyActive || x.IsActive),
+            x => x.Modules); // Include Modules navigation property
 
         var list = categories
             .OrderBy(x => x.SortOrder)
@@ -36,12 +37,15 @@ public class GetTicketCategoriesQueryHandler : IQueryHandler<GetTicketCategories
                 Color = x.Color,
                 IsActive = x.IsActive,
                 SortOrder = x.SortOrder,
-                Modules = x.Modules.Select(m => new TicketCategoryModuleDto
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    Description = m.Description ?? ""
-                }).ToList()
+                Modules = x.Modules
+                    .Where(m => m.IsActive) // Sadece aktif modüller
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => new TicketCategoryModuleDto
+                    {
+                        Id = m.Id,
+                        Name = m.Name,
+                        Description = m.Description ?? ""
+                    }).ToList()
             })
             .ToList();
 

@@ -3,6 +3,17 @@
     ViewData["Title"] = "Yeni Ticket Oluştur - Önizleme";
 }
 
+<!-- Debug bilgilerini görmek için -->
+<div style="background: #f0f0f0; padding: 10px; margin: 10px 0;">
+    <h4>DEBUG:</h4>
+    <p>TypeId: @Model.SelectedTypeId</p>
+    <p>CategoryId: @Model.SelectedCategoryId</p>
+    <p>Title: @Model.Title</p>
+    <p>Type Name: @(Model.SelectedType?.Name ?? "NULL")</p>
+    <p>Category Name: @(Model.SelectedCategory?.Name ?? "NULL")</p>
+    <p>FormData Count: @(Model.FormData?.Count ?? 0)</p>
+</div>
+
 <!-- Progress Bar -->
 <div class="mb-8">
     <div class="flex items-center">
@@ -244,23 +255,37 @@
                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>Geri
             </a>
-
+            <div style="background: #ffcccc; padding: 10px; margin: 10px 0;">
+                <h4>RAW VALUES FROM CONTROLLER:</h4>
+                <p>Model.SelectedTypeId: @Model.SelectedTypeId</p>
+                <p>Model.SelectedCategoryId: @Model.SelectedCategoryId</p>
+            </div>
             <form method="post" action="/Customer/Tickets/SubmitTicket" class="inline" id="submitForm">
                 @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="SelectedTypeId" />
-                <input type="hidden" asp-for="SelectedCategoryId" />
-                <input type="hidden" asp-for="Title" />
-                <input type="hidden" asp-for="Description" />
-                <input type="hidden" asp-for="SelectedModule" />
-                @foreach (var field in Model.FormData)
+
+                <!-- Debug için value'ları görelim -->
+                <input type="hidden" name="SelectedTypeId" value="@Model.SelectedTypeId" />
+                <input type="hidden" name="SelectedCategoryId" value="@Model.SelectedCategoryId" />
+
+                <!-- Debug için visible yapıp görelim -->
+                <div style="background: #ccffcc; padding: 10px;">
+                    <p>Hidden SelectedTypeId value: @Model.SelectedTypeId</p>
+                    <p>Hidden SelectedCategoryId value: @Model.SelectedCategoryId</p>
+                </div>
+
+                <input type="hidden" name="Title" value="@Model.Title" />
+                <input type="hidden" name="Description" value="@Model.Description" />
+                <input type="hidden" name="SelectedModule" value="@Model.SelectedModule" />
+
+                @if (Model.FormData != null)
                 {
-                    <input type="hidden" name="FormData[@field.Key]" value="@field.Value" />
+                    @foreach (var field in Model.FormData)
+                    {
+                        <input type="hidden" name="FormData[@field.Key]" value="@field.Value" />
+                    }
                 }
-                <button type="submit"
-                        id="submitBtn"
-                        class="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium shadow-lg">
-                    <i class="fas fa-check mr-2"></i>Ticket'ı Oluştur
-                </button>
+
+                <button type="submit" id="submitBtn">Ticket'ı Oluştur</button>
             </form>
         </div>
     </div>

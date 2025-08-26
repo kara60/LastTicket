@@ -93,8 +93,14 @@
 
 <form method="post" action="/Customer/Tickets/PreviewTicket" id="ticketForm">
     @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="SelectedTypeId" />
-    <input type="hidden" asp-for="SelectedCategoryId" />
+    <input type="hidden" name="SelectedTypeId" value="@Model.SelectedTypeId" />
+    <input type="hidden" name="SelectedCategoryId" value="@Model.SelectedCategoryId" />
+
+    <div style="background: red; color: white; padding: 5px; margin: 5px;">
+        DEBUG FillForm:
+        SelectedTypeId = @Model.SelectedTypeId,
+        SelectedCategoryId = @Model.SelectedCategoryId
+    </div>
 
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
