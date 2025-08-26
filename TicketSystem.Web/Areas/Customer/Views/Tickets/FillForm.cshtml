@@ -92,16 +92,20 @@
 </div>
 
 <form method="post" action="/Customer/Tickets/PreviewTicket" id="ticketForm">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SelectedTypeId" />
     <input type="hidden" asp-for="SelectedCategoryId" />
 
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Ticket Detayları</h2>
-            <p class="text-gray-600 mt-1">Ticket bilgilerini doldurunuz.</p>
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                <span class="text-xl mr-2">@typeEmoji</span>
+                @Model.SelectedType?.Name Formu
+            </h2>
+            <p class="text-gray-600 mt-1">Lütfen gerekli bilgileri doldurun.</p>
         </div>
 
-        <div class="p-6 space-y-6">
+        <div class="p-6">
             <!-- Validation Summary -->
             @if (!ViewData.ModelState.IsValid)
             {
@@ -125,59 +129,38 @@
                 </div>
             }
 
-            <!-- Basic Info -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                    <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-2">
-                        Başlık *
+            <!-- Kategori Modülleri -->
+            @if (Model.SelectedCategory?.Modules?.Any() == true)
+            {
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Modül Seçimi *
                     </label>
-                    <input asp-for="Title"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Ticket başlığını girin" />
-                    <span asp-validation-for="Title" class="text-red-500 text-sm"></span>
+                    <select name="SelectedModule" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Bir modül seçiniz</option>
+                        @foreach (var module in Model.SelectedCategory.Modules)
+                        {
+                            <option value="@module.Name" @(Model.SelectedModule == module.Name ? "selected" : "")>@module.Name</option>
+                        }
+                    </select>
                 </div>
-
-                @if (Model.SelectedCategory?.Modules?.Any() == true)
-                {
-                    <div>
-                        <label asp-for="SelectedModule" class="block text-sm font-medium text-gray-700 mb-2">
-                            Modül
-                        </label>
-                        <select asp-for="SelectedModule"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Modül seçiniz</option>
-                            @foreach (var module in Model.SelectedCategory.Modules)
-                            {
-                                <option value="@module.Name">@module.Name</option>
-                            }
-                        </select>
-                        <span asp-validation-for="SelectedModule" class="text-red-500 text-sm"></span>
-                    </div>
-                }
-            </div>
-
-            <div>
-                <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-2">
-                    Açıklama
-                </label>
-                <textarea asp-for="Description"
-                          rows="4"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Ticket ile ilgili detaylı açıklama yazın"></textarea>
-                <span asp-validation-for="Description" class="text-red-500 text-sm"></span>
-            </div>
+            }
 
             <!-- Dynamic Form Fields -->
             @if (!string.IsNullOrEmpty(Model.SelectedType?.FormDefinition))
             {
-                <div class="border-t border-gray-200 pt-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <span class="text-xl mr-2">@typeEmoji</span>
-                        @Model.SelectedType.Name Detayları
-                    </h3>
-                    <div id="dynamicFormFields" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Dynamic fields will be rendered here -->
-                    </div>
+                <div id="dynamicFormFields" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Dynamic fields will be rendered here by JavaScript -->
+                </div>
+            }
+            else
+            {
+                <!-- Fallback eğer form definition yoksa -->
+                <div class="text-center py-12 bg-gray-50 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Form Şablonu Bulunamadı</h3>
+                    <p class="text-gray-500">Bu ticket türü için form şablonu tanımlanmamış.</p>
                 </div>
             }
         </div>
@@ -199,7 +182,7 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // FormDefinition now comes as a string from the DTO
+            // FormDefinition parse etme
             const formDefinitionString = '@Html.Raw(Model.SelectedType?.FormDefinition?.Replace("\"", "\\\"") ?? "")';
             let formDefinition = null;
 
@@ -208,17 +191,39 @@
                     formDefinition = JSON.parse(formDefinitionString);
                 } catch (e) {
                     console.error('Error parsing FormDefinition:', e);
+                    console.log('Raw FormDefinition:', formDefinitionString);
                 }
             }
 
             if (formDefinition && formDefinition.fields && formDefinition.fields.length > 0) {
                 renderDynamicFields(formDefinition.fields);
+            } else {
+                console.log('No form definition found or empty fields');
             }
 
             // Form submission handler
             const ticketForm = document.getElementById('ticketForm');
             if (ticketForm) {
-                ticketForm.addEventListener('submit', function() {
+                ticketForm.addEventListener('submit', function(e) {
+                    // Form verilerini debug için logla
+                    console.log('Form submission - checking data:');
+                    const formData = new FormData(ticketForm);
+                    let hasFormData = false;
+
+                    for (let [key, value] of formData.entries()) {
+                        console.log(`${key}: ${value}`);
+                        if (key.startsWith('FormData[') && value.trim() !== '') {
+                            hasFormData = true;
+                        }
+                    }
+
+                    // Eğer hiç form verisi yoksa uyar
+                    if (!hasFormData) {
+                        e.preventDefault();
+                        alert('Lütfen form alanlarını doldurunuz.');
+                        return false;
+                    }
+
                     const submitBtn = document.getElementById('submitBtn');
                     if (submitBtn) {
                         submitBtn.disabled = true;
@@ -230,16 +235,26 @@
 
         function renderDynamicFields(fields) {
             const container = document.getElementById('dynamicFormFields');
-            if (!container) return;
+            if (!container) {
+                console.error('dynamicFormFields container not found');
+                return;
+            }
 
             let fieldsHtml = '';
+            let hasRequiredFields = false;
 
             fields.forEach(function(field, index) {
-                if (!field.name || !field.label) return;
+                if (!field.name || !field.label) {
+                    console.log('Skipping field due to missing name or label:', field);
+                    return;
+                }
 
+                // Dictionary binding için doğru format: FormData[key]
                 const fieldName = `FormData[${field.name}]`;
                 const isRequired = field.required || false;
                 const placeholder = field.placeholder || '';
+
+                if (isRequired) hasRequiredFields = true;
 
                 fieldsHtml += '<div>';
                 fieldsHtml += `<label class="block text-sm font-medium text-gray-700 mb-2">`;
@@ -251,7 +266,7 @@
 
                 switch (field.type) {
                     case 'textarea':
-                        fieldsHtml += `<textarea name="${fieldName}" rows="3" placeholder="${placeholder}"`;
+                        fieldsHtml += `<textarea name="${fieldName}" rows="4" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
                         fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>';
                         break;
@@ -275,6 +290,8 @@
                         fieldsHtml += `<input type="checkbox" name="${fieldName}" value="true" id="field_${index}"`;
                         if (isRequired) fieldsHtml += ' required';
                         fieldsHtml += ' class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">';
+                        // Checkbox için hidden field (ASP.NET Core için)
+                        fieldsHtml += `<input type="hidden" name="${fieldName}" value="false">`;
                         fieldsHtml += `<label for="field_${index}" class="ml-2 text-sm text-gray-700">${placeholder || field.label}</label>`;
                         fieldsHtml += '</div>';
                         break;
@@ -283,8 +300,8 @@
                         fieldsHtml += `<input type="number" name="${fieldName}" placeholder="${placeholder}"`;
                         if (isRequired) fieldsHtml += ' required';
                         if (field.validation) {
-                            if (field.validation.min !== null) fieldsHtml += ` min="${field.validation.min}"`;
-                            if (field.validation.max !== null) fieldsHtml += ` max="${field.validation.max}"`;
+                            if (field.validation.min !== null && field.validation.min !== undefined) fieldsHtml += ` min="${field.validation.min}"`;
+                            if (field.validation.max !== null && field.validation.max !== undefined) fieldsHtml += ` max="${field.validation.max}"`;
                         }
                         fieldsHtml += ' class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">';
                         break;
@@ -322,6 +339,16 @@
             });
 
             container.innerHTML = fieldsHtml;
+
+            // Eğer required field varsa bilgi göster
+            if (hasRequiredFields) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'col-span-full bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700';
+                infoDiv.innerHTML = '<i class="fas fa-info-circle mr-2"></i>(*) işaretli alanlar zorunludur.';
+                container.appendChild(infoDiv);
+            }
+
+            console.log(`Rendered ${fields.length} dynamic fields`);
         }
     </script>
 }
