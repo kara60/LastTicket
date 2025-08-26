@@ -26,6 +26,7 @@ public class GetTicketByIdQueryHandler : IQueryHandler<GetTicketByIdQuery, Ticke
         if (!_currentUser.IsAuthenticated || !_currentUser.CompanyId.HasValue)
             return Result<TicketDto>.Failure("Kullanıcı doğrulanamadı.");
 
+        // UnitOfWork ile include'ları kullan
         var ticket = await _unitOfWork.Tickets.FirstOrDefaultAsync(
             x => x.Id == request.Id && x.CompanyId == _currentUser.CompanyId,
             x => x.Type,
@@ -40,13 +41,30 @@ public class GetTicketByIdQueryHandler : IQueryHandler<GetTicketByIdQuery, Ticke
         if (ticket == null)
             return Result<TicketDto>.Failure("Ticket bulunamadı.");
 
+        // Comments için User'ları ayrıca yükle
+        if (ticket.Comments.Any())
+        {
+            var commentUserIds = ticket.Comments.Select(c => c.UserId).Distinct().ToList();
+            var commentUsers = await _unitOfWork.Users.FindAsync(u => commentUserIds.Contains(u.Id));
+            var userDict = commentUsers.ToDictionary(u => u.Id, u => u);
+
+            foreach (var comment in ticket.Comments)
+            {
+                if (userDict.TryGetValue(comment.UserId, out var user))
+                {
+                    comment.User = user; // Navigation property'yi set et
+                }
+            }
+        }
+
         var dto = _mapper.Map<TicketDto>(ticket);
 
-        // FormData parse (AutoMapper’da Ignore edildi)
+        // FormData parse (AutoMapper'da Ignore edildi)
         dto.FormData = string.IsNullOrEmpty(ticket.FormData)
             ? new Dictionary<string, object>()
             : (JsonSerializer.Deserialize<Dictionary<string, object>>(ticket.FormData!) ?? new());
 
+        // Comments'leri manuel map et (User bilgisi ile birlikte)
         dto.Comments = ticket.Comments
             .OrderByDescending(c => c.CreatedAt)
             .Select(c => new TicketCommentDto
@@ -55,7 +73,14 @@ public class GetTicketByIdQueryHandler : IQueryHandler<GetTicketByIdQuery, Ticke
                 Content = c.Content,
                 IsInternal = c.IsInternal,
                 CreatedAt = c.CreatedAt,
-                User = _mapper.Map<Application.Features.Common.DTOs.UserDto>(c.User)
+                User = new Application.Features.Common.DTOs.UserDto
+                {
+                    Id = c.User?.Id ?? 0,
+                    FirstName = c.User?.FirstName ?? "Bilinmiyor",
+                    LastName = c.User?.LastName ?? "Kullanıcı",
+                    Email = c.User?.Email?.Value ?? "",
+                    Role = c.User?.Role.ToString() ?? "User"
+                }
             }).ToList();
 
         dto.Attachments = ticket.Attachments

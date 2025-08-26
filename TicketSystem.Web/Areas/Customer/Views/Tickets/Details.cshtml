@@ -25,9 +25,9 @@
             <div class="flex items-center space-x-4">
                 <span class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full
                     @(Model.StatusDisplay == "İnceleniyor" ? "bg-yellow-100 text-yellow-800" :
-                                            Model.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
-                                            Model.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
-                                            "bg-gray-100 text-gray-800")">
+                                                                  Model.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
+                                                                  Model.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
+                                                                  "bg-gray-100 text-gray-800")">
                     @switch (Model.StatusDisplay)
                     {
                         case "İnceleniyor":
@@ -148,7 +148,7 @@
                 <!-- Add Comment Form -->
                 @if (Model.Status != TicketSystem.Domain.Enums.TicketStatus.Kapandı)
                 {
-                    <form method="post" asp-action="AddComment" class="mb-8">
+                    <form method="post" action="/Customer/Tickets/AddComment" class="mb-8">
                         <input type="hidden" name="ticketId" value="@Model.Id" />
 
                         <div class="bg-gray-50 rounded-xl p-6">
@@ -256,9 +256,9 @@
                     <dd>
                         <span class="inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full
                             @(Model.StatusDisplay == "İnceleniyor" ? "bg-yellow-100 text-yellow-800" :
-                                                            Model.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
-                                                            Model.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
-                                                            "bg-gray-100 text-gray-800")">
+                                                                                          Model.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
+                                                                                          Model.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
+                                                                                          "bg-gray-100 text-gray-800")">
                             @Model.StatusDisplay
                         </span>
                     </dd>
@@ -419,63 +419,56 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth scroll behavior
-            document.documentElement.style.scrollBehavior = 'smooth';
-
-            // Form submission enhancements
-            const commentForm = document.querySelector('form[asp-action="AddComment"]');
+            // Comment form debug
+            const commentForm = document.querySelector('form[method="post"][asp-action="AddComment"]');
             if (commentForm) {
-                commentForm.addEventListener('submit', function(e) {
-                    const submitBtn = commentForm.querySelector('button[type="submit"]');
-                    const textarea = commentForm.querySelector('textarea[name="content"]');
+                console.log('Comment form found:', commentForm);
 
-                    if (textarea && textarea.value.trim() === '') {
+                // Form debug
+                commentForm.addEventListener('submit', function(e) {
+                    const ticketId = commentForm.querySelector('input[name="ticketId"]').value;
+                    const content = commentForm.querySelector('textarea[name="content"]').value;
+
+                    console.log('Form submitting:', {
+                        ticketId: ticketId,
+                        content: content,
+                        action: commentForm.action
+                    });
+
+                    // Validation
+                    if (!content || content.trim() === '') {
                         e.preventDefault();
-                        textarea.classList.add('border-red-500');
-                        textarea.focus();
+                        alert('Yorum içeriği boş olamaz!');
                         return false;
                     }
 
-                    if (submitBtn && !submitBtn.disabled) {
+                    if (!ticketId) {
+                        e.preventDefault();
+                        alert('Ticket ID bulunamadı!');
+                        return false;
+                    }
+
+                    // Visual feedback
+                    const submitBtn = commentForm.querySelector('button[type="submit"]');
+                    if (submitBtn) {
                         submitBtn.disabled = true;
                         submitBtn.innerHTML = '<div class="flex items-center"><div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Gönderiliyor...</div>';
                     }
                 });
+            } else {
+                console.error('Comment form NOT found!');
             }
 
-            // Auto-expand textarea
-            const textarea = document.querySelector('textarea[name="content"]');
-            if (textarea) {
-                textarea.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = this.scrollHeight + 'px';
+            // Check TempData messages
+            const tempSuccess = '@TempData["Success"]';
+            const tempError = '@TempData["Error"]';
 
-                    // Remove error styling on input
-                    this.classList.remove('border-red-500');
-                });
+            if (tempSuccess && tempSuccess !== '') {
+                console.log('Success message:', tempSuccess);
             }
 
-            // Add entrance animations
-            const elements = document.querySelectorAll('.space-y-6 > div, .space-y-4 > div');
-            elements.forEach((el, index) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    el.style.transition = 'all 0.5s ease-out';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                window.location.href = '@Url.Action("Index")';
-            }
-            if (e.key === 'n' && e.ctrlKey) {
-                e.preventDefault();
-                window.location.href = '@Url.Action("Create")';
+            if (tempError && tempError !== '') {
+                console.log('Error message:', tempError);
             }
         });
     </script>
@@ -483,23 +476,20 @@
     <style>
         /* Print styles */
         @@media print {
-            .no-print
+            .no-print {
+                display: none !important;
+            }
 
-        {
-            display: none !important;
-        }
+            body {
+                font-size: 12pt;
+                line-height: 1.5;
+            }
 
-        body {
-            font-size: 12pt;
-            line-height: 1.5;
-        }
-
-        .bg-gradient-to-r,
-        .bg-gradient-to-br {
-            background: #f8f9fa !important;
-            color: #000 !important;
-        }
-
+            .bg-gradient-to-r,
+            .bg-gradient-to-br {
+                background: #f8f9fa !important;
+                color: #000 !important;
+            }
         }
 
         /* Enhanced hover effects */

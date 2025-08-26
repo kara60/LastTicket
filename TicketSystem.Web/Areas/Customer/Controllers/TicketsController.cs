@@ -275,24 +275,66 @@ public class TicketsController : Controller
     [HttpPost]
     public async Task<IActionResult> AddComment(int ticketId, string content)
     {
-        var command = new AddTicketCommentCommand
-        {
-            TicketId = ticketId,
-            Content = content,
-            IsInternal = false
-        };
+        Console.WriteLine($"=== AddComment Action Debug ===");
+        Console.WriteLine($"TicketId: {ticketId}");
+        Console.WriteLine($"Content: '{content}'");
+        Console.WriteLine($"Content Length: {content?.Length ?? 0}");
 
-        var result = await _mediator.Send(command);
-
-        if (result.IsSuccess)
+        // Form data debug
+        Console.WriteLine("=== Form Data ===");
+        foreach (var key in Request.Form.Keys)
         {
-            TempData["Success"] = "Yorum başarıyla eklendi.";
-        }
-        else
-        {
-            TempData["Error"] = result.Errors.FirstOrDefault();
+            Console.WriteLine($"Form[{key}] = '{Request.Form[key]}'");
         }
 
+        // Validation
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            Console.WriteLine("ERROR: Content is null or empty");
+            TempData["Error"] = "Yorum içeriği boş olamaz.";
+            return RedirectToAction("Details", new { id = ticketId });
+        }
+
+        if (ticketId <= 0)
+        {
+            Console.WriteLine("ERROR: Invalid TicketId");
+            TempData["Error"] = "Geçersiz ticket ID.";
+            return RedirectToAction("Index");
+        }
+
+        try
+        {
+            var command = new AddTicketCommentCommand
+            {
+                TicketId = ticketId,
+                Content = content,
+                IsInternal = false
+            };
+
+            Console.WriteLine($"Sending command to MediatR: TicketId={command.TicketId}, Content='{command.Content}'");
+
+            var result = await _mediator.Send(command);
+
+            Console.WriteLine($"MediatR Result: IsSuccess={result.IsSuccess}");
+            if (result.IsSuccess)
+            {
+                Console.WriteLine($"Comment created with ID: {result.Data}");
+                TempData["Success"] = "Yorum başarıyla eklendi.";
+            }
+            else
+            {
+                Console.WriteLine($"MediatR Errors: {string.Join(", ", result.Errors)}");
+                TempData["Error"] = result.Errors.FirstOrDefault() ?? "Yorum eklenirken hata oluştu.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"EXCEPTION in AddComment: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            TempData["Error"] = "Bir hata oluştu: " + ex.Message;
+        }
+
+        Console.WriteLine($"Redirecting to Details with id: {ticketId}");
         return RedirectToAction("Details", new { id = ticketId });
     }
 }
