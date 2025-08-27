@@ -32,6 +32,7 @@ public class GetDashboardStatsQueryHandler : IQueryHandler<GetDashboardStatsQuer
             x => x.CompanyId == companyId &&
                  (!_currentUserService.IsCustomer || x.CustomerId == _currentUserService.CustomerId),
             x => x.Type,
+            x => x.Category!,
             x => x.Customer!
         );
 
@@ -62,6 +63,19 @@ public class GetDashboardStatsQueryHandler : IQueryHandler<GetDashboardStatsQuer
                 TypeName = g.Key,
                 Count = g.Count(),
                 Color = g.First().Type.Color
+            })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        // Tickets by category
+        var ticketsByCategory = ticketsList
+            .Where(t => t.Category != null)
+            .GroupBy(t => t.Category!.Name)
+            .Select(g => new TicketsByCategoryDto
+            {
+                CategoryName = g.Key,
+                Count = g.Count(),
+                Color = g.First().Category!.Color
             })
             .OrderByDescending(x => x.Count)
             .ToList();
@@ -104,6 +118,7 @@ public class GetDashboardStatsQueryHandler : IQueryHandler<GetDashboardStatsQuer
             ClosedTickets = closedTickets,
             TicketsByStatus = ticketsByStatus,
             TicketsByType = ticketsByType,
+            TicketsByCategory = ticketsByCategory,
             TicketsByCustomer = ticketsByCustomer,
             TicketsTrend = ticketsTrend
         };

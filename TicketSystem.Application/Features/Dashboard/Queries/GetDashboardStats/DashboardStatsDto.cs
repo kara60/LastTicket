@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats
+﻿namespace TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats
 {
     public class DashboardStatsDto
     {
@@ -14,6 +8,7 @@ namespace TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats
         public int ClosedTickets { get; set; }
         public List<TicketsByStatusDto> TicketsByStatus { get; set; } = new();
         public List<TicketsByTypeDto> TicketsByType { get; set; } = new();
+        public List<TicketsByCategoryDto> TicketsByCategory { get; set; } = new();
         public List<TicketsByCustomerDto> TicketsByCustomer { get; set; } = new();
         public List<TicketsTrendDto> TicketsTrend { get; set; } = new();
     }
@@ -28,6 +23,13 @@ namespace TicketSystem.Application.Features.Dashboard.Queries.GetDashboardStats
     public class TicketsByTypeDto
     {
         public string TypeName { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public string Color { get; set; } = string.Empty;
+    }
+
+    public class TicketsByCategoryDto
+    {
+        public string CategoryName { get; set; } = string.Empty;
         public int Count { get; set; }
         public string Color { get; set; } = string.Empty;
     }
