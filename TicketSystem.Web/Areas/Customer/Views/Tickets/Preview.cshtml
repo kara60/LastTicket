@@ -286,16 +286,14 @@
 
             <input type="hidden" name="SelectedTypeId" value="@Model.SelectedTypeId" />
             <input type="hidden" name="SelectedCategoryId" value="@Model.SelectedCategoryId" />
-            <input type="hidden" name="Title" value="@Model.Title" />
-            <input type="hidden" name="Description" value="@Model.Description" />
-            <input type="hidden" name="SelectedModule" value="@Model.SelectedModule" />
+            <input type="hidden" name="Title" value="@Html.Raw(Html.Encode(Model.Title))" />
+            <input type="hidden" name="Description" value="@Html.Raw(Html.Encode(Model.Description ?? ""))" />
+            <input type="hidden" name="SelectedModule" value="@Html.Raw(Html.Encode(Model.SelectedModule ?? ""))" />
 
-            @if (Model.FormData != null)
+            @* JSON olarak FormData gönder *@
+            @if (Model.FormData != null && Model.FormData.Any())
             {
-                @foreach (var field in Model.FormData)
-                {
-                    <input type="hidden" name="FormData[@field.Key]" value="@field.Value" />
-                }
+                <input type="hidden" name="FormDataJson" value="@Html.Raw(Html.Encode(System.Text.Json.JsonSerializer.Serialize(Model.FormData)))" />
             }
 
             <button type="submit" id="submitBtn"

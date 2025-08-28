@@ -59,40 +59,98 @@ public class GetTicketByIdQueryHandler : IQueryHandler<GetTicketByIdQuery, Ticke
 
         var dto = _mapper.Map<TicketDto>(ticket);
 
-        // FormData parse (AutoMapper'da Ignore edildi)
-        dto.FormData = string.IsNullOrEmpty(ticket.FormData)
-            ? new Dictionary<string, object>()
-            : (JsonSerializer.Deserialize<Dictionary<string, object>>(ticket.FormData!) ?? new());
+        // ✅ ENHANCED FormData parse with detailed logging and error handling
+        try
+        {
+            Console.WriteLine($"=== FormData DESERIALIZATION DEBUG ===");
+            Console.WriteLine($"Raw FormData from DB: '{ticket.FormData}'");
+            Console.WriteLine($"FormData length: {ticket.FormData?.Length ?? 0}");
 
-        // Comments'leri manuel map et (User bilgisi ile birlikte)
-        dto.Comments = ticket.Comments
-            .OrderByDescending(c => c.CreatedAt)
-            .Select(c => new TicketCommentDto
+            if (string.IsNullOrEmpty(ticket.FormData))
             {
-                Id = c.Id,
-                Content = c.Content,
-                IsInternal = c.IsInternal,
-                CreatedAt = c.CreatedAt,
-                User = new Application.Features.Common.DTOs.UserDto
+                Console.WriteLine("FormData is null or empty, setting empty dictionary");
+                dto.FormData = new Dictionary<string, object>();
+            }
+            else
+            {
+                try
                 {
-                    Id = c.User?.Id ?? 0,
-                    FirstName = c.User?.FirstName ?? "Bilinmiyor",
-                    LastName = c.User?.LastName ?? "Kullanıcı",
-                    Email = c.User?.Email?.Value ?? "",
-                    Role = c.User?.Role.ToString() ?? "User"
-                }
-            }).ToList();
+                    // Try to deserialize as Dictionary<string, object>
+                    var deserializedData = JsonSerializer.Deserialize<Dictionary<string, object>>(ticket.FormData);
 
-        dto.Attachments = ticket.Attachments
-            .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new TicketAttachmentDto
-            {
-                Id = a.Id,
-                FileName = a.FileName,
-                ContentType = a.ContentType,
-                FileSize = a.FileSizeBytes,
-                CreatedAt = a.CreatedAt,
-            }).ToList();
+                    if (deserializedData != null && deserializedData.Any())
+                    {
+                        dto.FormData = deserializedData;
+                        Console.WriteLine($"Successfully deserialized {deserializedData.Count} FormData entries:");
+
+                        foreach (var kvp in deserializedData)
+                        {
+                            Console.WriteLine($"  FormData[{kvp.Key}] = '{kvp.Value}' (Type: {kvp.Value?.GetType().Name ?? "null"})");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Deserialized FormData is null or empty, setting empty dictionary");
+                        dto.FormData = new Dictionary<string, object>();
+                    }
+                }
+                catch (JsonException jsonEx)
+                {
+                    Console.WriteLine($"JSON deserialization failed: {jsonEx.Message}");
+
+                    // Fallback: Try to deserialize as Dictionary<string, JsonElement>
+                    try
+                    {
+                        var elementDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(ticket.FormData);
+                        if (elementDict != null)
+                        {
+                            dto.FormData = new Dictionary<string, object>();
+                            foreach (var kvp in elementDict)
+                            {
+                                // Convert JsonElement to appropriate type
+                                object value = kvp.Value.ValueKind switch
+                                {
+                                    JsonValueKind.String => kvp.Value.GetString() ?? "",
+                                    JsonValueKind.Number => kvp.Value.TryGetInt32(out var intVal) ? intVal : kvp.Value.GetDouble(),
+                                    JsonValueKind.True => true,
+                                    JsonValueKind.False => false,
+                                    JsonValueKind.Null => "",
+                                    _ => kvp.Value.ToString()
+                                };
+
+                                dto.FormData[kvp.Key] = value;
+                                Console.WriteLine($"  Fallback FormData[{kvp.Key}] = '{value}' (Type: {value?.GetType().Name ?? "null"})");
+                            }
+
+                            Console.WriteLine($"Fallback deserialization successful: {dto.FormData.Count} entries");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Fallback deserialization also failed, setting empty dictionary");
+                            dto.FormData = new Dictionary<string, object>();
+                        }
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        Console.WriteLine($"Fallback deserialization also failed: {fallbackEx.Message}");
+                        dto.FormData = new Dictionary<string, object>();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Unexpected deserialization error: {ex.Message}");
+                    dto.FormData = new Dictionary<string, object>();
+                }
+            }
+
+            Console.WriteLine($"Final DTO FormData count: {dto.FormData.Count}");
+            Console.WriteLine($"=== FormData DESERIALIZATION END ===");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Critical error in FormData processing: {ex.Message}");
+            dto.FormData = new Dictionary<string, object>();
+        }
 
         return Result<TicketDto>.Success(dto);
     }

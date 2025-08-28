@@ -10,7 +10,6 @@ public class CreateTicketStep3ViewModel
     public TicketTypeDto? SelectedType { get; set; }
     public TicketCategoryDto? SelectedCategory { get; set; }
 
-    // Title artık required değil - dinamik formdan alınacak
     [Display(Name = "Başlık")]
     public string Title { get; set; } = string.Empty;
 
@@ -20,46 +19,82 @@ public class CreateTicketStep3ViewModel
     [Display(Name = "Modül")]
     public string? SelectedModule { get; set; }
 
-    // Dictionary binding için property
+    // Dictionary binding için property - PUBLIC olmalı
     public Dictionary<string, object> FormData { get; set; } = new();
 
-    // Model binding'i kolaylaştırmak için yardımcı method
+    // Form data manipulation için helper methods
     public void SetFormData(string key, object value)
     {
-        FormData[key] = value;
+        if (string.IsNullOrWhiteSpace(key)) return;
+        FormData[key] = value ?? string.Empty;
     }
 
     public T? GetFormData<T>(string key)
     {
-        if (FormData.ContainsKey(key))
+        if (string.IsNullOrWhiteSpace(key) || !FormData.ContainsKey(key))
+            return default(T);
+
+        try
         {
-            try
+            return (T)Convert.ChangeType(FormData[key], typeof(T));
+        }
+        catch
+        {
+            return default(T);
+        }
+    }
+
+    public string GetFormDataAsString(string key)
+    {
+        return FormData.ContainsKey(key) ? FormData[key]?.ToString() ?? string.Empty : string.Empty;
+    }
+
+    // Request.Form'dan FormData'yı parse etmek için method
+    public void ParseFormDataFromRequest(IFormCollection form)
+    {
+        FormData = new Dictionary<string, object>();
+
+        Console.WriteLine($"=== ParseFormDataFromRequest START ===");
+        Console.WriteLine($"Total form keys: {form.Keys.Count}");
+
+        foreach (var key in form.Keys)
+        {
+            Console.WriteLine($"Form Key: '{key}' = '{form[key]}'");
+
+            if (key.StartsWith("FormData[") && key.EndsWith("]"))
             {
-                return (T)Convert.ChangeType(FormData[key], typeof(T));
-            }
-            catch
-            {
-                return default(T);
+                var fieldName = key.Substring(9, key.Length - 10);
+                var value = form[key].ToString()?.Trim();
+
+                Console.WriteLine($"Extracted field: '{fieldName}' = '{value}'");
+
+                if (!string.IsNullOrEmpty(value))
+                {
+                    FormData[fieldName] = value;
+                    Console.WriteLine($"Added to FormData: '{fieldName}' = '{value}'");
+                }
             }
         }
-        return default(T);
+
+        Console.WriteLine($"Final FormData count: {FormData.Count}");
+        Console.WriteLine($"=== ParseFormDataFromRequest END ===");
     }
 
     // Dinamik form alanlarından title çekme
     public string GetDynamicTitle()
     {
-        // İlk önce FormData'dan "title", "baslik", "name" gibi alanları ara
-        var titleKeys = new[] { "title", "baslik", "name", "ad", "konu" };
+        var titleKeys = new[] { "title", "baslik", "name", "ad", "konu", "subject", "topic" };
 
         foreach (var key in titleKeys)
         {
-            if (FormData.ContainsKey(key) && !string.IsNullOrWhiteSpace(FormData[key]?.ToString()))
+            var titleValue = GetFormDataAsString(key);
+            if (!string.IsNullOrWhiteSpace(titleValue))
             {
-                return FormData[key].ToString()!;
+                return titleValue;
             }
         }
 
-        // Eğer dinamik formda title yok ise, type ve category'den otomatik oluştur
-        return $"{SelectedType?.Name} - {SelectedCategory?.Name} - {DateTime.Now:dd.MM.yyyy HH:mm}";
+        // Fallback to generated title
+        return $"{SelectedType?.Name ?? "Ticket"} - {SelectedCategory?.Name ?? "Genel"} - {DateTime.Now:dd.MM.yyyy HH:mm}";
     }
 }

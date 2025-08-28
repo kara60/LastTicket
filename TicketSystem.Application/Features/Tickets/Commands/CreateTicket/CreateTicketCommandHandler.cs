@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using TicketSystem.Application.Common.Exceptions;
 using TicketSystem.Application.Common.Handlers;
 using TicketSystem.Application.Common.Interfaces;
 using TicketSystem.Application.Common.Models;
@@ -14,141 +14,204 @@ public class CreateTicketCommandHandler : ICommandHandler<CreateTicketCommand, s
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
+    private readonly ILogger<CreateTicketCommandHandler> _logger;
 
     public CreateTicketCommandHandler(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<CreateTicketCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<string>> Handle(CreateTicketCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            Console.WriteLine($"=== CreateTicketCommandHandler START ===");
-            Console.WriteLine($"TypeId: {request.TypeId}, CategoryId: {request.CategoryId}");
-            Console.WriteLine($"Title: '{request.Title}'");
 
-            // ✅ FIX 1: Kullanıcı doğrulaması daha sıkı
+            // ✅ Authentication check
             if (!_currentUserService.IsAuthenticated ||
                 !_currentUserService.CompanyId.HasValue ||
                 !_currentUserService.UserId.HasValue)
             {
-                Console.WriteLine($"Authentication failed - IsAuth: {_currentUserService.IsAuthenticated}, CompanyId: {_currentUserService.CompanyId}, UserId: {_currentUserService.UserId}");
-                return Result<string>.Failure("Kullanıcı doğrulanamadı veya gerekli bilgiler eksik.");
+                _logger.LogError("User authentication failed");
+                return Result<string>.Failure("Kullanıcı doğrulanamadı.");
             }
 
             var currentUserId = _currentUserService.UserId.Value;
             var currentCompanyId = _currentUserService.CompanyId.Value;
 
-            Console.WriteLine($"User authenticated - UserId: {currentUserId}, CompanyId: {currentCompanyId}");
+            _logger.LogInformation("User authenticated: UserId={UserId}, CompanyId={CompanyId}",
+                currentUserId, currentCompanyId);
 
-            // Type ve Category validation
+            // ✅ Validations
             var ticketType = await _unitOfWork.TicketTypes.FirstOrDefaultAsync(
                 x => x.Id == request.TypeId && x.CompanyId == currentCompanyId);
-
             if (ticketType == null)
             {
-                Console.WriteLine($"TicketType not found: {request.TypeId}");
+                _logger.LogError("TicketType not found: TypeId={TypeId}", request.TypeId);
                 return Result<string>.Failure("Geçersiz ticket türü.");
             }
 
             var category = await _unitOfWork.TicketCategories.FirstOrDefaultAsync(
                 x => x.Id == request.CategoryId && x.CompanyId == currentCompanyId);
-
             if (category == null)
             {
-                Console.WriteLine($"Category not found: {request.CategoryId}");
+                _logger.LogError("TicketCategory not found: CategoryId={CategoryId}", request.CategoryId);
                 return Result<string>.Failure("Geçersiz kategori.");
             }
 
-            Console.WriteLine($"Type found: {ticketType.Name}, Category found: {category.Name}");
+            _logger.LogInformation("Validations passed: Type={TypeName}, Category={CategoryName}",
+                ticketType.Name, category.Name);
 
-            // Ticket Number Generate
-            var ticketNumber = await GenerateTicketNumberAsync();
-            Console.WriteLine($"Generated ticket number: {ticketNumber}");
-
-            // ✅ FIX 2: TicketCategoryModule ID belirleme
+            // ✅ Module handling
             int? ticketCategoryModuleId = null;
             if (!string.IsNullOrEmpty(request.SelectedModule))
             {
                 var module = await _unitOfWork.TicketCategoryModules.FirstOrDefaultAsync(
                     x => x.Name == request.SelectedModule && x.TicketCategoryId == request.CategoryId);
                 ticketCategoryModuleId = module?.Id;
-                Console.WriteLine($"Selected module: {request.SelectedModule}, ModuleId: {ticketCategoryModuleId}");
+
+                _logger.LogInformation("Module handling: SelectedModule={SelectedModule}, ModuleId={ModuleId}",
+                    request.SelectedModule, ticketCategoryModuleId);
             }
 
-            // ✅ FIX 3: Ticket Entity - TÜM gerekli alanları doldur
+            // ✅ Generate ticket number
+            var ticketNumber = await GenerateTicketNumberAsync();
+            _logger.LogInformation("Generated ticket number: {TicketNumber}", ticketNumber);
+
+            // ✅ CRITICAL: FormData serialization with proper error handling
+            string formDataJson = "{}"; // Default to empty JSON object
+
+            if (request.FormData != null && request.FormData.Any())
+            {
+                try
+                {
+                    _logger.LogInformation("=== SERIALIZING FormData ===");
+                    _logger.LogInformation("FormData entries to serialize: {Count}", request.FormData.Count);
+
+                    // Clean FormData - remove null values and empty strings
+                    var cleanFormData = new Dictionary<string, object>();
+                    foreach (var kvp in request.FormData)
+                    {
+                        if (kvp.Key != null && kvp.Value != null)
+                        {
+                            var stringValue = kvp.Value.ToString()?.Trim();
+                            if (!string.IsNullOrEmpty(stringValue))
+                            {
+                                cleanFormData[kvp.Key] = stringValue;
+                                _logger.LogInformation("Clean FormData[{Key}] = '{Value}'", kvp.Key, stringValue);
+                            }
+                        }
+                    }
+
+                    if (cleanFormData.Any())
+                    {
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            WriteIndented = false,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        };
+
+                        formDataJson = JsonSerializer.Serialize(cleanFormData, jsonOptions);
+                        _logger.LogInformation("Successfully serialized FormData: {Json}", formDataJson);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("No clean FormData to serialize, using empty JSON");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "FormData serialization failed, using empty JSON");
+                    formDataJson = "{}";
+                }
+            }
+            else
+            {
+                _logger.LogInformation("FormData is null or empty, using default empty JSON");
+            }
+
+            // ✅ Create ticket entity
             var ticket = new Ticket
             {
-                Title = request.Title,
-                Description = request.Description ?? "",
+                Title = request.Title?.Trim() ?? "",
+                Description = request.Description?.Trim() ?? "",
                 Status = TicketStatus.İnceleniyor,
                 TicketNumber = ticketNumber,
-                FormData = request.FormData.Any() ? JsonSerializer.Serialize(request.FormData) : null,
-                SelectedModule = request.SelectedModule,
+                FormData = formDataJson, // Always JSON string, never null
+                SelectedModule = request.SelectedModule?.Trim(),
 
-                // ✅ Foreign Keys - hepsi zorunlu
                 CompanyId = currentCompanyId,
-                CustomerId = _currentUserService.CustomerId, // Nullable
+                CustomerId = _currentUserService.CustomerId,
                 TypeId = request.TypeId,
                 CategoryId = request.CategoryId,
-                TicketCategoryModuleId = ticketCategoryModuleId, // Nullable
-                CreatedByUserId = currentUserId, // ✅ ARTIK AYARLANIYOR
+                TicketCategoryModuleId = ticketCategoryModuleId,
+                CreatedByUserId = currentUserId,
 
-                // ✅ Dates
-                SubmittedAt = DateTime.UtcNow, // ✅ ARTIK AYARLANIYOR
-
-                // AssignedToUserId boş kalacak (nullable)
+                SubmittedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
-            Console.WriteLine($"Ticket entity created with all required fields");
-            Console.WriteLine($"CreatedByUserId: {ticket.CreatedByUserId}");
-            Console.WriteLine($"SubmittedAt: {ticket.SubmittedAt}");
+            _logger.LogInformation("=== TICKET ENTITY CREATED ===");
+            _logger.LogInformation("Title: '{Title}'", ticket.Title);
+            _logger.LogInformation("FormData length: {Length}", ticket.FormData?.Length ?? 0);
+            _logger.LogInformation("FormData content: {FormData}", ticket.FormData);
 
-            // Ticket'ı kaydet
+            // ✅ Save ticket
             await _unitOfWork.Tickets.AddAsync(ticket);
             await _unitOfWork.SaveChangesAsync();
 
-            Console.WriteLine($"Ticket saved successfully with ID: {ticket.Id}");
+            _logger.LogInformation("Ticket saved with ID: {TicketId}", ticket.Id);
 
-            // ✅ FIX 4: History ekle - ayrı transaction
-            try
+            // ✅ Verification - read back from database
+            var savedTicket = await _unitOfWork.Tickets.GetByIdAsync(ticket.Id);
+            if (savedTicket != null)
             {
-                var historyEntry = new TicketHistory
+                _logger.LogInformation("=== SAVE VERIFICATION ===");
+                _logger.LogInformation("Saved FormData: {FormData}", savedTicket.FormData);
+                _logger.LogInformation("Saved FormData Length: {Length}", savedTicket.FormData?.Length ?? 0);
+
+                // Test deserialization
+                try
                 {
-                    TicketId = ticket.Id,
-                    Action = "Ticket oluşturuldu",
-                    OldValue = "",
-                    NewValue = $"Ticket #{ticketNumber} oluşturuldu",
-                    UserId = currentUserId, // ✅ ARTIK AYARLANIYOR
-                    Description = $"Yeni ticket oluşturuldu. Tür: {ticketType.Name}, Kategori: {category.Name}"
-                };
+                    if (!string.IsNullOrEmpty(savedTicket.FormData))
+                    {
+                        var deserializedData = JsonSerializer.Deserialize<Dictionary<string, object>>(savedTicket.FormData);
+                        _logger.LogInformation("Deserialization test successful: {Count} entries", deserializedData?.Count ?? 0);
 
-                await _unitOfWork.TicketHistory.AddAsync(historyEntry);
-                await _unitOfWork.SaveChangesAsync();
-
-                Console.WriteLine("History entry added successfully");
+                        if (deserializedData != null)
+                        {
+                            foreach (var kvp in deserializedData)
+                            {
+                                _logger.LogInformation("Deserialized[{Key}] = '{Value}'", kvp.Key, kvp.Value);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Deserialization test failed");
+                }
             }
-            catch (Exception historyEx)
+            else
             {
-                Console.WriteLine($"History creation failed (non-critical): {historyEx.Message}");
-                // History başarısız olsa da ticket oluşturuldu, devam et
+                _logger.LogError("Could not retrieve saved ticket for verification");
             }
 
-            Console.WriteLine($"SUCCESS: Ticket created with number: {ticketNumber}");
+            _logger.LogInformation("=== COMMAND HANDLER SUCCESS ===");
             return Result<string>.Success(ticketNumber);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR in CreateTicketCommandHandler: {ex.Message}");
-            Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            return Result<string>.Failure($"Ticket oluşturulurken hata: {ex.Message}");
+            _logger.LogError(ex, "Command handler failed");
+            return Result<string>.Failure("Ticket oluşturulurken hata oluştu: " + ex.Message);
         }
     }
 
