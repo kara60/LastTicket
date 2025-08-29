@@ -405,7 +405,7 @@
                     </div>
                     <div x-show="sidebarOpen" x-transition class="flex flex-col">
                         <h1 class="text-lg font-bold text-gray-900">SoftDesk</h1>
-                        <p class="text-xs text-gray-500">v2.0</p>
+                        <p class="text-xs text-gray-500">v1.0</p>
                     </div>
                 </div>
                 <button @@click="sidebarOpen = !sidebarOpen"
@@ -482,12 +482,12 @@
                     <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Sistem Ayarları</span>
                 </a>
 
-                <a href="@Url.Action("Index", "Reports", new { area = "Admin" })"
+                @* <a href="@Url.Action("Index", "Reports", new { area = "Admin" })"
                    class="nav-item-hover flex items-center p-2.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "bg-primary-50 text-primary-700 border-l-2 border-primary-500" : "text-gray-700 hover:text-primary-600")"
                    :class="!sidebarOpen && 'justify-center'">
                     <i class="fas fa-chart-bar w-4 flex-shrink-0 nav-icon" :class="sidebarOpen && 'mr-3'"></i>
                     <span x-show="sidebarOpen" x-transition class="font-medium text-sm">Raporlar</span>
-                </a>
+                </a> *@
             }
             else
             {
@@ -537,13 +537,13 @@
                      x-transition:leave-start="opacity-1 scale-100"
                      x-transition:leave-end="opacity-0 scale-95"
                      class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    <a href="@Url.Action("Profile", "Account")" class="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                    @* <a href="@Url.Action("Profile", "Account")" class="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         <i class="fas fa-user mr-2 text-xs"></i>Profil
                     </a>
                     <a href="@Url.Action("Settings", "Account")" class="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         <i class="fas fa-cog mr-2 text-xs"></i>Ayarlar
-                    </a>
-                    <hr class="my-1">
+                    </a> *@
+                    @* <hr class="my-1"> *@
                     <form method="post" asp-area="" asp-controller="Auth" asp-action="Logout" class="block">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
@@ -580,7 +580,7 @@
                         </div>
 
                         <!-- Notifications -->
-                        <div class="relative" x-data="{ show: false }">
+                        @* <div class="relative" x-data="{ show: false }">
                             <button @@click="show = !show" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative">
                                 <i class="fas fa-bell text-lg"></i>
                                 <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
@@ -617,7 +617,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
 
                         <div class="hidden lg:flex items-center space-x-2 text-sm text-gray-500">
                             <i class="fas fa-calendar-alt text-xs"></i>

@@ -173,8 +173,10 @@
                     <div class="space-y-4">
                         @foreach (var comment in publicComments)
                         {
+                            var commentUser = comment.User.Role == "Admin" ? "Admin" : "Müşteri";
+                            
                             <div class="border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-start">
+                                <div class="flex items-start justify-between">
                                     <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
                                         <span class="text-white font-medium text-sm">
                                             @comment.User.FullName.Substring(0, 1).ToUpper()
@@ -187,7 +189,11 @@
                                                 <p class="text-xs text-gray-500">@comment.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</p>
                                             </div>
                                             <span class="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
-                                                <i class="fas fa-user mr-1"></i> Müşteri
+                                                @if (@comment.User.Role == "Admin")
+                                                {
+
+                                                }
+                                                <i class="fas fa-user mr-1"></i> @commentUser
                                             </span>
                                         </div>
                                         <div class="text-sm text-gray-800 whitespace-pre-wrap">@comment.Content</div>
@@ -284,7 +290,7 @@
                             <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 mr-2"></div>
                             <div>
                                 <p class="font-medium text-blue-900">Sonraki:</p>
-                                <p class="text-blue-800">1-2 gün içinde yanıt</p>
+                                <p class="text-blue-800">1-2 saat içinde yanıt</p>
                             </div>
                         </div>
                         break;
@@ -293,7 +299,7 @@
                             <div class="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1 mr-2"></div>
                             <div>
                                 <p class="font-medium text-blue-900">Şu Anda:</p>
-                                <p class="text-blue-800">İşleniyor</p>
+                                <p class="text-blue-800">İşlemde</p>
                             </div>
                         </div>
                         break;

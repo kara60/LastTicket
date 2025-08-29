@@ -198,6 +198,40 @@ public class TicketsController : Controller
         }
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SelectCategory(int typeId)
+    {
+        try
+        {
+            var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+            var categories = await _mediator.Send(new GetTicketCategoriesQuery());
+
+            var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == typeId);
+
+            if (selectedType == null)
+            {
+                TempData["Error"] = "Geçersiz ticket türü.";
+                return RedirectToAction("Create");
+            }
+
+            var model = new CreateTicketStep2ViewModel
+            {
+                SelectedTypeId = typeId,
+                SelectedType = selectedType,
+                // HATAYI DÜZELT: .ToList() ekle
+                Categories = categories.Data?.Where(c => c.IsActive).ToList() ?? new List<TicketCategoryDto>()
+            };
+
+            return View("SelectCategory", model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GET SelectCategory for typeId: {TypeId}", typeId);
+            TempData["Error"] = "Bir hata oluştu: " + ex.Message;
+            return RedirectToAction("Create");
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> SelectCategory(int typeId, int categoryId)
     {
@@ -226,6 +260,41 @@ public class TicketsController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in SelectCategory for typeId: {TypeId}, categoryId: {CategoryId}", typeId, categoryId);
+            TempData["Error"] = "Bir hata oluştu: " + ex.Message;
+            return RedirectToAction("Create");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> FillForm(int typeId, int categoryId)
+    {
+        try
+        {
+            var ticketTypes = await _mediator.Send(new GetTicketTypesQuery());
+            var categories = await _mediator.Send(new GetTicketCategoriesQuery());
+
+            var selectedType = ticketTypes.Data?.FirstOrDefault(x => x.Id == typeId);
+            var selectedCategory = categories.Data?.FirstOrDefault(x => x.Id == categoryId);
+
+            if (selectedType == null || selectedCategory == null)
+            {
+                TempData["Error"] = "Geçersiz seçim.";
+                return RedirectToAction("Create");
+            }
+
+            var model = new CreateTicketStep3ViewModel
+            {
+                SelectedTypeId = typeId,
+                SelectedCategoryId = categoryId,
+                SelectedType = selectedType,
+                SelectedCategory = selectedCategory
+            };
+
+            return View("FillForm", model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GET FillForm for typeId: {TypeId}, categoryId: {CategoryId}", typeId, categoryId);
             TempData["Error"] = "Bir hata oluştu: " + ex.Message;
             return RedirectToAction("Create");
         }

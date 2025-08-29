@@ -255,11 +255,11 @@
                             <div class="space-y-3 text-sm">
                                 <div class="flex items-center justify-between">
                                     <span class="text-green-800">İnceleme</span>
-                                    <span class="font-medium text-green-900">1-2 gün</span>
+                                    <span class="font-medium text-green-900">1-2 saat</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-green-800">İşleme alma</span>
-                                    <span class="font-medium text-green-900">2-5 gün</span>
+                                    <span class="font-medium text-green-900">1-2 gün</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-green-800">Çözüm</span>
@@ -274,8 +274,9 @@
     </div>
 
     <!-- Action Buttons -->
+    <!-- Action Buttons - Preview.cshtml içindeki navigation kısmını bu şekilde değiştirin -->
     <div class="flex justify-between items-center mt-8">
-        <a href="javascript:history.back()"
+        <a href="@Url.Action("FillForm", new { typeId = Model.SelectedTypeId, categoryId = Model.SelectedCategoryId })"
            class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md">
             <i class="fas fa-arrow-left mr-2"></i>
             Geri Dön
@@ -325,13 +326,14 @@
             }
 
             // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    history.back();
-                } else if (e.key === 'Enter' && e.ctrlKey && submitBtn && !submitBtn.disabled) {
-                    submitBtn.click();
-                }
-            });
+                    document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // history.back() yerine:
+                window.location.href = '@Url.Action("FillForm", new { typeId = Model.SelectedTypeId, categoryId = Model.SelectedCategoryId })';
+            } else if (e.key === 'Enter' && e.ctrlKey && submitBtn && !submitBtn.disabled) {
+                submitBtn.click();
+            }
+        });
 
             // Add entrance animation
             const container = document.querySelector('.max-w-6xl');
