@@ -12,8 +12,8 @@
                     <i class="fas fa-arrow-left mr-2"></i>Geri
                 </a>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">#@Model.TicketNumber</h1>
-                    <p class="text-sm text-gray-500 mt-1">@Model.CreatedAt.ToString("dd MMMM yyyy, HH:mm") • @Model.CreatedBy.FullName</p>
+                    <h1 class="text-2xl font-bold text-gray-900">@Model.Title</h1>
+                    @* <p class="text-sm text-gray-500 mt-1">@Model.CreatedAt.ToString("dd MMMM yyyy, HH:mm") • @Model.CreatedBy.FullName</p> *@
                 </div>
             </div>
 
@@ -56,7 +56,7 @@
 
         <!-- Ticket Details -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            @* <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 class="text-lg font-bold text-gray-900">@Model.Title</h2>
                 <div class="flex items-center space-x-4 text-sm text-gray-600 mt-2">
                     <div class="flex items-center">
@@ -69,7 +69,7 @@
                     </div>
                     <span>@Model.Customer.Name</span>
                 </div>
-            </div>
+            </div> *@
 
             <div class="p-6 space-y-6">
                 <!-- Description -->
@@ -87,8 +87,19 @@
                 @if (Model.FormData != null && Model.FormData.Any())
                 {
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Detay Bilgileri</h3>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Bilgiler</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            @* @if (!string.IsNullOrEmpty(Model.SelectedModule))
+                            {
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-900 mb-2">Seçilen Modül</h3>
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
+                                        <i class="fas fa-puzzle-piece mr-2"></i>@Model.SelectedModule
+                                    </span>
+                                </div>
+                            } *@
+
                             @foreach (var field in Model.FormData)
                             {
                                 <div class="bg-gray-50 rounded-lg p-4">
@@ -114,16 +125,6 @@
                                 </div>
                             }
                         </div>
-                    </div>
-                }
-
-                @if (!string.IsNullOrEmpty(Model.SelectedModule))
-                {
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-2">Seçilen Modül</h3>
-                        <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
-                            <i class="fas fa-puzzle-piece mr-2"></i>@Model.SelectedModule
-                        </span>
                     </div>
                 }
             </div>
@@ -165,7 +166,7 @@
                 <!-- Comments List -->
                 <!-- Comments List -->
                 @{
-                    var publicComments = Model.Comments.Where(c => !c.IsInternal).OrderByDescending(c => c.CreatedAt);
+                    var publicComments = Model.Comments.OrderByDescending(c => c.CreatedAt);
                 }
 
                 @if (publicComments.Any())
@@ -186,15 +187,17 @@
                                         <div class="flex items-center justify-between mb-2">
                                             <div>
                                                 <h4 class="text-sm font-semibold text-gray-900">@comment.User.FullName</h4>
+                                                @if (@comment.IsInternal == true)
+                                                {
+                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded">Gizli Mesaj(Sadece Adminler)</span>
+
+                                                }
                                                 <p class="text-xs text-gray-500">@comment.CreatedAt.ToString("dd MMMM yyyy, HH:mm")</p>
                                             </div>
                                             <span class="inline-flex items-center px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
-                                                @if (@comment.User.Role == "Admin")
-                                                {
-
-                                                }
                                                 <i class="fas fa-user mr-1"></i> @commentUser
                                             </span>
+                                            
                                         </div>
                                         <div class="text-sm text-gray-800 whitespace-pre-wrap">@comment.Content</div>
                                     </div>
@@ -325,14 +328,13 @@
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Müşteri</span>
-                    <span class="font-medium text-gray-900">@Model.Customer.Name</span>
+                    <span class="text-gray-600">Modül/Ekran</span>
+                    <div class="flex items-center">
+                        <span class="font-medium text-gray-900">@Model.SelectedModule</span>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <span class="text-gray-600">Oluşturan</span>
-                    <span class="font-medium text-gray-900">@Model.CreatedBy.FullName</span>
-                </div>
+                
 
                 @if (Model.AssignedTo != null)
                 {
@@ -344,6 +346,14 @@
 
                 <div class="border-t border-gray-200 pt-3">
                     <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Müşteri</span>
+                            <span class="font-medium text-gray-900">@Model.Customer.Name</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Oluşturan</span>
+                            <span class="font-medium text-gray-900">@Model.CreatedBy.FullName</span>
+                        </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-600">Oluşturulma</span>
                             <span class="font-medium text-gray-900">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
