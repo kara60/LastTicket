@@ -3,1161 +3,364 @@
     ViewData["Title"] = "Ticket Yönetimi";
 }
 
-<div class="min-h-screen bg-gray-50">
-    <!-- Enhanced Header with Real Stats -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="px-6 py-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Ticket Yönetim Merkezi</h1>
-                    <p class="text-gray-600 mt-1">Tüm müşteri taleplerini canlı takip edin</p>
-                </div>
-
-                <!-- Live Stats Dashboard -->
-                <div class="flex items-center space-x-4">
-                    @{
-                        var newTickets = Model.Items.Where(x => x.StatusDisplay == "İnceleniyor").ToList();
-                        var inProgressTickets = Model.Items.Where(x => x.StatusDisplay == "İşlemde").ToList();
-                        var urgentTickets = Model.Items.Where(x => x.StatusDisplay == "İnceleniyor" && (DateTime.Now - x.CreatedAt).TotalHours > 24).ToList();
-                    }
-                    
-                    <div class="bg-gradient-to-r from-red-50 to-red-100 px-4 py-3 rounded-xl border border-red-200 relative">
-                        @if (urgentTickets.Any())
-                        {
-                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-                        }
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-exclamation-triangle text-red-600"></i>
-                            <span class="text-sm font-medium text-red-800">@urgentTickets.Count Acil</span>
-                        </div>
-                        <div class="text-xs text-red-600 mt-1">24s+ bekleyen</div>
-                    </div>
-                    
-                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 px-4 py-3 rounded-xl border border-yellow-200">
-                        <div class="text-lg font-bold text-yellow-800">@newTickets.Count</div>
-                        <div class="text-xs text-yellow-700">Yeni Talep</div>
-                    </div>
-                    
-                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 rounded-xl border border-blue-200">
-                        <div class="text-lg font-bold text-blue-800">@inProgressTickets.Count</div>
-                        <div class="text-xs text-blue-700">İşlemde</div>
-                    </div>
-                    
-                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 rounded-xl border border-gray-200">
-                        <div class="text-lg font-bold text-gray-800">@Model.TotalCount</div>
-                        <div class="text-xs text-gray-700">Toplam</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dynamic Tab Navigation -->
-            <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6" id="tabContainer">
-                <button class="tab-btn active px-6 py-2 text-sm font-medium rounded-md transition-all" data-tab="all">
-                    <i class="fas fa-list mr-2"></i>Tüm Ticket'lar
-                    <span class="ml-2 bg-white bg-opacity-30 px-2 py-0.5 text-xs rounded-full">@Model.TotalCount</span>
-                </button>
-                <button class="tab-btn px-6 py-2 text-sm font-medium rounded-md transition-all" data-tab="awaiting" 
-                        @(newTickets.Count > 0 ? "data-has-items='true'" : "")>
-                    <i class="fas fa-clock mr-2"></i>Cevap Bekleyenler
-                    <span class="ml-2 bg-white bg-opacity-30 px-2 py-0.5 text-xs rounded-full">@newTickets.Count</span>
-                    @if (newTickets.Count > 0)
-                    {
-                        <div class="inline-block w-2 h-2 bg-red-500 rounded-full ml-1 animate-pulse"></div>
-                    }
-                </button>
-                <button class="tab-btn px-6 py-2 text-sm font-medium rounded-md transition-all" data-tab="dashboard">
-                    <i class="fas fa-chart-pie mr-2"></i>Müşteri Özeti
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Smart Filters -->
+<!-- Header -->
+<div class="bg-white border-b border-gray-200 mb-6">
     <div class="px-6 py-4">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <form method="get" id="smartFilterForm">
-                <div class="flex items-center space-x-4 mb-4">
-                    <!-- Real-time Search -->
-                    <div class="flex-1">
-                        <div class="relative">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" name="SearchTerm" value="@Context.Request.Query["SearchTerm"]" 
-                                   id="liveSearch"
-                                   placeholder="Canlı arama: Ticket #, müşteri, başlık..." 
-                                   class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                   autocomplete="off">
-                        </div>
-                    </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Ticket Yönetimi</h1>
+                <p class="text-gray-600 text-sm mt-1">Müşteri taleplerini inceleyin ve yönetin</p>
+            </div>
+            <!-- Özet Stats -->
+            <div class="flex items-center space-x-3">
+                @{
+                    var awaitingTickets = Model.Items.Where(x => x.StatusDisplay == "İnceleniyor").ToList();
+                    var inProgressTickets = Model.Items.Where(x => x.StatusDisplay == "İşlemde").ToList();
+                    var resolvedTickets = Model.Items.Where(x => x.StatusDisplay == "Çözüldü").ToList();
+                }
 
-                    <!-- Quick Status Pills -->
-                    <div class="flex items-center space-x-2" id="statusPills">
-                        <button type="button" class="status-pill active" data-status="" data-count="@Model.TotalCount">
-                            Tümü (@Model.TotalCount)
-                        </button>
-                        <button type="button" class="status-pill" data-status="İnceleniyor" data-count="@newTickets.Count">
-                            İnceleniyor (@newTickets.Count)
-                        </button>
-                        <button type="button" class="status-pill" data-status="İşlemde" data-count="@inProgressTickets.Count">
-                            İşlemde (@inProgressTickets.Count)
-                        </button>
-                        <button type="button" class="status-pill" data-status="Çözüldü" data-count="@Model.Items.Count(x => x.StatusDisplay == "Çözüldü")">
-                            Çözüldü (@Model.Items.Count(x => x.StatusDisplay == "Çözüldü"))
-                        </button>
-                    </div>
+                <div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
+                    <div class="text-lg font-bold text-amber-800">@awaitingTickets.Count</div>
+                    <div class="text-xs text-amber-600">Bekleyen</div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
+                    <div class="text-lg font-bold text-blue-800">@inProgressTickets.Count</div>
+                    <div class="text-xs text-blue-600">İşlemde</div>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+                    <div class="text-lg font-bold text-emerald-800">@resolvedTickets.Count</div>
+                    <div class="text-xs text-emerald-600">Çözülen</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <!-- Advanced Filters Toggle -->
-                    <button type="button" id="advancedToggle" class="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-                        <i class="fas fa-sliders-h mr-2"></i>Gelişmiş
-                    </button>
+<!-- Filters -->
+<div class="px-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border p-4">
+        <form method="get" id="filterForm" class="space-y-4">
+            <!-- Ana Filtreler -->
+            <div class="flex items-center space-x-4">
+                <!-- Arama -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" name="SearchTerm" value="@Context.Request.Query["SearchTerm"]"
+                               placeholder="Ticket #, müşteri adı veya başlık ara..."
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
                 </div>
 
-                <!-- Advanced Filters (Hidden by default) -->
-                <div id="advancedFilters" class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200 hidden">
-                    <select name="CustomerId" class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                <!-- Durum Filtreleri -->
+                <div class="flex items-center space-x-2">
+                    <select name="Status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="İnceleniyor" @(Context.Request.Query["Status"] == "İnceleniyor" ? "selected" : "")>İnceleniyor</option>
+                        <option value="İşlemde" @(Context.Request.Query["Status"] == "İşlemde" ? "selected" : "")>İşlemde</option>
+                        <option value="Çözüldü" @(Context.Request.Query["Status"] == "Çözüldü" ? "selected" : "")>Çözüldü</option>
+                        <option value="Reddedildi" @(Context.Request.Query["Status"] == "Reddedildi" ? "selected" : "")>Reddedildi</option>
+                    </select>
+                </div>
+
+                <!-- Kapalı Ticketları Göster -->
+                <div class="flex items-center">
+                    <label class="flex items-center text-sm">
+                        <input type="checkbox" name="IncludeClosed" value="true"
+                               @(Context.Request.Query["IncludeClosed"] == "true" ? "checked" : "")
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2">
+                        <span class="text-gray-700">Kapalı ticketları göster</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                    <i class="fas fa-search mr-1"></i>Filtrele
+                </button>
+            </div>
+
+            <!-- Gelişmiş Filtreler (Daraltılabilir) -->
+            <div id="advancedFilters" class="hidden pt-4 border-t border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <select name="CustomerId" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">Tüm Müşteriler</option>
-                        @foreach (var customer in Model.Items.GroupBy(x => x.CustomerName).Select(g => g.First()).OrderBy(x => x.CustomerName))
+                        @foreach (var customer in Model.Items.GroupBy(x => x.CustomerName).Select(g => new { Name = g.Key, Id = g.First().Id }).OrderBy(x => x.Name))
                         {
-                            <option value="@customer.Id">@customer.CustomerName</option>
+                            <option value="@customer.Id" @(Context.Request.Query["CustomerId"] == customer.Id.ToString() ? "selected" : "")>@customer.Name</option>
                         }
                     </select>
 
-                    <select name="DateRange" class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="TypeId" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">Tüm Türler</option>
+                        @foreach (var type in Model.Items.GroupBy(x => x.TypeName).Select(g => g.First()).OrderBy(x => x.TypeName))
+                        {
+                            <option value="@type.Id">@type.TypeName</option>
+                        }
+                    </select>
+
+                    <select name="DateRange" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">Tüm Tarihler</option>
-                        <option value="today">Bugün</option>
-                        <option value="week">Bu Hafta</option>
-                        <option value="month">Bu Ay</option>
-                        <option value="old">Eski (7+ gün)</option>
+                        <option value="today" @(Context.Request.Query["DateRange"] == "today" ? "selected" : "")>Bugün</option>
+                        <option value="week" @(Context.Request.Query["DateRange"] == "week" ? "selected" : "")>Bu Hafta</option>
+                        <option value="month" @(Context.Request.Query["DateRange"] == "month" ? "selected" : "")>Bu Ay</option>
                     </select>
 
-                    <select name="SortBy" class="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="SortBy" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="CreatedAt">En Yeni</option>
-                        <option value="Status">Durum</option>
-                        <option value="Customer">Müşteri</option>
-                        <option value="Urgent">Aciliyet</option>
+                        <option value="UpdatedAt" @(Context.Request.Query["SortBy"] == "UpdatedAt" ? "selected" : "")>Son Güncelleme</option>
+                        <option value="Status" @(Context.Request.Query["SortBy"] == "Status" ? "selected" : "")>Durum</option>
+                        <option value="Customer" @(Context.Request.Query["SortBy"] == "Customer" ? "selected" : "")>Müşteri</option>
                     </select>
-
-                    <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                        <i class="fas fa-filter mr-2"></i>Uygula
-                    </button>
                 </div>
+            </div>
 
-                <!-- Hidden inputs for current state -->
-                <input type="hidden" name="Status" id="hiddenStatus" value="@Context.Request.Query["Status"]">
-                <input type="hidden" name="Page" value="1">
-            </form>
-        </div>
-    </div>
+            <div class="flex items-center justify-between">
+                <button type="button" id="advancedToggle" class="text-sm text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-chevron-down mr-1"></i>Gelişmiş Filtreler
+                </button>
 
-    <!-- Content Area -->
-    <div class="px-6 pb-6">
-        
-        <!-- Tab: All Tickets -->
-        <div id="tab-all" class="tab-content active">
-            @if (Model.Items.Any())
-            {
-                <div class="space-y-3" id="ticketsList">
-                    @foreach (var ticket in Model.Items)
-                    {
-                        
-                            var timeAgo = DateTime.Now - ticket.CreatedAt;
-                            var isUrgent = ticket.StatusDisplay == "İnceleniyor" && timeAgo.TotalHours > 24;
-                            var timeText = timeAgo.Days > 0 ? $"{timeAgo.Days}g" :
-                                          timeAgo.Hours > 0 ? $"{timeAgo.Hours}s" :
-                                          $"{timeAgo.Minutes}d";
-                       
-                        
-                        <div class="ticket-item @(isUrgent ? "urgent-ticket" : "") bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200" 
-                             data-status="@ticket.StatusDisplay" data-customer="@ticket.CustomerName.ToLower()" data-title="@ticket.Title.ToLower()" data-number="@ticket.TicketNumber.ToLower()">
-                            <div class="p-5">
-                                <div class="flex items-start justify-between">
-                                    
-                                    <!-- Left: Main Info -->
-                                    <div class="flex items-start space-x-4 flex-1">
-                                        
-                                        <!-- Status Indicator with Priority -->
-                                        <div class="flex flex-col items-center space-y-1 relative">
-                                            <div class="w-4 h-4 rounded-full" style="background-color: @ticket.TypeColor">
-                                                @if (isUrgent)
-                                                {
-                                                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                                                }
-                                            </div>
-                                            <div class="text-xs text-gray-400 text-center">
-                                                @ticket.CreatedAt.ToString("dd/MM")
-                                            </div>
-                                        </div>
-
-                                        <!-- Content -->
-                                        <div class="flex-1 min-w-0">
-                                            <!-- Header -->
-                                            <div class="flex items-center space-x-3 mb-2">
-                                                <a href="@Url.Action("Details", new { id = ticket.Id })" class="ticket-title">
-                                                    <h3 class="text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors">
-                                                        #@ticket.TicketNumber
-                                                    </h3>
-                                                </a>
-                                                
-                                                <div class="status-badge @(ticket.StatusDisplay == "İnceleniyor" ? "status-awaiting" :
-                                                                          ticket.StatusDisplay == "İşlemde" ? "status-progress" :
-                                                                          ticket.StatusDisplay == "Çözüldü" ? "status-resolved" : "status-closed")">
-                                                    @ticket.StatusDisplay
-                                                </div>
-                                                
-                                                @if (ticket.CommentCount > 0)
-                                                {
-                                                    <span class="comment-badge">
-                                                        <i class="fas fa-comment mr-1"></i>@ticket.CommentCount
-                                                    </span>
-                                                }
-                                                
-                                                @if (isUrgent)
-                                                {
-                                                    <span class="urgent-badge">
-                                                        <i class="fas fa-fire mr-1"></i>ACİL
-                                                    </span>
-                                                }
-                                            </div>
-
-                                            <!-- Title & Description -->
-                                            <h4 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2">
-                                                @ticket.Title
-                                            </h4>
-
-                                            <!-- Meta Information -->
-                                            <div class="flex items-center flex-wrap gap-3 text-xs text-gray-500">
-                                                <div class="customer-info">
-                                                    <i class="fas fa-building text-blue-500 mr-1"></i>
-                                                    <span class="font-medium text-gray-700">@ticket.CustomerName</span>
-                                                </div>
-                                                <div class="type-info">
-                                                    <i class="fas fa-tag text-green-500 mr-1"></i>
-                                                    @ticket.TypeName
-                                                </div>
-                                                <div class="time-info">
-                                                    <i class="fas fa-clock text-orange-500 mr-1"></i>
-                                                    @ticket.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right: Actions & Status -->
-                                    <div class="flex flex-col items-end space-y-2 ml-6">
-                                        <div class="flex items-center space-x-2">
-                                            @if (ticket.StatusDisplay == "İnceleniyor")
-                                            {
-                                                <button class="quick-btn btn-start" onclick="quickUpdateStatus(@ticket.Id, 'İşlemde', this)">
-                                                    <i class="fas fa-play mr-1"></i>Başlat
-                                                </button>
-                                            }
-                                            else if (ticket.StatusDisplay == "İşlemde")
-                                            {
-                                                <button class="quick-btn btn-resolve" onclick="quickUpdateStatus(@ticket.Id, 'Çözüldü', this)">
-                                                    <i class="fas fa-check mr-1"></i>Çözüldü
-                                                </button>
-                                            }
-                                            
-                                            <a href="@Url.Action("Details", new { id = ticket.Id })" class="quick-btn btn-details">
-                                                <i class="fas fa-eye mr-1"></i>Detay
-                                            </a>
-                                        </div>
-                                        
-                                        <div class="text-xs text-gray-400 flex items-center">
-                                            <i class="fas fa-history mr-1"></i>
-                                            @timeText önce
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">
-                    <div class="text-center py-16">
-                        <i class="fas fa-search text-gray-300 text-4xl mb-4"></i>
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Sonuç bulunamadı</h3>
-                        <p class="text-gray-600">Filtreleme kriterlerinizi değiştirmeyi deneyin</p>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Tab: Awaiting Response (Only İnceleniyor status) -->
-        <div id="tab-awaiting" class="tab-content">
-            @{
-                var awaitingTickets = Model.Items.Where(x => x.StatusDisplay == "İnceleniyor").OrderByDescending(x => x.CreatedAt).ToList();
-            }
-            
-            @if (awaitingTickets.Any())
-            {
-                <div class="awaiting-header bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-6 border border-orange-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-semibold text-orange-900">Cevap Bekleyen Talepler</h3>
-                            <p class="text-orange-700 text-sm">En yeni talepler en üstte görünür</p>
-                        </div>
-                        <div class="text-2xl font-bold text-orange-800">@awaitingTickets.Count</div>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    @foreach (var ticket in awaitingTickets)
-                    {
-                        
-                            var timeAgo = DateTime.Now - ticket.CreatedAt;
-                            var isVeryUrgent = timeAgo.TotalHours > 48;
-                            var isUrgent = timeAgo.TotalHours > 24;
-                        
-                        
-                        <div class="awaiting-ticket @(isVeryUrgent ? "very-urgent" : isUrgent ? "urgent" : "normal") rounded-xl p-5 shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="priority-indicator">
-                                        @if (isVeryUrgent)
-                                        {
-                                            <div class="w-4 h-4 bg-red-600 rounded-full animate-pulse"></div>
-                                        }
-                                        else if (isUrgent)
-                                        {
-                                            <div class="w-4 h-4 bg-orange-500 rounded-full animate-pulse"></div>
-                                        }
-                                        else
-                                        {
-                                            <div class="w-4 h-4 bg-yellow-500 rounded-full"></div>
-                                        }
-                                    </div>
-                                    
-                                    <div class="ticket-info">
-                                        <div class="flex items-center space-x-3 mb-1">
-                                            <h4 class="text-lg font-bold text-gray-900">#@ticket.TicketNumber</h4>
-                                            @if (isVeryUrgent)
-                                            {
-                                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold">
-                                                    48+ SAAT
-                                                </span>
-                                            }
-                                            else if (isUrgent)
-                                            {
-                                                <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-bold">
-                                                    24+ SAAT
-                                                </span>
-                                            }
-                                        </div>
-                                        <p class="text-sm font-medium text-gray-800 mb-1">@ticket.Title</p>
-                                        <div class="text-xs text-gray-600 flex items-center space-x-4">
-                                            <span><i class="fas fa-building mr-1"></i>@ticket.CustomerName</span>
-                                            <span><i class="fas fa-clock mr-1"></i>@ticket.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
-                                            <span><i class="fas fa-tag mr-1"></i>@ticket.TypeName</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="actions">
-                                    <button class="action-btn primary" onclick="quickUpdateStatus(@ticket.Id, 'İşlemde', this)">
-                                        <i class="fas fa-play mr-2"></i>Hemen İşleme Al
-                                    </button>
-                                    <a href="@Url.Action("Details", new { id = ticket.Id })" class="action-btn secondary">
-                                        <i class="fas fa-eye mr-1"></i>İncele
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-16">
-                    <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Harika! Bekleyen talep yok</h3>
-                    <p class="text-gray-600">Tüm yeni talepler işleme alınmış durumda</p>
-                </div>
-            }
-        </div>
-
-        <!-- Tab: Customer Dashboard -->
-        <div id="tab-dashboard" class="tab-content">
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                @foreach (var customerGroup in Model.Items.GroupBy(x => x.CustomerName).OrderBy(g => g.Key))
+                @if (Context.Request.Query.Any())
                 {
-                    var customerTickets = customerGroup.ToList();
-                    var newCount = customerTickets.Count(x => x.StatusDisplay == "İnceleniyor");
-                    var progressCount = customerTickets.Count(x => x.StatusDisplay == "İşlemde");
-                    var resolvedCount = customerTickets.Count(x => x.StatusDisplay == "Çözüldü");
-                    
-                    <div class="customer-card">
-                        <div class="customer-header">
-                            <h3 class="customer-name">@customerGroup.Key</h3>
-                            <span class="total-count">@customerTickets.Count</span>
-                        </div>
-                        
-                        <div class="customer-stats">
-                            <div class="stat-card new" data-count="@newCount">
-                                <div class="stat-number">@newCount</div>
-                                <div class="stat-label">Yeni</div>
-                            </div>
-                            <div class="stat-card progress" data-count="@progressCount">
-                                <div class="stat-number">@progressCount</div>
-                                <div class="stat-label">İşlemde</div>
-                            </div>
-                            <div class="stat-card resolved" data-count="@resolvedCount">
-                                <div class="stat-number">@resolvedCount</div>
-                                <div class="stat-label">Çözüldü</div>
-                            </div>
-                        </div>
+                    <a href="@Url.Action("Index")" class="text-sm text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-times mr-1"></i>Filtreleri Temizle
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
 
-                        <div class="recent-tickets">
-                            @foreach (var ticket in customerTickets.Take(3).OrderByDescending(x => x.CreatedAt))
-                            {
-                                <div class="recent-ticket">
-                                    <div class="ticket-summary">
-                                        <a href="@Url.Action("Details", new { id = ticket.Id })" class="ticket-link">
-                                            <span class="ticket-number">#@ticket.TicketNumber</span>
-                                        </a>
-                                        <span class="ticket-type">@ticket.TypeName</span>
-                                    </div>
-                                    <div class="ticket-status-mini @ticket.StatusDisplay.ToLower().Replace("ç", "c").Replace("ğ", "g").Replace("ı", "i").Replace("ö", "o").Replace("ş", "s").Replace("ü", "u")"></div>
+<!-- Ticket List -->
+<div class="px-6">
+    @if (Model.Items.Any())
+    {
+        <div class="space-y-3">
+            @foreach (var ticket in Model.Items)
+            {
+                var timeAgo = DateTime.Now - ticket.CreatedAt;
+                var isUrgent = ticket.StatusDisplay == "İnceleniyor" && timeAgo.TotalHours > 24;
+                var timeText = timeAgo.Days > 0 ? $"{timeAgo.Days} gün" :
+                timeAgo.Hours > 0 ? $"{timeAgo.Hours} saat" :
+                $"{timeAgo.Minutes} dakika";
+
+                <div class="ticket-card @(isUrgent ? "urgent" : "") bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="p-4">
+                        <div class="flex items-start justify-between">
+
+                            <!-- Sol: Ana İçerik -->
+                            <div class="flex items-start space-x-3 flex-1">
+                                <!-- Status Göstergesi -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full mb-1" style="background-color: @ticket.TypeColor"></div>
+                                    @if (isUrgent)
+                                    {
+                                        <i class="fas fa-exclamation-triangle text-red-500 text-xs animate-pulse"></i>
+                                    }
                                 </div>
-                            }
-                            
-                            @if (customerTickets.Count > 3)
-                            {
-                                <button class="show-more" onclick="filterByCustomer('@customerGroup.Key')">
-                                    +@(customerTickets.Count - 3) daha fazla göster
-                                </button>
-                            }
+
+                                <!-- İçerik -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Başlık ve Durum -->
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <h3 class="text-lg font-semibold text-gray-900">
+                                            <a href="@Url.Action("Details", new { id = ticket.Id })" class="hover:text-blue-600 transition-colors">
+                                                #@ticket.TicketNumber
+                                            </a>
+                                        </h3>
+
+                                        <span class="status-badge @(ticket.StatusDisplay == "İnceleniyor" ? "bg-amber-100 text-amber-800" :
+                                                                                                                  ticket.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
+                                                                                                                  ticket.StatusDisplay == "Çözüldü" ? "bg-emerald-100 text-emerald-800" :
+                                                                                                                  ticket.StatusDisplay == "Kapandı" ? "bg-gray-100 text-gray-800" :
+                                                                                                                  "bg-red-100 text-red-800")">
+                                    @ticket.StatusDisplay
+                                </span>
+
+                                @if (ticket.CommentCount > 0)
+                                        {
+                                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+                                                <i class="fas fa-comment mr-1"></i>@ticket.CommentCount
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <!-- Ticket Başlığı -->
+                                    <h4 class="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
+                                        @ticket.Title
+                                    </h4>
+
+                                    <!-- Meta Bilgiler -->
+                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-building text-blue-500 mr-1"></i>
+                                            <span class="font-medium">@ticket.CustomerName</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-tag text-emerald-500 mr-1"></i>
+                                            <span>@ticket.TypeName</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-clock text-gray-400 mr-1"></i>
+                                            <span>@timeText önce</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-calendar text-gray-400 mr-1"></i>
+                                            <span>@ticket.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sağ: Detay Butonu -->
+                            <div class="ml-4">
+                                <a href="@Url.Action("Details", new { id = ticket.Id })"
+                                   class="inline-flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm rounded-lg border transition-colors">
+                                    <i class="fas fa-eye mr-2"></i>Detay
+                                </a>
+                            </div>
                         </div>
                     </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-12">
+            <div class="bg-white rounded-lg shadow-sm border p-8">
+                <i class="fas fa-search text-gray-300 text-4xl mb-4"></i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Sonuç Bulunamadı</h3>
+                <p class="text-gray-600 mb-4">Arama kriterlerinize uygun ticket bulunamadı.</p>
+                @if (Context.Request.Query.Any())
+                {
+                    <a href="@Url.Action("Index")" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-redo mr-2"></i>Filtreleri Temizle
+                    </a>
                 }
             </div>
         </div>
+    }
+</div>
 
-        <!-- Pagination -->
-        @if (Model.TotalPages > 1)
-        {
-            <nav class="pagination-nav">
-                <div class="pagination-info">
-                    Toplam @Model.TotalCount kayıttan @((Model.PageNumber - 1) * Model.PageSize + 1)-@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) arası
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <div class="px-6 mt-6">
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-600">
+                    Toplam @Model.TotalCount kayıttan @((Model.PageNumber - 1) * Model.PageSize + 1)-@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount)) arası gösteriliyor
                 </div>
-                
-                <div class="pagination-controls">
+
+                <div class="flex items-center space-x-1">
                     @if (Model.HasPreviousPage)
                     {
-                        <a href="?Page=@(Model.PageNumber - 1)&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')" class="page-btn">
+                        <a href="?Page=@(Model.PageNumber - 1)&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')"
+                           class="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
                             <i class="fas fa-chevron-left"></i>
                         </a>
                     }
 
                     @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
                     {
-                        <a href="?Page=@i&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')" 
-                           class="page-btn @(i == Model.PageNumber ? "active" : "")">
+                        <a href="?Page=@i&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')"
+                           class="px-3 py-2 border text-sm rounded-md @(i == Model.PageNumber ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 hover:bg-gray-50")">
                             @i
                         </a>
                     }
 
                     @if (Model.HasNextPage)
                     {
-                        <a href="?Page=@(Model.PageNumber + 1)&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')" class="page-btn">
+                        <a href="?Page=@(Model.PageNumber + 1)&@Context.Request.QueryString.Value?.Replace($"Page={Model.PageNumber}", "").TrimStart('&')"
+                           class="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50">
                             <i class="fas fa-chevron-right"></i>
                         </a>
                     }
                 </div>
-            </nav>
-        }
+            </div>
+        </div>
     </div>
-</div>
+}
 
 <style>
-/* Tab System */
-.tab-btn {
-    color: #6b7280;
-    background: transparent;
-    position: relative;
-}
-.tab-btn.active {
-    color: #3b82f6;
-    background: white;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-.tab-btn[data-has-items="true"] {
-    animation: gentle-pulse 2s infinite;
-}
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Status Pills */
-.status-pill {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 2px solid #e5e7eb;
-    border-radius: 9999px;
-    background: white;
-    color: #6b7280;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-.status-pill.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-}
-
-/* Status Badges */
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border-radius: 9999px;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-.status-awaiting { background: #fef3c7; color: #92400e; }
-.status-progress { background: #dbeafe; color: #1e40af; }
-.status-resolved { background: #dcfce7; color: #166534; }
-.status-closed { background: #f3f4f6; color: #6b7280; }
-
-.comment-badge {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-radius: 0.375rem;
-    display: inline-flex;
-    align-items: center;
-}
-
-.urgent-badge {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    background: #fee2e2;
-    color: #dc2626;
-    border-radius: 0.375rem;
-    display: inline-flex;
-    align-items: center;
-    animation: pulse 2s infinite;
-}
-
-/* Ticket Cards */
-.ticket-item {
-    transition: all 0.3s ease;
-}
-.ticket-item:hover {
-    transform: translateY(-2px);
-    border-color: #3b82f6;
-}
-.urgent-ticket {
-    border-left: 4px solid #f59e0b;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-}
-
-/* Quick Action Buttons */
-.quick-btn {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    display: inline-flex;
-    align-items: center;
-}
-.btn-start { background: #dcfce7; color: #166534; }
-.btn-start:hover { background: #16a34a; color: white; }
-.btn-resolve { background: #dbeafe; color: #1e40af; }
-.btn-resolve:hover { background: #2563eb; color: white; }
-.btn-details { background: #f3f4f6; color: #374151; }
-.btn-details:hover { background: #e5e7eb; }
-
-/* Awaiting Response Tab Styles */
-.awaiting-ticket {
-    border: 2px solid #fbbf24;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-}
-.awaiting-ticket.urgent {
-    border-color: #f97316;
-    background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-}
-.awaiting-ticket.very-urgent {
-    border-color: #dc2626;
-    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-    animation: urgent-glow 2s infinite;
-}
-
-.action-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-}
-.action-btn.primary {
-    background: #16a34a;
-    color: white;
-    border: 2px solid #16a34a;
-}
-.action-btn.primary:hover {
-    background: #15803d;
-    transform: translateY(-1px);
-}
-.action-btn.secondary {
-    background: white;
-    color: #374151;
-    border: 2px solid #d1d5db;
-    margin-left: 0.5rem;
-}
-.action-btn.secondary:hover {
-    background: #f9fafb;
-}
-
-/* Customer Dashboard */
-.customer-card {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-.customer-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
-}
-
-.customer-header {
-    display: flex;
-    justify-content: between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-.customer-name {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #111827;
-}
-.total-count {
-    background: #3b82f6;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.customer-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-.stat-card {
-    text-align: center;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-}
-.stat-card.new {
-    background: #fef3c7;
-    color: #92400e;
-}
-.stat-card.progress {
-    background: #dbeafe;
-    color: #1e40af;
-}
-.stat-card.resolved {
-    background: #dcfce7;
-    color: #166534;
-}
-.stat-number {
-    font-size: 1.5rem;
-    font-weight: 800;
-}
-.stat-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.recent-tickets {
-    border-top: 1px solid #e5e7eb;
-    padding-top: 1rem;
-}
-.recent-ticket {
-    display: flex;
-    justify-content: between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #f3f4f6;
-}
-.recent-ticket:last-child {
-    border-bottom: none;
-}
-.ticket-summary {
-    flex: 1;
-}
-.ticket-number {
-    font-weight: 600;
-    color: #3b82f6;
-    text-decoration: none;
-}
-.ticket-number:hover {
-    text-decoration: underline;
-}
-.ticket-type {
-    color: #6b7280;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-}
-.ticket-status-mini {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-}
-.ticket-status-mini.inceleniyor { background: #fbbf24; }
-.ticket-status-mini.islemde { background: #3b82f6; }
-.ticket-status-mini.cozuldu { background: #10b981; }
-
-.show-more {
-    color: #3b82f6;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-top: 0.5rem;
-}
-.show-more:hover {
-    text-decoration: underline;
-}
-
-/* Pagination */
-.pagination-nav {
-    background: white;
-    border-radius: 1rem;
-    padding: 1rem 1.5rem;
-    border: 1px solid #e5e7eb;
-    margin-top: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.pagination-info {
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-.page-btn {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    background: white;
-    color: #374151;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-.page-btn:hover {
-    background: #f9fafb;
-}
-.page-btn.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-}
-
-/* Animations */
-@@keyframes gentle-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-@@keyframes urgent-glow {
-    0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
-}
-
-/* Responsive */
-@@media (max-width: 768px) {
-    .customer-stats {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
+    /* Ticket Cards */
+    .ticket-card {
+        transition: all 0.2s ease;
     }
-    .pagination-nav {
+
+        .ticket-card:hover {
+            transform: translateY(-1px);
+            border-color: #3b82f6;
+        }
+
+        .ticket-card.urgent {
+            border-left: 4px solid #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+    /* Status Badge */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .ticket-card .flex
+
+    {
         flex-direction: column;
-        gap: 1rem;
+        space-y: 3;
     }
-}
 
-/* Live Search Results */
-.search-highlight {
-    background: #fef3c7;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-}
+    }
 
-/* Loading States */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-.spinner {
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+    /* Line Clamp */
+    .line-clamp-2 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
 </style>
 
 @section Scripts {
     <script>
-        // Global state management
-        let currentFilter = {
-            status: '@Context.Request.Query["Status"]',
-            search: '@Context.Request.Query["SearchTerm"]',
-            customer: '@Context.Request.Query["CustomerId"]'
-        };
-
-        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTabs();
-            initializeFilters();
-            initializeLiveSearch();
-            initializeStatusPills();
-            updateTicketCounts();
-        });
+            // Gelişmiş filtreler toggle
+            const advancedToggle = document.getElementById('advancedToggle');
+            const advancedFilters = document.getElementById('advancedFilters');
 
-        // Tab System
-        function initializeTabs() {
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const tabId = this.dataset.tab;
-                    switchTab(tabId);
-                });
-            });
-        }
+            advancedToggle.addEventListener('click', function() {
+                const isHidden = advancedFilters.classList.contains('hidden');
+                advancedFilters.classList.toggle('hidden');
 
-        function switchTab(tabId) {
-            // Update active tab
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            
-            // Update content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            
-            // Trigger specific tab actions
-            if (tabId === 'awaiting') {
-                highlightUrgentTickets();
-            }
-        }
-
-        // Live Search
-        function initializeLiveSearch() {
-            const searchInput = document.getElementById('liveSearch');
-            let searchTimeout;
-            
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                const query = this.value.toLowerCase().trim();
-                
-                searchTimeout = setTimeout(() => {
-                    if (query.length === 0) {
-                        showAllTickets();
-                    } else {
-                        performLiveSearch(query);
-                    }
-                }, 300);
-            });
-        }
-
-        function performLiveSearch(query) {
-            const tickets = document.querySelectorAll('.ticket-item');
-            let visibleCount = 0;
-            
-            tickets.forEach(ticket => {
-                const searchableText = [
-                    ticket.dataset.number,
-                    ticket.dataset.title,
-                    ticket.dataset.customer
-                ].join(' ').toLowerCase();
-                
-                if (searchableText.includes(query)) {
-                    ticket.style.display = 'block';
-                    highlightSearchTerms(ticket, query);
-                    visibleCount++;
-                } else {
-                    ticket.style.display = 'none';
-                }
-            });
-            
-            updateSearchResults(visibleCount, query);
-        }
-
-        function highlightSearchTerms(ticket, query) {
-            // Highlight search terms in ticket content
-            const elements = ticket.querySelectorAll('h3, h4, .customer-info span');
-            elements.forEach(el => {
-                const text = el.textContent;
-                if (text.toLowerCase().includes(query)) {
-                    const regex = new RegExp(`(${query})`, 'gi');
-                    el.innerHTML = text.replace(regex, '<span class="search-highlight">$1</span>');
-                }
-            });
-        }
-
-        function showAllTickets() {
-            document.querySelectorAll('.ticket-item').forEach(ticket => {
-                ticket.style.display = 'block';
-                // Remove highlights
-                ticket.querySelectorAll('.search-highlight').forEach(highlight => {
-                    highlight.outerHTML = highlight.innerHTML;
-                });
-            });
-        }
-
-        // Status Filter Pills
-        function initializeStatusPills() {
-            document.querySelectorAll('.status-pill').forEach(pill => {
-                pill.addEventListener('click', function() {
-                    const status = this.dataset.status;
-                    filterByStatus(status);
-                    updateActivePill(this);
-                });
-            });
-        }
-
-        function filterByStatus(status) {
-            currentFilter.status = status;
-            document.getElementById('hiddenStatus').value = status;
-            
-            const tickets = document.querySelectorAll('.ticket-item');
-            let visibleCount = 0;
-            
-            tickets.forEach(ticket => {
-                if (status === '' || ticket.dataset.status === status) {
-                    ticket.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    ticket.style.display = 'none';
-                }
-            });
-            
-            updateFilterResults(visibleCount, status);
-        }
-
-        function updateActivePill(activePill) {
-            document.querySelectorAll('.status-pill').forEach(pill => {
-                pill.classList.remove('active');
-            });
-            activePill.classList.add('active');
-        }
-
-        // Advanced Filters
-        function initializeFilters() {
-            const toggleBtn = document.getElementById('advancedToggle');
-            const filtersPanel = document.getElementById('advancedFilters');
-            
-            toggleBtn.addEventListener('click', function() {
-                const isVisible = !filtersPanel.classList.contains('hidden');
-                filtersPanel.classList.toggle('hidden');
-                
                 const icon = this.querySelector('i');
-                icon.className = isVisible ? 'fas fa-sliders-h mr-2' : 'fas fa-times mr-2';
-                
-                this.querySelector('span') ? 
-                    this.lastChild.textContent = isVisible ? 'Gelişmiş' : 'Kapat' : 
-                    this.innerHTML += `<span>${isVisible ? 'Gelişmiş' : 'Kapat'}</span>`;
-            });
-        }
+                const text = this.querySelector('span') || this.lastChild;
 
-        // Quick Status Update with Animation
-        function quickUpdateStatus(ticketId, newStatus, button) {
-            const originalText = button.innerHTML;
-            button.innerHTML = '<div class="spinner"></div>';
-            button.disabled = true;
-            
-            // Add CSRF token
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            
-            fetch('/Admin/Tickets/UpdateStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({
-                    ticketId: ticketId,
-                    newStatus: newStatus,
-                    __RequestVerificationToken: token
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Success animation
-                    button.innerHTML = '<i class="fas fa-check mr-1"></i>Başarılı!';
-                    button.style.background = '#16a34a';
-                    
-                    // Update ticket status in DOM
-                    updateTicketStatusInDOM(ticketId, newStatus);
-                    
-                    // Remove from awaiting list if needed
-                    if (newStatus !== 'İnceleniyor') {
-                        removeFromAwaitingList(ticketId);
-                    }
-                    
-                    setTimeout(() => {
-                        location.reload(); // Refresh to get updated data
-                    }, 1500);
+                if (isHidden) {
+                    icon.className = 'fas fa-chevron-up mr-1';
+                    this.innerHTML = '<i class="fas fa-chevron-up mr-1"></i>Gelişmiş Filtreler';
                 } else {
-                    // Error state
-                    button.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Hata!';
-                    button.style.background = '#dc2626';
-                    
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.style.background = '';
-                        button.disabled = false;
-                    }, 2000);
+                    icon.className = 'fas fa-chevron-down mr-1';
+                    this.innerHTML = '<i class="fas fa-chevron-down mr-1"></i>Gelişmiş Filtreler';
                 }
-            })
-            .catch(error => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-                console.error('Status update error:', error);
             });
-        }
 
-        // Helper Functions
-        function updateTicketStatusInDOM(ticketId, newStatus) {
-            const ticket = document.querySelector(`[data-ticket-id="${ticketId}"]`);
-            if (ticket) {
-                const statusBadge = ticket.querySelector('.status-badge');
-                if (statusBadge) {
-                    statusBadge.textContent = newStatus;
-                    statusBadge.className = `status-badge status-${newStatus.toLowerCase()}`;
-                }
-            }
-        }
+            // Otomatik form gönderimi (isteğe bağlı)
+            const statusSelect = document.querySelector('select[name="Status"]');
+            const includeClosedCheckbox = document.querySelector('input[name="IncludeClosed"]');
 
-        function removeFromAwaitingList(ticketId) {
-            const awaitingTicket = document.querySelector(`#tab-awaiting [data-ticket-id="${ticketId}"]`);
-            if (awaitingTicket) {
-                awaitingTicket.style.animation = 'slideOut 0.5s ease-out';
-                setTimeout(() => {
-                    awaitingTicket.remove();
-                    updateAwaitingCount();
-                }, 500);
-            }
-        }
-
-        function updateAwaitingCount() {
-            const awaitingTickets = document.querySelectorAll('#tab-awaiting .awaiting-ticket').length;
-            const tabBadge = document.querySelector('[data-tab="awaiting"] span');
-            if (tabBadge) {
-                tabBadge.textContent = awaitingTickets;
-            }
-        }
-
-        function filterByCustomer(customerName) {
-            document.getElementById('liveSearch').value = customerName;
-            switchTab('all');
-            performLiveSearch(customerName.toLowerCase());
-        }
-
-        function highlightUrgentTickets() {
-            // Add special highlighting to very urgent tickets
-            document.querySelectorAll('.very-urgent').forEach(ticket => {
-                ticket.style.animation = 'urgent-glow 2s infinite';
+            statusSelect?.addEventListener('change', function() {
+                // document.getElementById('filterForm').submit();
             });
-        }
 
-        function updateTicketCounts() {
-            // Update real-time counts in stats
-            const totalTickets = document.querySelectorAll('.ticket-item').length;
-            const awaitingTickets = document.querySelectorAll('.ticket-item[data-status="İnceleniyor"]').length;
-            
-            // Update badges
-            document.querySelector('[data-tab="all"] span').textContent = totalTickets;
-            document.querySelector('[data-tab="awaiting"] span').textContent = awaitingTickets;
-        }
-
-        // Auto-refresh every 2 minutes
-        setInterval(() => {
-            if (document.querySelector('#tab-awaiting.active')) {
-                // Only refresh if on awaiting tab
-                fetch('/Admin/Tickets/GetAwaitingTicketsCount')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.count !== parseInt(document.querySelector('[data-tab="awaiting"] span').textContent)) {
-                            // Show notification of new tickets
-                            showNewTicketNotification(data.count);
-                        }
-                    })
-                    .catch(console.error);
-            }
-        }, 120000); // 2 minutes
-
-        function showNewTicketNotification(count) {
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-bell mr-2"></i>
-                    <span>${count} yeni ticket var!</span>
-                    <button onclick="location.reload()" class="ml-4 text-blue-200 hover:text-white">
-                        <i class="fas fa-refresh"></i>
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case '1':
-                        e.preventDefault();
-                        switchTab('all');
-                        break;
-                    case '2':
-                        e.preventDefault();
-                        switchTab('awaiting');
-                        break;
-                    case '3':
-                        e.preventDefault();
-                        switchTab('dashboard');
-                        break;
-                    case 'f':
-                        e.preventDefault();
-                        document.getElementById('liveSearch').focus();
-                        break;
-                }
-            }
+            includeClosedCheckbox?.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
         });
     </script>
 }
