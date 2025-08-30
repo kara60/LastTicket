@@ -4,220 +4,216 @@
     var recentTickets = ViewBag.RecentTickets as List<TicketSystem.Application.Features.Tickets.DTOs.TicketListDto>;
     var recentActivities = ViewBag.RecentActivities as List<TicketSystem.Web.Areas.Customer.Controllers.RecentActivityDto> ?? new List<TicketSystem.Web.Areas.Customer.Controllers.RecentActivityDto>();
     var customerName = ViewBag.CustomerName as string ?? "Bilinmeyen Müşteri";
+    var rejectedTickets = Model.TicketsByStatus.FirstOrDefault(x => x.Status == "Reddedildi")?.Count ?? 0;
 }
 
-<!-- Header Welcome Section -->
+<!-- Header Welcome Section with live date -->
 <div class="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 rounded-3xl text-white p-8 mb-8 overflow-hidden">
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-10">
-        <svg class="w-full h-full" fill="currentColor" viewBox="0 0 400 400">
-            <defs>
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <circle cx="20" cy="20" r="1" />
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
+        <div class="absolute top-0 left-0 w-full h-full">
+            <div class="absolute top-4 left-4 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+            <div class="absolute bottom-4 right-4 w-24 h-24 bg-purple-400/10 rounded-full blur-lg"></div>
+            <div class="absolute top-1/2 right-8 w-16 h-16 bg-blue-300/10 rounded-full blur-md"></div>
+        </div>
     </div>
 
     <div class="relative flex items-center justify-between">
-        <div>
+        <div class="flex-1">
             <h1 class="text-3xl font-bold mb-2">Hoş Geldiniz!</h1>
-            <p class="text-blue-100 text-lg">
+            <p class="text-blue-100 text-lg font-medium">
                 @(User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? "")
                 @(User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? "")
             </p>
-            <p class="text-blue-200 text-sm mt-2">
-                <i class="fas fa-building mr-1"></i>
+            <p class="text-blue-200 text-sm mt-1 flex items-center">
+                <i class="fas fa-building mr-2"></i>
                 @customerName
             </p>
         </div>
         <div class="text-right">
             <div class="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
                 <p class="text-blue-100 text-sm">Bugün</p>
-                <p class="text-2xl font-bold">@DateTime.Now.ToString("dd")</p>
-                <p class="text-sm">@DateTime.Now.ToString("MMMM yyyy")</p>
+                <p class="text-2xl font-bold" id="currentDay">@DateTime.Now.ToString("dd")</p>
+                <p class="text-sm" id="currentDate">@DateTime.Now.ToString("MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Stats Overview - 5 Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+<!-- Enhanced Stats Overview - 6 Cards with Reddet kartı -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
     <!-- Total Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300 group">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Toplam</p>
-                <p class="text-3xl font-bold text-gray-900">@Model.TotalTickets</p>
-                <div class="flex items-center mt-2">
-                    <div class="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-gray-500">Tüm ticket'lar</span>
-                </div>
-            </div>
-            <div class="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                 <i class="fas fa-ticket-alt text-gray-600 text-xl"></i>
             </div>
+            <p class="text-2xl font-bold text-gray-900 mb-1">@Model.TotalTickets</p>
+            <p class="text-xs font-medium text-gray-600">Toplam</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-gray-500 h-1 rounded-full" style="width: 100%"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Under Review Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300 group">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">İnceleniyor</p>
-                <p class="text-3xl font-bold text-yellow-600">@Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İnceleniyor")?.Count 0</p>
-                <div class="flex items-center mt-2">
-                    <div class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-gray-500">Bekleyen</span>
-                </div>
-            </div>
-            <div class="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+    <!-- Under Review -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                 <i class="fas fa-eye text-yellow-600 text-xl"></i>
             </div>
-        </div>
-    </div>
-
-    <!-- In Progress Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300 group">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">İşlemde</p>
-                <p class="text-3xl font-bold text-blue-600">@Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İşlemde")?.Count 0</p>
-                <div class="flex items-center mt-2">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-gray-500">Çalışılıyor</span>
-                </div>
-            </div>
-            <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-cog text-blue-600 text-xl"></i>
+            <p class="text-2xl font-bold text-yellow-600 mb-1">@(Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İnceleniyor")?.Count ?? 0)</p>
+            <p class="text-xs font-medium text-gray-600">İnceleniyor</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-yellow-500 h-1 rounded-full" style="width: @(Model.TotalTickets > 0 ? (Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İnceleniyor")?.Count ?? 0) * 100 / Model.TotalTickets : 0)%"></div>
             </div>
         </div>
     </div>
 
-    <!-- Resolved Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300 group">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Çözüldü</p>
-                <p class="text-3xl font-bold text-green-600">@Model.ResolvedTickets</p>
-                <div class="flex items-center mt-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-gray-500">Tamamlandı</span>
-                </div>
+    <!-- In Progress -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-cog fa-spin text-blue-600 text-xl"></i>
             </div>
-            <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <p class="text-2xl font-bold text-blue-600 mb-1">@(Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İşlemde")?.Count ?? 0)</p>
+            <p class="text-xs font-medium text-gray-600">İşlemde</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-blue-500 h-1 rounded-full" style="width: @(Model.TotalTickets > 0 ? (Model.TicketsByStatus.FirstOrDefault(x => x.Status == "İşlemde")?.Count ?? 0) * 100 / Model.TotalTickets : 0)%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolved -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                 <i class="fas fa-check-circle text-green-600 text-xl"></i>
             </div>
+            <p class="text-2xl font-bold text-green-600 mb-1">@Model.ResolvedTickets</p>
+            <p class="text-xs font-medium text-gray-600">Çözüldü</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-green-500 h-1 rounded-full" style="width: @(Model.TotalTickets > 0 ? Model.ResolvedTickets * 100 / Model.TotalTickets : 0)%"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Closed Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300 group">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Kapandı</p>
-                <p class="text-3xl font-bold text-gray-600">@Model.ClosedTickets</p>
-                <div class="flex items-center mt-2">
-                    <div class="w-2 h-2 bg-gray-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-gray-500">Kapatıldı</span>
-                </div>
+    <!-- Rejected -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-times-circle text-red-600 text-xl"></i>
             </div>
-            <div class="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <i class="fas fa-times-circle text-gray-600 text-xl"></i>
+            <p class="text-2xl font-bold text-red-600 mb-1">@rejectedTickets</p>
+            <p class="text-xs font-medium text-gray-600">Reddedildi</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-red-500 h-1 rounded-full" style="width: @(Model.TotalTickets > 0 ? rejectedTickets * 100 / Model.TotalTickets : 0)%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closed -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+        <div class="flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                <i class="fas fa-archive text-gray-600 text-xl"></i>
+            </div>
+            <p class="text-2xl font-bold text-gray-600 mb-1">@Model.ClosedTickets</p>
+            <p class="text-xs font-medium text-gray-600">Kapandı</p>
+            <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                <div class="bg-gray-500 h-1 rounded-full" style="width: @(Model.TotalTickets > 0 ? Model.ClosedTickets * 100 / Model.TotalTickets : 0)%"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Section -->
+<!-- Advanced Charts Section -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Ticket Types Chart -->
+    <!-- Status Distribution with Canvas Chart -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
             <i class="fas fa-chart-pie mr-2 text-indigo-600"></i>
-            Ticket Türlerine Göre Dağılım
+            Durum Dağılımı
+            <span class="ml-auto text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Güncel</span>
         </h3>
+
+        <div class="relative">
+            <canvas id="statusChart" width="400" height="250"></canvas>
+        </div>
+
+        @if (Model.TicketsByStatus.Any())
+        {
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                @foreach (var status in Model.TicketsByStatus)
+                {
+                    var percentage = Model.TotalTickets > 0 ? Math.Round((double)status.Count / Model.TotalTickets * 100, 1) : 0;
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full mr-2" style="background-color: @status.Color"></div>
+                            <span class="text-sm font-medium text-gray-700">@status.Status</span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-gray-900">@status.Count</p>
+                            <p class="text-xs text-gray-500">%@percentage.ToString("F1")</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Type Distribution Chart -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            <i class="fas fa-chart-bar mr-2 text-green-600"></i>
+            Türlere Göre Dağılım
+            <span class="ml-auto text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Analiz</span>
+        </h3>
+
+        <div class="relative">
+            <canvas id="typeChart" width="400" height="250"></canvas>
+        </div>
+
         @if (Model.TicketsByType.Any())
         {
-            <div class="space-y-4">
-                @foreach (var type in Model.TicketsByType)
+            <div class="mt-6 space-y-3">
+                @foreach (var type in Model.TicketsByType.OrderByDescending(x => x.Count))
                 {
                     var percentage = Model.TotalTickets > 0 ? Math.Round((double)type.Count / Model.TotalTickets * 100, 1) : 0;
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full mr-3" style="background-color: @type.Color"></div>
-                            <span class="text-sm font-medium text-gray-700">@type.TypeName</span>
+                        <div class="flex items-center flex-1">
+                            <div class="w-3 h-3 rounded-full mr-3" style="background-color: @type.Color"></div>
+                            <span class="text-sm font-medium text-gray-700 flex-1">@type.TypeName</span>
                         </div>
-                        <div class="flex items-center">
-                            <span class="text-sm font-bold text-gray-900 mr-2">@type.Count</span>
-                            <span class="text-xs text-gray-500">(@percentage%)</span>
+                        <div class="flex items-center ml-4">
+                            <div class="w-20 bg-gray-200 rounded-full h-2 mr-3">
+                                <div class="h-2 rounded-full transition-all duration-1000"
+                                     style="width: @percentage%; background-color: @type.Color"></div>
+                            </div>
+                            <div class="text-right min-w-[60px]">
+                                <p class="text-sm font-bold text-gray-900">@type.Count</p>
+                                <p class="text-xs text-gray-500">%@percentage.ToString("F1")</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div class="h-2 rounded-full transition-all duration-500"
-                             style="width: @percentage%; background-color: @type.Color"></div>
                     </div>
                 }
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-8">
-                <i class="fas fa-chart-pie text-gray-300 text-4xl mb-4"></i>
-                <p class="text-gray-500">Henüz veri bulunmuyor</p>
-            </div>
-        }
-    </div>
-
-    <!-- Ticket Categories Chart -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <i class="fas fa-tags mr-2 text-green-600"></i>
-            Kategorilere Göre Dağılım
-        </h3>
-        @if (Model.TicketsByCategory.Any())
-        {
-            <div class="space-y-4">
-                @foreach (var category in Model.TicketsByCategory)
-                {
-                    var percentage = Model.TotalTickets > 0 ? Math.Round((double)category.Count / Model.TotalTickets * 100, 1) : 0;
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 rounded-full mr-3" style="background-color: @category.Color"></div>
-                            <span class="text-sm font-medium text-gray-700">@category.CategoryName</span>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="text-sm font-bold text-gray-900 mr-2">@category.Count</span>
-                            <span class="text-xs text-gray-500">(@percentage%)</span>
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div class="h-2 rounded-full transition-all duration-500"
-                             style="width: @percentage%; background-color: @category.Color"></div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-8">
-                <i class="fas fa-tags text-gray-300 text-4xl mb-4"></i>
-                <p class="text-gray-500">Henüz veri bulunmuyor</p>
             </div>
         }
     </div>
 </div>
 
-<!-- Recent Activity & Tickets -->
+<!-- Recent Activity & Tickets with Fixed Height and Scroll -->
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
     <!-- Recent Tickets -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <div class="flex items-center justify-between">
                 <h3 class="text-xl font-semibold text-gray-900 flex items-center">
                     <i class="fas fa-history mr-3 text-blue-600"></i>
                     Son Ticket'lar
+                    @if (recentTickets?.Any() == true)
+                    {
+                        <span class="ml-3 bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full">@recentTickets.Count()</span>
+                    }
                 </h3>
                 <a href="@Url.Action("Index", "Tickets")"
                    class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
@@ -227,81 +223,45 @@
             </div>
         </div>
 
-        <div class="p-6">
+        <!-- Fixed height container with scroll -->
+        <div class="h-96 overflow-y-auto custom-scrollbar">
             @if (recentTickets?.Any() == true)
             {
-                <div class="space-y-4">
-                    @foreach (var ticket in recentTickets.Take(5))
+                <div class="p-6 space-y-4">
+                    @foreach (var ticket in recentTickets)
                     {
-                        <div class="flex items-start justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
+                        <div class="flex items-start justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 hover:shadow-md transition-all duration-200 group cursor-pointer"
+                             onclick="window.location.href='@Url.Action("Details", "Tickets", new { id = ticket.Id })'">
                             <div class="flex items-start flex-1">
-                                <div class="w-3 h-3 rounded-full mr-3 mt-2" style="background-color: @ticket.TypeColor"></div>
+                                <div class="w-3 h-3 rounded-full mr-3 mt-2 animate-pulse" style="background-color: @ticket.TypeColor"></div>
                                 <div class="flex-1">
-                                    <div class="flex items-center mb-1">
+                                    <div class="flex items-center mb-2">
                                         <span class="text-sm font-semibold text-gray-900 mr-2">#@ticket.TicketNumber</span>
                                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full
-                                                            @(ticket.StatusDisplay == "İnceleniyor" ? "bg-yellow-100 text-yellow-800" :
-                                                                                                    ticket.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
-                                                                                                    ticket.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
-                                                                                                    "bg-gray-100 text-gray-800")">
+                                                                    @(ticket.StatusDisplay == "İnceleniyor" ? "bg-yellow-100 text-yellow-800" :
+                                                                                                            ticket.StatusDisplay == "İşlemde" ? "bg-blue-100 text-blue-800" :
+                                                                                                            ticket.StatusDisplay == "Çözüldü" ? "bg-green-100 text-green-800" :
+                                                                                                            ticket.StatusDisplay == "Reddedildi" ? "bg-red-100 text-red-800" :
+                                                                                                            "bg-gray-100 text-gray-800")">
                                     @ticket.StatusDisplay
                                 </span>
+                                @if (ticket.CreatedAt > DateTime.Now.AddDays(-1))
+                                        {
+                                            <span class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-bounce">YENİ</span>
+                                        }
+                                    </div>
+                                    <h4 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">@ticket.Title</h4>
+                                    <div class="flex items-center text-xs text-gray-500">
+                                        <i class="fas fa-tag mr-1"></i>
+                                        <span>@ticket.TypeName</span>
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span>@GetTimeAgo(ticket.CreatedAt)</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h4 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">@ticket.Title</h4>
-                            <div class="flex items-center text-xs text-gray-500">
-                                <span>@ticket.TypeName</span>
-                                <span class="mx-2">•</span>
-                                <span>@ticket.CreatedAt.ToString("dd.MM.yyyy")</span>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="@Url.Action("Details", "Tickets", new { id = ticket.Id })"
-                       class="ml-4 p-2 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                                }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-ticket-alt text-gray-400 text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Henüz Ticket Yok</h3>
-                    <p class="text-gray-600 mb-4">İlk destek talebinizi oluşturun</p>
-                    <a href="@Url.Action("Create", "Tickets")"
-                       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">
-                        <i class="fas fa-plus mr-2"></i>
-                        Yeni Ticket Oluştur
-                    </a>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Activity Timeline -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-timeline mr-3 text-green-600"></i>
-                Son Aktiviteler
-            </h3>
-        </div>
-
-        <div class="p-6">
-            @if (recentActivities.Any())
-            {
-                <div class="space-y-6">
-                    @foreach (var activity in recentActivities.Take(8))
-                    {
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0 w-2 h-2 @activity.Color rounded-full mt-3 mr-4"></div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">@activity.Title</p>
-                                <p class="text-xs text-gray-500">@activity.Description</p>
-                                <p class="text-xs text-gray-400 mt-1">@GetTimeAgo(activity.CreatedAt)</p>
+                            <div class="ml-4 p-2 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                <i class="fas fa-arrow-right"></i>
                             </div>
                         </div>
                     }
@@ -309,15 +269,121 @@
             }
             else
             {
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-clock text-gray-400 text-2xl"></i>
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center py-12">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-ticket-alt text-gray-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Henüz Ticket Yok</h3>
+                        <p class="text-gray-600 mb-4">İlk destek talebinizi oluşturun</p>
+                        <a href="@Url.Action("Create", "Tickets")"
+                           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">
+                            <i class="fas fa-plus mr-2"></i>
+                            Yeni Ticket Oluştur
+                        </a>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Henüz Aktivite Yok</h3>
-                    <p class="text-gray-600">Ticket işlemleri burada görünecek</p>
                 </div>
             }
         </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-clock mr-3 text-green-600"></i>
+                Son Aktiviteler
+                @if (recentActivities.Any())
+                {
+                    <span class="ml-3 bg-green-100 text-green-800 text-sm font-medium px-2 py-1 rounded-full">@recentActivities.Count()</span>
+                }
+            </h3>
+        </div>
+
+        <!-- Fixed height container with scroll -->
+        <div class="h-96 overflow-y-auto custom-scrollbar">
+            @if (recentActivities.Any())
+            {
+                <div class="p-6">
+                    <div class="relative">
+                        <!-- Timeline line -->
+                        <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+
+                        <div class="space-y-6">
+                            @foreach (var activity in recentActivities)
+                            {
+                                <div class="relative flex items-start">
+                                    <div class="flex-shrink-0 w-3 h-3 @activity.Color rounded-full mt-2 relative z-10 ring-4 ring-white"></div>
+                                    <div class="ml-4 flex-1">
+                                        <div class="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors">
+                                            <p class="text-sm font-medium text-gray-900">@activity.Title</p>
+                                            <p class="text-xs text-gray-600 mt-1">@activity.Description</p>
+                                            <div class="flex items-center mt-2 text-xs text-gray-400">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                <span>@GetTimeAgo(activity.CreatedAt)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center py-12">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-clock text-gray-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Henüz Aktivite Yok</h3>
+                        <p class="text-gray-600">Ticket işlemleri burada görünecek</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <i class="fas fa-rocket mr-2 text-purple-600"></i>
+        Hızlı İşlemler
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="@Url.Action("Create", "Tickets")"
+           class="flex flex-col items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors group">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i class="fas fa-plus text-white text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Yeni Ticket</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Tickets")"
+           class="flex flex-col items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors group">
+            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i class="fas fa-list text-white text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Tüm Ticket'lar</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Tickets", new { status = "İnceleniyor" })"
+           class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition-colors group">
+            <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i class="fas fa-eye text-white text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">İncelenenler</span>
+        </a>
+
+        <a href="@Url.Action("Index", "Tickets", new { status = "Çözüldü" })"
+           class="flex flex-col items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors group">
+            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i class="fas fa-check text-white text-lg"></i>
+            </div>
+            <span class="text-sm font-medium text-gray-700">Çözülenler</span>
+        </a>
     </div>
 </div>
 
@@ -328,11 +394,58 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #CBD5E1 #F1F5F9;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #94A3B8;
+            }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
 </style>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Live date update
+            updateDateTime();
+            setInterval(updateDateTime, 60000); // Update every minute
+
             // Add entrance animations
             const cards = document.querySelectorAll('.grid > div');
             cards.forEach((card, index) => {
@@ -346,12 +459,12 @@
             });
 
             // Counter animation for stats
-            const counters = document.querySelectorAll('.text-3xl.font-bold');
+            const counters = document.querySelectorAll('.text-2xl.font-bold');
             counters.forEach(counter => {
                 const target = parseInt(counter.textContent);
-                if (!isNaN(target)) {
+                if (!isNaN(target) && target > 0) {
                     let current = 0;
-                    const increment = target / 20;
+                    const increment = Math.max(1, target / 30);
                     const timer = setInterval(() => {
                         current += increment;
                         if (current >= target) {
@@ -363,12 +476,151 @@
                 }
             });
 
+            // Status Chart
+            @if (Model.TicketsByStatus.Any())
+            {
+                    <text>
+                    const statusCtx = document.getElementById('statusChart').getContext('2d');
+                    const statusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TicketsByStatus.Select(x => new { label = x.Status, value = x.Count, color = x.Color })));
+
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: statusData.map(item => item.label),
+                            datasets: [{
+                                data: statusData.map(item => item.value),
+                                backgroundColor: statusData.map(item => item.color),
+                                borderWidth: 2,
+                                borderColor: '#fff',
+                                hoverBorderWidth: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    cornerRadius: 8,
+                                    displayColors: true
+                                }
+                            },
+                            cutout: '60%',
+                            animation: {
+                                animateScale: true,
+                                duration: 2000
+                            }
+                        }
+                    });
+                    </text>
+            }
+
+            // Type Chart
+            @if (Model.TicketsByType.Any())
+            {
+                    <text>
+                    const typeCtx = document.getElementById('typeChart').getContext('2d');
+                    const typeData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TicketsByType.Select(x => new { label = x.TypeName, value = x.Count, color = x.Color })));
+
+                    new Chart(typeCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: typeData.map(item => item.label),
+                            datasets: [{
+                                label: 'Ticket Sayısı',
+                                data: typeData.map(item => item.value),
+                                backgroundColor: typeData.map(item => item.color + '80'), // Add transparency
+                                borderColor: typeData.map(item => item.color),
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    cornerRadius: 8
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: '#f3f4f6',
+                                        drawBorder: false
+                                    },
+                                    ticks: {
+                                        color: '#6b7280',
+                                        font: {
+                                            size: 11
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#6b7280',
+                                        font: {
+                                            size: 11
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 2000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    </text>
+            }
+
+            // Progress bar animations
+            setTimeout(() => {
+                const progressBars = document.querySelectorAll('.bg-gray-200 > div');
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    bar.style.transition = 'width 1.5s ease-out';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            }, 1000);
+
             // Auto-refresh dashboard data every 5 minutes
             setInterval(() => {
+                console.log('Dashboard refresh check - ' + new Date().toLocaleTimeString());
                 // Could implement AJAX refresh here
-                console.log('Dashboard refresh interval');
             }, 300000); // 5 minutes
         });
+
+        function updateDateTime() {
+            const now = new Date();
+            const options = {
+                month: 'long',
+                year: 'numeric',
+                locale: 'tr-TR'
+            };
+
+            document.getElementById('currentDay').textContent = now.getDate().toString().padStart(2, '0');
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('tr-TR', options);
+        }
     </script>
 }
 

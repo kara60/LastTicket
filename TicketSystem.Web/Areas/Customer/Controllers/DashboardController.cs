@@ -8,7 +8,7 @@ using TicketSystem.Application.Common.Interfaces;
 namespace TicketSystem.Web.Areas.Customer.Controllers;
 
 [Area("Customer")]
-[Authorize(Roles = "Customer")]
+[Authorize(Policy = "CustomerOnly")]
 public class DashboardController : Controller
 {
     private readonly IMediator _mediator;
@@ -39,11 +39,11 @@ public class DashboardController : Controller
             var statsQuery = new GetDashboardStatsQuery();
             var statsResult = await _mediator.Send(statsQuery);
 
-            // Son ticket'ları al (sadece 5 tane)
+            // Son ticket'ları al (10 tane)
             var recentTicketsQuery = new GetMyTicketsQuery
             {
                 Page = 1,
-                PageSize = 5,
+                PageSize = 10,
                 SortBy = "CreatedAt",
                 SortDescending = true
             };
@@ -52,21 +52,14 @@ public class DashboardController : Controller
             // Son aktiviteleri al
             var recentActivities = await GetRecentActivitiesAsync();
 
-            // Müşteri adını al
-            string customerName = "Bilinmeyen Müşteri";
-            if (_currentUserService.CustomerId.HasValue)
-            {
-                var customer = await _unitOfWork.Customers.GetByIdAsync(_currentUserService.CustomerId.Value);
-                if (customer != null)
-                {
-                    customerName = customer.Name;
-                }
-            }
+            // Müşteri bilgilerini al
+            var customerInfo = await GetCustomerInfoAsync();
 
             if (statsResult.IsSuccess)
             {
-                ViewData["Title"] = "Müşteri Dashboard";
-                ViewBag.CustomerName = customerName;
+                ViewData["Title"] = "Dashboard";
+                ViewBag.CustomerName = customerInfo.Name;
+                ViewBag.CustomerInfo = customerInfo;
 
                 // Son ticket'ları ViewBag'e ekle
                 if (recentTicketsResult.IsSuccess)
@@ -77,7 +70,10 @@ public class DashboardController : Controller
                 // Son aktiviteleri ViewBag'e ekle
                 ViewBag.RecentActivities = recentActivities;
 
-                return View(statsResult.Data);
+                // Dashboard verilerini enhance et
+                var enhancedStats = await EnhanceDashboardStats(statsResult.Data);
+
+                return View(enhancedStats);
             }
             else
             {
@@ -94,11 +90,13 @@ public class DashboardController : Controller
                     ClosedTickets = 0,
                     TicketsByStatus = new List<TicketsByStatusDto>(),
                     TicketsByType = new List<TicketsByTypeDto>(),
+                    TicketsByCategory = new List<TicketsByCategoryDto>(),
                     TicketsByCustomer = new List<TicketsByCustomerDto>(),
                     TicketsTrend = new List<TicketsTrendDto>()
                 };
 
-                ViewBag.CustomerName = customerName;
+                ViewBag.CustomerName = customerInfo.Name;
+                ViewBag.CustomerInfo = customerInfo;
                 ViewBag.RecentActivities = recentActivities;
 
                 return View(fallbackData);
@@ -111,10 +109,83 @@ public class DashboardController : Controller
 
             // Empty model for error case
             var emptyData = new DashboardStatsDto();
-            ViewBag.CustomerName = "Bilinmeyen Müşteri";
+            var customerInfo = await GetCustomerInfoAsync();
+            ViewBag.CustomerName = customerInfo.Name;
+            ViewBag.CustomerInfo = customerInfo;
             ViewBag.RecentActivities = new List<RecentActivityDto>();
 
             return View(emptyData);
+        }
+    }
+
+    private async Task<CustomerInfoDto> GetCustomerInfoAsync()
+    {
+        try
+        {
+            if (_currentUserService.CustomerId.HasValue)
+            {
+                var customer = await _unitOfWork.Customers.GetByIdAsync(_currentUserService.CustomerId.Value);
+                if (customer != null)
+                {
+                    return new CustomerInfoDto
+                    {
+                        Id = customer.Id,
+                        Name = customer.Name,
+                        Email = customer.ContactEmail?.Value ?? "Belirtilmemiş", // Customer entity'sinde ContactEmail var
+                        Phone = customer.ContactPhone?.Value ?? "Belirtilmemiş", // Customer entity'sinde ContactPhone var
+                        CreatedAt = customer.CreatedAt,
+                        IsActive = customer.IsActive
+                    };
+                }
+            }
+
+            return new CustomerInfoDto
+            {
+                Name = "Bilinmeyen Müşteri",
+                Email = "Belirtilmemiş",
+                Phone = "Belirtilmemiş",
+                CreatedAt = DateTime.Now,
+                IsActive = true
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading customer info");
+            return new CustomerInfoDto { Name = "Bilinmeyen Müşteri" };
+        }
+    }
+
+    private async Task<DashboardStatsDto> EnhanceDashboardStats(DashboardStatsDto originalStats)
+    {
+        try
+        {
+            if (!_currentUserService.CustomerId.HasValue)
+                return originalStats;
+
+            // Reddedildi durumundaki ticket'ları kontrol et ve ekle
+            var rejectedTicketsCount = await _unitOfWork.Tickets.CountAsync(
+                x => x.CustomerId == _currentUserService.CustomerId &&
+                     x.Status == Domain.Enums.TicketStatus.Reddedildi); // Türkçe enum değeri
+
+            // Eğer reddedildi durumu yoksa ekle
+            var rejectedStatus = originalStats.TicketsByStatus.FirstOrDefault(x => x.Status == "Reddedildi");
+            if (rejectedStatus == null && rejectedTicketsCount > 0)
+            {
+                var rejectedStatusDto = new TicketsByStatusDto
+                {
+                    Status = "Reddedildi",
+                    Count = rejectedTicketsCount,
+                    Color = "#EF4444" // Red color
+                };
+                originalStats.TicketsByStatus.Add(rejectedStatusDto);
+            }
+
+            return originalStats;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error enhancing dashboard stats");
+            return originalStats;
         }
     }
 
@@ -122,53 +193,91 @@ public class DashboardController : Controller
     {
         try
         {
-            // Son 15 günde bu müşteriye ait ticket aktiviteleri
+            // Son 30 günde bu müşteriye ait ticket aktiviteleri
             var activities = new List<RecentActivityDto>();
-            var fifteenDaysAgo = DateTime.UtcNow.AddDays(-15);
+            var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
 
             if (!_currentUserService.CustomerId.HasValue)
                 return activities;
 
-            // Son oluşturulan ticketlar
+            // Son oluşturulan ticketlar (son 10)
             var recentTickets = await _unitOfWork.Tickets.FindAsync(
                 x => x.CustomerId == _currentUserService.CustomerId &&
-                     x.CreatedAt >= fifteenDaysAgo,
+                     x.CreatedAt >= thirtyDaysAgo,
                 x => x.Type);
 
-            foreach (var ticket in recentTickets.OrderByDescending(x => x.CreatedAt).Take(5))
+            foreach (var ticket in recentTickets.OrderByDescending(x => x.CreatedAt).Take(10))
             {
                 activities.Add(new RecentActivityDto
                 {
                     Type = "ticket_created",
                     Title = "Yeni ticket oluşturuldu",
-                    Description = $"#{ticket.TicketNumber} - {ticket.Title}",
+                    Description = $"#{ticket.TicketNumber} - {(ticket.Title.Length > 40 ? ticket.Title.Substring(0, 40) + "..." : ticket.Title)}",
                     CreatedAt = ticket.CreatedAt,
                     Color = "bg-blue-500"
                 });
             }
 
-            // Son yorumlar
+            // Son yorumlar (son 15)
             var recentComments = await _unitOfWork.TicketComments.FindAsync(
                 x => x.Ticket.CustomerId == _currentUserService.CustomerId &&
-                     x.CreatedAt >= fifteenDaysAgo,
-                x => x.Ticket);
+                     x.CreatedAt >= thirtyDaysAgo,
+                x => x.Ticket,
+                x => x.User);
 
-            foreach (var comment in recentComments.OrderByDescending(x => x.CreatedAt).Take(5))
+            foreach (var comment in recentComments.OrderByDescending(x => x.CreatedAt).Take(15))
             {
                 activities.Add(new RecentActivityDto
                 {
                     Type = "comment_added",
-                    Title = "Yorum eklendi",
+                    Title = comment.IsInternal ? "Dahili not eklendi" : "Yorum eklendi",
                     Description = $"#{comment.Ticket.TicketNumber} - {(comment.Content.Length > 50 ? comment.Content.Substring(0, 50) + "..." : comment.Content)}",
                     CreatedAt = comment.CreatedAt,
-                    Color = "bg-purple-500"
+                    Color = comment.IsInternal ? "bg-orange-500" : "bg-purple-500"
                 });
             }
 
-            // Durum değişiklikleri için ticket history (eğer var ise)
-            // Bu kısım projenizde ticket history entity'si varsa eklenebilir
+            // Durum değişiklikleri için ticket'ları analiz et
+            var statusChangedTickets = await _unitOfWork.Tickets.FindAsync(
+                x => x.CustomerId == _currentUserService.CustomerId &&
+                     x.UpdatedAt >= thirtyDaysAgo &&
+                     x.UpdatedAt > x.CreatedAt.AddMinutes(5)); // 5 dakikadan sonraki güncellemeler
 
-            return activities.OrderByDescending(x => x.CreatedAt).Take(10).ToList();
+            foreach (var ticket in statusChangedTickets.OrderByDescending(x => x.UpdatedAt).Take(10))
+            {
+                // Türkçe enum değerleri kullanarak color assignment
+                string statusColor = ticket.Status switch
+                {
+                    Domain.Enums.TicketStatus.İnceleniyor => "bg-yellow-500",
+                    Domain.Enums.TicketStatus.İşlemde => "bg-blue-500",
+                    Domain.Enums.TicketStatus.Çözüldü => "bg-green-500",
+                    Domain.Enums.TicketStatus.Kapandı => "bg-gray-500",
+                    Domain.Enums.TicketStatus.Reddedildi => "bg-red-500",
+                    _ => "bg-gray-400"
+                };
+
+                // Türkçe status text
+                string statusText = ticket.Status switch
+                {
+                    Domain.Enums.TicketStatus.İnceleniyor => "İnceleniyor",
+                    Domain.Enums.TicketStatus.İşlemde => "İşlemde",
+                    Domain.Enums.TicketStatus.Çözüldü => "Çözüldü",
+                    Domain.Enums.TicketStatus.Kapandı => "Kapandı",
+                    Domain.Enums.TicketStatus.Reddedildi => "Reddedildi",
+                    _ => "Güncellendi"
+                };
+
+                activities.Add(new RecentActivityDto
+                {
+                    Type = "status_changed",
+                    Title = $"Durum güncellendi: {statusText}",
+                    Description = $"#{ticket.TicketNumber} - {ticket.Title}",
+                    CreatedAt = ticket.UpdatedAt ?? ticket.CreatedAt,
+                    Color = statusColor
+                });
+            }
+
+            return activities.OrderByDescending(x => x.CreatedAt).Take(20).ToList();
         }
         catch (Exception ex)
         {
@@ -176,9 +285,32 @@ public class DashboardController : Controller
             return new List<RecentActivityDto>();
         }
     }
+
+    // AJAX endpoint for real-time updates
+    [HttpGet]
+    public async Task<JsonResult> GetLatestStats()
+    {
+        try
+        {
+            var statsQuery = new GetDashboardStatsQuery();
+            var result = await _mediator.Send(statsQuery);
+
+            if (result.IsSuccess)
+            {
+                return Json(new { success = true, data = result.Data });
+            }
+
+            return Json(new { success = false, error = "İstatistikler yüklenemedi" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting latest stats");
+            return Json(new { success = false, error = "Beklenmeyen hata" });
+        }
+    }
 }
 
-// DTO for activities
+// Enhanced DTOs
 public class RecentActivityDto
 {
     public string Type { get; set; } = string.Empty;
@@ -186,4 +318,14 @@ public class RecentActivityDto
     public string Description { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public string Color { get; set; } = string.Empty;
+}
+
+public class CustomerInfoDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public bool IsActive { get; set; }
 }

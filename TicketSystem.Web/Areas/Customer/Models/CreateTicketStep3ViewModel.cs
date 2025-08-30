@@ -54,30 +54,20 @@ public class CreateTicketStep3ViewModel
     {
         FormData = new Dictionary<string, object>();
 
-        Console.WriteLine($"=== ParseFormDataFromRequest START ===");
-        Console.WriteLine($"Total form keys: {form.Keys.Count}");
-
         foreach (var key in form.Keys)
         {
-            Console.WriteLine($"Form Key: '{key}' = '{form[key]}'");
 
             if (key.StartsWith("FormData[") && key.EndsWith("]"))
             {
                 var fieldName = key.Substring(9, key.Length - 10);
                 var value = form[key].ToString()?.Trim();
 
-                Console.WriteLine($"Extracted field: '{fieldName}' = '{value}'");
-
                 if (!string.IsNullOrEmpty(value))
                 {
                     FormData[fieldName] = value;
-                    Console.WriteLine($"Added to FormData: '{fieldName}' = '{value}'");
                 }
             }
         }
-
-        Console.WriteLine($"Final FormData count: {FormData.Count}");
-        Console.WriteLine($"=== ParseFormDataFromRequest END ===");
     }
 
     // Dinamik form alanlarından title çekme
