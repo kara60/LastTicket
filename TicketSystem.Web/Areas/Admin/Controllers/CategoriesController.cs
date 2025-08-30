@@ -130,7 +130,7 @@ public class CategoriesController : Controller
                         Name = moduleModel.Name.Trim(),
                         Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim(),
                         SortOrder = moduleModel.DisplayOrder,
-                        IsActive = moduleModel.IsActive,
+                        IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = _currentUserService.UserName ?? "System"
                     };
@@ -166,6 +166,15 @@ public class CategoriesController : Controller
                 _logger.LogWarning("Category not found or access denied. ID: {CategoryId}", id);
                 TempData["Error"] = "Kategori bulunamadı veya erişim yetkiniz yok.";
                 return RedirectToAction("Index");
+            }
+
+            // Check if category has tickets
+            var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CategoryId == id);
+            ViewBag.HasTickets = hasTickets;
+
+            if (hasTickets)
+            {
+                _logger.LogInformation("Category has tickets, edit will be restricted. CategoryId: {CategoryId}", id);
             }
 
             var model = new EditCategoryViewModel
@@ -254,7 +263,10 @@ public class CategoriesController : Controller
                 return View(model);
             }
 
-            // Update category
+            // Kategori kullanımda mı kontrol et - sadece ticket varsa düzenlemeyi kısıtla
+            var hasTickets = await _unitOfWork.Tickets.ExistsAsync(t => t.CategoryId == model.Id);
+
+            // ✅ Kategori temel bilgilerini her zaman güncelleyebilir
             category.Name = model.Name.Trim();
             category.Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim();
             category.Icon = model.Icon.Trim();
@@ -264,48 +276,85 @@ public class CategoriesController : Controller
             category.UpdatedAt = DateTime.UtcNow;
             category.UpdatedBy = _currentUserService.UserName ?? "System";
 
-            // Update modules - Daha güvenli bir yaklaşım
-            var existingModules = category.Modules.ToList();
-
-            // Önce mevcut modülleri clear et
-            category.Modules.Clear();
-
-            // Veritabanından manuel sil
-            foreach (var module in existingModules)
+            // ✅ Modül güncellemesi - ticket varsa sadece modül isim/açıklama değişikliklerine izin ver
+            if (hasTickets)
             {
-                _unitOfWork.TicketCategoryModules.Remove(module);
-            }
+                _logger.LogInformation("Category has tickets, limiting module operations. CategoryId: {CategoryId}", model.Id);
 
-            await _unitOfWork.SaveChangesAsync(); // Önce silme işlemini commit et
-
-            // Yeni modülleri ekle
-            if (model.Modules != null && model.Modules.Any())
-            {
-                foreach (var moduleModel in model.Modules.Where(m => !string.IsNullOrWhiteSpace(m.Name)))
+                // Sadece mevcut modülleri güncelle, yeni ekleme veya silme yapma
+                if (model.Modules != null && model.Modules.Any())
                 {
-                    var module = new TicketCategoryModule
+                    foreach (var moduleModel in model.Modules)
                     {
-                        TicketCategoryId = category.Id,
-                        Name = moduleModel.Name.Trim(),
-                        Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim(),
-                        SortOrder = moduleModel.DisplayOrder,
-                        IsActive = moduleModel.IsActive,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserName ?? "System"
-                    };
+                        // Sadece ID'si olan (mevcut) modülleri güncelle
+                        if (moduleModel.Id > 0)
+                        {
+                            var existingModule = category.Modules.FirstOrDefault(m => m.Id == moduleModel.Id);
+                            if (existingModule != null && !string.IsNullOrWhiteSpace(moduleModel.Name))
+                            {
+                                existingModule.Name = moduleModel.Name.Trim();
+                                existingModule.Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim();
+                                existingModule.SortOrder = moduleModel.DisplayOrder;
+                                existingModule.IsActive = moduleModel.IsActive;
+                                existingModule.UpdatedAt = DateTime.UtcNow;
+                                existingModule.UpdatedBy = _currentUserService.UserName ?? "System";
+                            }
+                        }
+                    }
+                }
 
-                    await _unitOfWork.TicketCategoryModules.AddAsync(module);
-                    category.Modules.Add(module); // Navigation property'ye de ekle
+                TempData["Info"] = "Kategori güncellendi. Not: Bu kategoriye ait ticket'lar olduğu için modül silme/ekleme işlemleri yapılamadı.";
+            }
+            else
+            {
+                // ✅ Ticket yoksa modülleri tamamen yeniden oluştur
+                _logger.LogInformation("Category has no tickets, full module update allowed. CategoryId: {CategoryId}", model.Id);
+
+                // Önce mevcut modülleri sil
+                var existingModules = category.Modules.ToList();
+                foreach (var module in existingModules)
+                {
+                    _unitOfWork.TicketCategoryModules.Remove(module);
+                }
+                category.Modules.Clear();
+
+                // Değişiklikleri kaydet
+                await _unitOfWork.SaveChangesAsync();
+
+                // Yeni modülleri ekle
+                if (model.Modules != null && model.Modules.Any())
+                {
+                    foreach (var moduleModel in model.Modules.Where(m => !string.IsNullOrWhiteSpace(m.Name)))
+                    {
+                        var module = new TicketCategoryModule
+                        {
+                            TicketCategoryId = category.Id,
+                            Name = moduleModel.Name.Trim(),
+                            Description = string.IsNullOrWhiteSpace(moduleModel.Description) ? null : moduleModel.Description.Trim(),
+                            SortOrder = moduleModel.DisplayOrder,
+                            IsActive = moduleModel.IsActive,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = _currentUserService.UserName ?? "System"
+                        };
+
+                        await _unitOfWork.TicketCategoryModules.AddAsync(module);
+                        category.Modules.Add(module);
+                    }
                 }
             }
 
+            // Final update
             _unitOfWork.TicketCategories.Update(category);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Category updated successfully. ID: {CategoryId}, Name: {CategoryName}",
-                category.Id, category.Name);
+            _logger.LogInformation("Category updated successfully. ID: {CategoryId}, Name: {CategoryName}, HasTickets: {HasTickets}",
+                category.Id, category.Name, hasTickets);
 
-            TempData["Success"] = "Kategori başarıyla güncellendi.";
+            if (!hasTickets)
+            {
+                TempData["Success"] = "Kategori ve modülleri başarıyla güncellendi.";
+            }
+
             return RedirectToAction("Index");
         }
         catch (Exception ex)

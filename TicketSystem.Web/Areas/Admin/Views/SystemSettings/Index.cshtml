@@ -18,9 +18,9 @@
                     <p class="text-sm text-gray-600 mt-1">Şirket bilgilerinizi ve sistem parametrelerinizi yönetin</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
+                    @* <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-medium">
                         ID: @Model.CompanyId
-                    </span>
+                    </span> *@
                     <span class="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium">
                         <i class="fas fa-shield-alt mr-1"></i>
                         Güvenli
@@ -203,7 +203,7 @@
                             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4">
                                 <div class="flex-1">
                                     <h5 class="text-sm font-medium text-gray-900">E-posta Bildirimleri</h5>
-                                    <p class="text-xs text-gray-600 mt-1">Ticket durumu değişikliklerinde e-posta gönderilir</p>
+                                    <p class="text-xs text-gray-600 mt-1">Yeni açılan ticketlarda yukarıda belirtilen adrese otomatik mail gönderilir.</p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="SendEmailNotifications" value="true" @(Model.SendEmailNotifications ? "checked" : "") class="sr-only peer" id="SendEmailNotifications" />

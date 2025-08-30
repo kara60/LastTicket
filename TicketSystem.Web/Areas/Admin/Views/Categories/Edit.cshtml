@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Kategori Düzenle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    // Check if category has tickets (this should be passed from controller)
+    bool hasTickets = ViewBag.HasTickets ?? false;
 }
 
 <div class="max-w-6xl mx-auto">
@@ -24,6 +26,13 @@
                     <span class="px-3 py-1 @(Model.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800") text-sm rounded-full font-medium">
                         @(Model.IsActive ? "Aktif" : "Pasif")
                     </span>
+                    @if (hasTickets)
+                    {
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full font-medium flex items-center">
+                            <i class="fas fa-ticket-alt mr-1"></i>
+                            Ticket'larda Kullanılıyor
+                        </span>
+                    }
                     <a href="/Admin/Categories" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
                         <i class="fas fa-arrow-left mr-2"></i>Geri Dön
                     </a>
@@ -31,6 +40,29 @@
             </div>
         </div>
     </div>
+
+    @if (hasTickets)
+    {
+        <!-- Warning Banner for Categories with Tickets -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">Kısıtlı Düzenleme Modu</h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>Bu kategoriye ait ticket'lar bulunduğu için:</p>
+                        <ul class="list-disc list-inside mt-1 space-y-1">
+                            <li><strong>Düzenleyebilirsiniz:</strong> Kategori adı, açıklama, simge, renk, sıralama</li>
+                            <li><strong>Modüller için:</strong> Sadece var olan modüllerin adı ve açıklaması güncellenebilir</li>
+                            <li><strong>Yapılamaz:</strong> Modül silme veya yeni modül ekleme</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Preview Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -217,20 +249,48 @@
                                 <i class="fas fa-puzzle-piece mr-3 text-green-500"></i>
                                 Modül Yönetimi
                             </h2>
-                            <p class="text-sm text-gray-600 mt-1">Bu kategoriye ait modülleri yönetin</p>
+                            <p class="text-sm text-gray-600 mt-1">
+                                @if (hasTickets)
+                                {
+                                    <text>Bu kategoriye ait modülleri düzenleyin (kısıtlı mod)</text>
+                                }
+                                else
+                                {
+                                    <text>Bu kategoriye ait modülleri yönetin</text>
+                                }
+                            </p>
                         </div>
-                        <button type="button"
-                                id="addModuleBtn"
-                                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center font-medium">
-                            <i class="fas fa-plus mr-2"></i>Modül Ekle
-                        </button>
+                        @if (!hasTickets)
+                        {
+                            <button type="button"
+                                    id="addModuleBtn"
+                                    class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center font-medium">
+                                <i class="fas fa-plus mr-2"></i>Modül Ekle
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">
+                                <i class="fas fa-lock mr-2"></i>
+                                Yeni modül ekleme devre dışı
+                            </div>
+                        }
                     </div>
 
                     <div id="modulesList" class="space-y-4">
                         @for (int i = 0; i < Model.Modules.Count; i++)
                         {
-                            <div class="module-item bg-gray-50 border border-gray-200 rounded-lg p-6">
+                            <div class="module-item bg-gray-50 border border-gray-200 rounded-lg p-6 @(hasTickets ? "border-yellow-200" : "")">
                                 <input type="hidden" name="Modules[@i].Id" value="@Model.Modules[i].Id" />
+
+                                @if (hasTickets)
+                                {
+                                    <div class="flex items-center mb-3">
+                                        <i class="fas fa-lock text-yellow-600 mr-2"></i>
+                                        <span class="text-sm text-yellow-700">Bu modül sadece düzenlenebilir</span>
+                                    </div>
+                                }
+
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Modül Adı *</label>
@@ -280,11 +340,20 @@
                                             <span class="ml-2 text-sm text-gray-700">Aktif</span>
                                         </label>
                                     </div>
-                                    <button type="button"
-                                            onclick="removeModule(this)"
-                                            class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
+                                    @if (!hasTickets)
+                                    {
+                                        <button type="button"
+                                                onclick="removeModule(this)"
+                                                class="p-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="p-3 text-gray-400">
+                                            <i class="fas fa-trash-alt opacity-50"></i>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -294,18 +363,35 @@
                     <div id="emptyModulesMessage" class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300" @(Model.Modules.Any() ? "style=display:none;" : "")>
                         <i class="fas fa-puzzle-piece text-gray-400 text-4xl mb-4"></i>
                         <p class="text-gray-500 text-lg">Henüz modül eklenmemiş</p>
-                        <p class="text-sm text-gray-400 mt-2">Modül eklemek için yukarıdaki butonu kullanın</p>
+                        @if (!hasTickets)
+                        {
+                            <p class="text-sm text-gray-400 mt-2">Modül eklemek için yukarıdaki butonu kullanın</p>
+                        }
+                        else
+                        {
+                            <p class="text-sm text-gray-400 mt-2">Bu kategoride ticket'lar olduğu için yeni modül eklenemez</p>
+                        }
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">
-                    <button type="button"
-                            onclick="if(confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve kategoriye ait tüm modüller de silinecek.')) { document.getElementById('deleteForm').submit(); }"
-                            class="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center font-medium">
-                        <i class="fas fa-trash mr-2"></i>
-                        Kategoriyi Sil
-                    </button>
+                    @if (!hasTickets)
+                    {
+                        <button type="button"
+                                onclick="if(confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve kategoriye ait tüm modüller de silinecek.')) { document.getElementById('deleteForm').submit(); }"
+                                class="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center font-medium">
+                            <i class="fas fa-trash mr-2"></i>
+                            Kategoriyi Sil
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg flex items-center font-medium">
+                            <i class="fas fa-lock mr-2"></i>
+                            Silme Devre Dışı (Ticket'larda Kullanılıyor)
+                        </div>
+                    }
 
                     <div class="flex items-center space-x-4">
                         <a href="/Admin/Categories"
@@ -322,10 +408,13 @@
                 </div>
             </form>
 
-            <!-- Hidden Delete Form -->
-            <form id="deleteForm" method="post" action="/Admin/Categories/Delete/@Model.Id" class="hidden">
-                @Html.AntiForgeryToken()
-            </form>
+            @if (!hasTickets)
+            {
+                <!-- Hidden Delete Form -->
+                <form id="deleteForm" method="post" action="/Admin/Categories/Delete/@Model.Id" class="hidden">
+                    @Html.AntiForgeryToken()
+                </form>
+            }
         </div>
     </div>
 </div>
@@ -335,16 +424,19 @@
         'use strict';
 
         let moduleIndex = @Model.Modules.Count;
+        const hasTickets = @hasTickets.ToString().ToLower();
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Edit sayfası yüklendi, mevcut modül sayısı:', moduleIndex);
+            console.log('Edit sayfası yüklendi, mevcut modül sayısı:', moduleIndex, 'hasTickets:', hasTickets);
             initializeAll();
         });
 
         function initializeAll() {
             initializeFormHandlers();
             initializePreview();
-            initializeModuleHandlers();
+            if (!hasTickets) {
+                initializeModuleHandlers();
+            }
             initializeIconSelection();
             initializeColorPicker();
             initializeColorPresets();
@@ -503,6 +595,11 @@
         }
 
         function addModule() {
+            if (hasTickets) {
+                alert('Bu kategoride ticket\'lar olduğu için yeni modül eklenemez.');
+                return;
+            }
+
             const modulesList = document.getElementById('modulesList');
             const emptyMessage = document.getElementById('emptyModulesMessage');
 
@@ -576,6 +673,11 @@
         }
 
         window.removeModule = function(button) {
+            if (hasTickets) {
+                alert('Bu kategoride ticket\'lar olduğu için modül silinemez.');
+                return;
+            }
+
             const moduleItem = button.closest('.module-item');
             if (moduleItem) {
                 moduleItem.remove();
